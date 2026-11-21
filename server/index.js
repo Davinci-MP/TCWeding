@@ -11,7 +11,7 @@ seedUsers();
 
 const app = express();
 app.disable('x-powered-by');
-app.set('trust proxy', config.trustProxy);
+app.set('trust proxy', 'loopback');
 app.use((_req, res, next) => { res.set({ 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'X-Frame-Options': 'SAMEORIGIN' }); next(); });
 app.use(express.json({ limit: '1mb' }));
 app.use(loadUser);
@@ -22,12 +22,11 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 const me = (u) => ({ id: u.id, email: u.email, name: u.name, role: u.role, roleLabel: ROLES[u.role].label, perms: ROLES[u.role].perms });
 app.post('/api/auth/login', sameOrigin, (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase(); const pw = String(req.body?.password || '');
-  // hai lớp giới hạn: theo IP + email (10 lần), và theo riêng email (50 lần) phòng khi IP bị giả qua proxy
-  const key = `${req.ip}|${email}`; const keyEmail = `*|${email}`;
-  if (loginLimited(key) || loginLimited(keyEmail, 50)) return res.status(429).json({ error: 'Đăng nhập sai quá nhiều lần. Thử lại sau 15 phút.' });
+  const key = `${req.ip}|${email}`;
+  if (loginLimited(key)) return res.status(429).json({ error: 'Đăng nhập sai quá nhiều lần. Thử lại sau 15 phút.' });
   const u = db.prepare('SELECT * FROM users WHERE email = ? AND active = 1').get(email);
-  if (!u || !verifyPassword(pw, u.pass_hash)) { loginFailed(key); loginFailed(keyEmail); return res.status(401).json({ error: 'Email hoặc mật khẩu không đúng.' }); }
-  loginOk(key); loginOk(keyEmail);
+  if (!u || !verifyPassword(pw, u.pass_hash)) { loginFailed(key); return res.status(401).json({ error: 'Email hoặc mật khẩu không đúng.' }); }
+  loginOk(key);
   createSession(res, u.id);
   res.json(me(u));
 });
