@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="utf-8">
+  <script>document.documentElement.classList.add("site-loading");setTimeout(function(){document.documentElement.classList.remove("site-loading")},1500)</script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>TCWedding — Chụp ảnh cưới, thiệp mời online và album cưới</title>
   <meta name="description" content="TCWedding chụp ảnh cưới studio và ngoại cảnh, làm thiệp mời online và album cưới. Xem bộ sưu tập và đặt lịch tư vấn.">
@@ -32,9 +33,10 @@
         <img src="/images/hero.jpg" alt="Cô dâu chú rể trong buổi chụp ảnh cưới của TCWedding" fetchpriority="high">
       </figure>
       <div class="wrap hero__in">
-        <p class="eyebrow">TCWedding · Ảnh cưới · <span class="todo todo--light">[Tỉnh/thành]</span></p>
-        <h1 class="hero__title" id="hero-title">Ảnh cưới giữ nguyên cách hai bạn nhìn nhau</h1>
-        <p class="hero__lead">Chụp ảnh cưới studio và ngoại cảnh, thiệp mời online và album in cho các cặp đôi tại <span class="todo todo--light">[khu vực hoạt động]</span>.</p>
+        <!-- Chữ trong data-site lấy từ /admin/ › Thông tin website; chữ có sẵn dưới đây là mặc định (khớp HOME_DEFAULTS ở server/site.js) -->
+        <p class="eyebrow"><span>TCWedding · Ảnh cưới<span data-site-wrap="area" hidden> · <span data-site="area"></span></span></span></p>
+        <h1 class="hero__title" id="hero-title" data-site="heroTitle">Ảnh cưới giữ nguyên cách hai bạn nhìn nhau</h1>
+        <p class="hero__lead" data-site="heroLead">Chụp ảnh cưới studio và ngoại cảnh, thiệp mời online và album in cho các cặp đôi.</p>
         <div class="hero__actions">
           <a class="btn btn--light" href="#bo-suu-tap">Xem bộ sưu tập</a>
           <a class="btn btn--ghost" href="#lien-he">Đặt lịch tư vấn</a>
@@ -50,9 +52,9 @@
         </figure>
         <div class="intro__body">
           <p class="eyebrow">Về TCWedding</p>
-          <h2 class="h2" id="intro-title">Một ekip nhỏ, theo hai bạn từ buổi tư vấn đến cuốn album</h2>
+          <h2 class="h2" id="intro-title" data-site="introTitle">Một ekip nhỏ, theo hai bạn từ buổi tư vấn đến cuốn album</h2>
           <!-- TODO nội dung: đoạn giới thiệu thật do TCWedding cung cấp -->
-          <p class="lead">TCWedding là studio ảnh cưới do <span class="todo">[tên nhiếp ảnh gia / người sáng lập]</span> thành lập năm <span class="todo">[năm]</span>. Chúng tôi chụp ít buổi mỗi tháng để dành đủ thời gian cho từng cặp đôi: chọn concept, chọn trang phục, chụp và chỉnh màu.</p>
+          <p class="lead" data-site="introBody" data-site-multiline>TCWedding chụp ít buổi mỗi tháng để dành đủ thời gian cho từng cặp đôi: chọn concept, chọn trang phục, chụp và chỉnh màu.</p>
           <dl class="facts">
             <div><dt><span class="todo">[số]</span></dt><dd>cặp đôi đã chụp</dd></div>
             <div><dt><span class="todo">[số]</span></dt><dd>năm làm nghề</dd></div>
@@ -139,10 +141,12 @@
           <h2 class="h2" id="contact-title">Đặt lịch tư vấn ảnh cưới</h2>
           <p class="lead">Để lại tên và số điện thoại, TCWedding gọi lại để hẹn buổi tư vấn tại studio hoặc qua Zalo.</p>
           <ul class="contact__list">
-            <li><span>Điện thoại / Zalo</span><span class="todo todo--light">[Số điện thoại]</span></li>
-            <li><span>Email</span><span class="todo todo--light">[Email]</span></li>
-            <li><span>Studio</span><span class="todo todo--light">[Đường, quận/huyện]</span></li>
-            <li><span>Giờ mở cửa</span><span class="todo todo--light">[Giờ làm việc]</span></li>
+            <li data-site-wrap="phone" hidden><span>Điện thoại</span><a data-site-link="phone" href="#lien-he"></a></li>
+            <li data-site-wrap="email" hidden><span>Email</span><a data-site-link="email" href="#lien-he"></a></li>
+            <li data-site-wrap="zalo" hidden><span>Zalo</span><a data-site-link="zalo" data-site-keep-text href="#lien-he" target="_blank" rel="noopener">Nhắn tin qua Zalo</a></li>
+            <li data-site-wrap="address" hidden><span>Studio</span><span data-site="address"></span></li>
+            <li data-site-wrap="hours" hidden><span>Giờ mở cửa</span><span data-site="hours"></span></li>
+            <li data-site-wrap="area" hidden><span>Khu vực</span><span data-site="area"></span></li>
           </ul>
         </div>
         <form class="form" id="contact-form" novalidate>

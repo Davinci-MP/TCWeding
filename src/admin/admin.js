@@ -9,14 +9,14 @@ let ME = null;
 let TAX = null;
 
 // ---------- API ----------
-class ApiError extends Error { constructor(msg, status, field) { super(msg); this.status = status; this.field = field; } }
+class ApiError extends Error { constructor(msg, status, field, fields) { super(msg); this.status = status; this.field = field; this.fields = fields || {}; } }
 async function api(path, opts = {}) {
   const init = { method: opts.method || 'GET', credentials: 'same-origin', headers: {} };
   if (opts.body !== undefined) { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(opts.body); }
   const r = await fetch(path, init);
   const j = await r.json().catch(() => ({}));
   if (r.status === 401 && !path.startsWith('/api/auth/login')) { ME = null; renderLogin('Phiên đăng nhập đã hết. Vui lòng đăng nhập lại.'); throw new ApiError('unauth', 401); }
-  if (!r.ok) throw new ApiError(j.error || `Lỗi ${r.status}`, r.status, j.field);
+  if (!r.ok) throw new ApiError(j.error || `Lỗi ${r.status}`, r.status, j.field, j.fields);
   return j;
 }
 function toast(msg, err = false) {
@@ -26,6 +26,7 @@ function toast(msg, err = false) {
 const fail = (e) => { if (e.status !== 401) toast(e.message || 'Có lỗi xảy ra.', true); };
 const when = (s) => { if (!s) return ''; const d = new Date(s.includes('T') ? s : s.replace(' ', 'T') + 'Z'); return d.toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }); };
 const canAlbums = () => ME?.perms.includes('albums');
+const canSite = () => ME?.perms.includes('site');
 const statusBadge = (a) => a.deletedAt ? '<span class="badge badge--trash">Thùng rác</span>' : a.status === 'published' ? '<span class="badge badge--published">Đã xuất bản</span>' : '<span class="badge badge--draft">Nháp</span>';
 const slugify = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80);
 
@@ -57,6 +58,7 @@ function shell(active, inner) {
       <nav aria-label="Phân hệ quản trị">
         <a href="#/" ${active === 'dash' ? 'aria-current="page"' : ''}>Tổng quan</a>
         ${canAlbums() ? `<a href="#/albums" ${active === 'albums' ? 'aria-current="page"' : ''}>Album &amp; Portfolio</a>` : ''}
+        ${canSite() ? `<a href="#/site-settings" ${active === 'site' ? 'aria-current="page"' : ''}>Thông tin website</a>` : ''}
         <a class="soon" aria-disabled="true">Khách hàng <em>sắp có</em></a>
         <a class="soon" aria-disabled="true">Thiệp mời <em>sắp có</em></a>
       </nav>
@@ -77,7 +79,7 @@ function mount(active, inner, title) {
 }
 
 // ---------- Tổng quan ----------
-const ACT = { 'album.create': 'tạo album', 'album.update': 'lưu album', 'album.publish': 'xuất bản', 'album.unpublish': 'gỡ xuất bản', 'album.trash': 'chuyển vào thùng rác', 'album.restore': 'khôi phục', 'album.cover': 'đổi ảnh bìa', 'photo.upload': 'tải ảnh lên', 'photo.drive-import': 'nhập ảnh từ Google Drive', 'photo.reorder': 'đổi thứ tự ảnh', 'photo.delete': 'xoá ảnh', 'taxonomy.create': 'thêm phân loại' };
+const ACT = { 'album.create': 'tạo album', 'album.update': 'lưu album', 'album.publish': 'xuất bản', 'album.unpublish': 'gỡ xuất bản', 'album.trash': 'chuyển vào thùng rác', 'album.restore': 'khôi phục', 'album.cover': 'đổi ảnh bìa', 'photo.upload': 'tải ảnh lên', 'photo.drive-import': 'nhập ảnh từ Google Drive', 'photo.reorder': 'đổi thứ tự ảnh', 'photo.delete': 'xoá ảnh', 'taxonomy.create': 'thêm phân loại', 'site.update': 'cập nhật thông tin website' };
 async function viewDashboard() {
   if (!canAlbums()) {
     mount('dash', `<div class="top"><div><h1>Xin chào, ${esc(ME.name)}</h1><p>Vai trò: ${esc(ME.roleLabel)}</p></div></div>
@@ -413,6 +415,75 @@ async function viewEditor(id) {
   window.onbeforeunload = () => (dirty || running ? true : undefined);
 }
 
+// ---------- Thông tin website (chỉ Admin) ----------
+const SITE_GROUPS = [
+  ['Liên hệ studio', 'Hiện ở mục Liên hệ và cuối trang. Trường để trống sẽ được ẩn trên website.', [
+    ['phone', 'Số điện thoại', 'tel', 'Ví dụ 0912 345 678 — khách bấm để gọi.'],
+    ['email', 'Email', 'email', 'Khách bấm để gửi email.'],
+    ['address', 'Địa chỉ studio', 'text', 'Tên đường và quận/huyện là đủ.'],
+    ['hours', 'Giờ mở cửa', 'text', 'Ví dụ 8:00–20:00, thứ Hai đến Chủ nhật.'],
+    ['area', 'Khu vực hoạt động', 'text', 'Hiện ở đầu trang chủ và cuối trang, ví dụ Hà Nội và các tỉnh lân cận.'],
+  ]],
+  ['Mạng xã hội', 'Dán đường dẫn trang của studio. Trường để trống sẽ được ẩn.', [
+    ['zalo', 'Zalo', 'url', 'https://zalo.me/…'],
+    ['facebook', 'Facebook', 'url', 'https://www.facebook.com/…'],
+    ['tiktok', 'TikTok', 'url', 'https://www.tiktok.com/@…'],
+    ['instagram', 'Instagram', 'url', 'https://www.instagram.com/…'],
+  ]],
+  ['Trang chủ', 'Để trống sẽ dùng nội dung mặc định (hiện mờ trong ô).', [
+    ['heroTitle', 'Tiêu đề chính', 'text', 'Dòng chữ lớn ở ảnh mở đầu.'],
+    ['heroLead', 'Mô tả dưới tiêu đề', 'textarea', ''],
+    ['introTitle', 'Tiêu đề giới thiệu', 'text', ''],
+    ['introBody', 'Nội dung giới thiệu', 'textarea-lg', 'Xuống dòng hai lần để tách đoạn.'],
+  ]],
+];
+const SITE_MAX = { phone: 30, email: 120, address: 200, hours: 200, area: 120, zalo: 300, facebook: 300, tiktok: 300, instagram: 300, heroTitle: 120, heroLead: 300, introTitle: 150, introBody: 2000 };
+
+async function viewSiteSettings() {
+  mount('site', `<p class="note">Đang tải…</p>`, 'Thông tin website');
+  let S;
+  try { S = await api('/api/admin/site-settings'); } catch (e) { fail(e); return; }
+  const input = (k, label, type, hint) => {
+    const v = esc(S.values[k]); const ph = esc(S.defaults[k] || (type === 'url' ? hint : ''));
+    const ctl = type.startsWith('textarea')
+      ? `<textarea name="${k}" id="f-${k}" maxlength="${SITE_MAX[k]}" rows="${type === 'textarea-lg' ? 6 : 3}" placeholder="${ph}" aria-describedby="e-${k}">${v}</textarea>`
+      : `<input name="${k}" id="f-${k}" type="${type}" maxlength="${SITE_MAX[k]}" value="${v}" placeholder="${ph}" aria-describedby="e-${k}" ${type === 'tel' ? 'inputmode="tel" autocomplete="off"' : ''}>`;
+    return `<label class="field" data-f="${k}"><span>${label}</span>${ctl}${hint && type !== 'url' ? `<span class="hint">${esc(hint)}</span>` : ''}<span class="err" id="e-${k}"></span></label>`;
+  };
+  const meta = () => (S.updatedAt ? `Lần cập nhật gần nhất: ${when(S.updatedAt)}${S.updatedBy ? ` · ${esc(S.updatedBy)}` : ''}` : 'Chưa lưu lần nào.');
+  $('#main').innerHTML = `<form id="siteForm" novalidate>
+    <div class="top"><div><h1>Thông tin website</h1><p id="siteMeta">${meta()}</p></div>
+      <div class="top__actions"><span class="note save-state" id="saveState" role="status" aria-live="polite"></span><a class="btn" href="/" target="_blank" rel="noopener">Xem trang chủ ↗</a><button class="btn btn--pri" type="submit" id="siteSave">Lưu thông tin</button></div></div>
+    <p class="err" id="siteErr" role="alert"></p>
+    <div class="site-grid">${SITE_GROUPS.map(([title, note, fields]) => `<section class="card form"><div><h2>${title}</h2><p class="note">${note}</p></div>${fields.map((f) => input(...f)).join('')}</section>`).join('')}</div>
+  </form>`;
+  const form = $('#siteForm'); const state = $('#saveState'); let dirty = false;
+  const setState = (txt, cls = '') => { state.textContent = txt; state.className = `note save-state ${cls}`; };
+  const clearErr = (k) => { const f = $(`[data-f="${k}"]`, form); if (f) { f.classList.remove('has-err'); $(`#e-${k}`).textContent = ''; } };
+  form.addEventListener('input', (e) => { dirty = true; if (e.target.name) clearErr(e.target.name); setState('Có thay đổi chưa lưu'); });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = $('#siteSave'); btn.disabled = true; $('#siteErr').textContent = ''; setState('Đang lưu…');
+    Object.keys(SITE_MAX).forEach(clearErr);
+    const body = Object.fromEntries(Object.keys(SITE_MAX).map((k) => [k, form[k].value]));
+    try {
+      S = await api('/api/admin/site-settings', { method: 'PUT', body });
+      // hiện lại giá trị đã chuẩn hoá (vd thêm https://)
+      for (const k of Object.keys(SITE_MAX)) form[k].value = S.values[k];
+      dirty = false; $('#siteMeta').innerHTML = meta();
+      setState(`Đã lưu lúc ${new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`, 'ok');
+      toast(S.changed?.length ? 'Đã lưu thông tin website.' : 'Không có thay đổi nào.');
+    } catch (err) {
+      if (err.status === 401) return;
+      const first = Object.keys(err.fields || {})[0];
+      for (const [k, msg] of Object.entries(err.fields || {})) { const f = $(`[data-f="${k}"]`, form); if (f) { f.classList.add('has-err'); $(`#e-${k}`).textContent = msg; } }
+      $('#siteErr').textContent = err.message; setState('Chưa lưu — có lỗi', 'bad');
+      if (first) form[first].focus();
+    } finally { btn.disabled = false; }
+  });
+  window.onbeforeunload = () => (dirty ? true : undefined);
+}
+
 // ---------- Định tuyến ----------
 async function route() {
   window.onbeforeunload = null;
@@ -421,6 +492,10 @@ async function route() {
   const [path, qs] = h.split('?'); const q = new URLSearchParams(qs || '');
   const m = path.match(/^\/albums\/(new|\d+)$/);
   if ((path === '/albums' || m) && !canAlbums()) { toast('Tài khoản của bạn không có quyền quản lý album.', true); location.hash = '#/'; return; }
+  if (path === '/site-settings') {
+    if (!canSite()) { toast('Chỉ Admin được chỉnh Thông tin website.', true); location.hash = '#/'; return; }
+    return viewSiteSettings();
+  }
   if (m) return viewEditor(m[1]);
   if (path === '/albums') return viewAlbums(q.get('status') || 'all');
   return viewDashboard();

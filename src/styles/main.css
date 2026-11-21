@@ -31,6 +31,9 @@ h1, h2, h3 { margin: 0; font-weight: 500; }
 p { margin: 0; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 body.menu-open { overflow: hidden; }
+[hidden] { display: none !important; }
+/* chờ Thông tin website tải xong để không nháy chữ mặc định (tối đa 1,5 giây — xem script đầu trang) */
+.site-loading [data-site] { visibility: hidden; }
 
 .wrap { width: 100%; max-width: calc(var(--max) + var(--gutter) * 2); margin-inline: auto; padding-inline: var(--gutter); }
 
@@ -227,6 +230,10 @@ body.menu-open { overflow: hidden; }
 .ftr__col a { text-decoration: none; padding: 10px 0; transition: color .2s; }
 .ftr__col a:hover { color: #fff; }
 .ftr__col .todo { margin: 8px 0; }
+.ftr__txt { padding: 8px 0; color: rgba(243,236,227,.6); }
+.contact__list a { color: var(--dark-ink); text-decoration: underline; text-decoration-color: rgba(243,236,227,.35); text-underline-offset: 4px; padding: 10px 0; margin: -10px 0; transition: text-decoration-color .2s; text-align: right; }
+.contact__list a:hover { text-decoration-color: var(--dark-ink); }
+.contact__list li > span:last-child { text-align: right; }
 .ftr__base { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-block: 20px; border-top: 1px solid rgba(243,236,227,.12); font-size: 13px; color: rgba(243,236,227,.5); }
 .ftr__top { text-decoration: none; padding: 12px 0; }
 .ftr__top:hover { color: #fff; }
