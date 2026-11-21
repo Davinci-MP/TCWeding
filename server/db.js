@@ -69,6 +69,11 @@ CREATE TABLE IF NOT EXISTS activity (
 );
 `);
 
+if (!db.prepare('PRAGMA table_info(photos)').all().some((column) => column.name === 'drive_file_id')) {
+  db.exec('ALTER TABLE photos ADD COLUMN drive_file_id TEXT');
+}
+db.exec('CREATE UNIQUE INDEX IF NOT EXISTS photos_drive_source ON photos(album_id, drive_file_id) WHERE drive_file_id IS NOT NULL');
+
 // Lựa chọn phân loại ban đầu; người quản trị thêm lựa chọn mới trong /admin/
 const SEED_TAX = {
   style: ['Studio', 'Ngoại cảnh', 'Phóng sự cưới', 'Lookbook'],

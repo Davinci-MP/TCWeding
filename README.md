@@ -82,3 +82,15 @@ Logo đóng lên bản thumb/large của **ảnh tải lên sau đó**; bản g�
 - [x] Ngày 1: header, menu mobile, hero, giới thiệu, footer, khung các section, khung /profile/
 - [x] Mốc 1: /admin/ (đăng nhập, dashboard, Album & Portfolio), tải ảnh, xuất bản → /#bo-suu-tap
 - [ ] Thiệp mời · Bảng giá · Liên hệ (kết nối form) · Profile · Khách hàng (Sale) · Domain/hosting
+
+## Nhập nhiều ảnh từ Google Drive
+
+1. Tạo hoặc chọn một dự án Google Cloud. Bật **Google Drive API** và **Google Picker API**.
+2. Thiết lập màn hình đồng ý OAuth và thêm tài khoản Google của bạn làm người dùng thử nếu ứng dụng còn ở chế độ Testing. Tạo OAuth Client ID loại **Web application** và thêm origin bạn dùng để mở admin (ví dụ `http://localhost:8787`, `http://localhost:5173` hoặc `https://tcwedding.vn`).
+3. Tạo API key cho Picker, giới hạn theo origin website và Google Picker API. Điền `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_PICKER_API_KEY` và `GOOGLE_CLOUD_PROJECT_NUMBER` trong `.env`. Số dự án khác với tên hoặc ID dự án. Khởi động lại server.
+4. Vào **Album & Portfolio**, lưu một album nháp rồi bấm **Nhập ảnh từ Google Drive**. Chọn nhiều ảnh JPG, PNG hoặc WebP. Bạn có thể thử lại từng ảnh lỗi. Nếu phiên Drive hết hạn, mở lại bộ chọn và chọn lại ảnh cần nhập. Cùng một tệp Drive trong cùng album chỉ tạo một ảnh.
+5. Kiểm tra ảnh đã nhập, chọn **Đặt làm bìa**, dùng **Xem trước**, rồi bấm **Xuất bản** khi sẵn sàng.
+
+TCWedding tải tệp đã chọn bằng quyền Google `drive.file`. Token ngắn hạn chỉ phục vụ lần nhập và không lưu vào SQLite. Ảnh gốc nằm trên Drive. Máy chủ tạo bản WebP 720 px và 2200 px, giữ cơ chế watermark và quyền xem ảnh nháp của album hiện có.
+
+Mặc định hai bản WebP được lưu trong `DATA_DIR/drive-media`. Để chuyển dung lượng sang ổ riêng, cấu hình `DRIVE_MEDIA_DIR` trỏ vào ổ lưu trữ bền vững trước khi nhập. Nếu đổi đường dẫn sau khi đã nhập ảnh, di chuyển cả thư mục `thumb` và `large` sang vị trí mới. Sao lưu thư mục này cùng SQLite. Website vẫn phục vụ ảnh qua `/media/` để kiểm tra quyền xem ảnh nháp.

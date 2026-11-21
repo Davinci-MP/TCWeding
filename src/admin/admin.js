@@ -1,3 +1,5 @@
+import { prepareDrivePicker, selectDrivePhotos } from './drive-picker.js';
+
 // TCWedding quản trị — SPA nhỏ, điều hướng bằng hash: #/ · #/albums · #/albums/new · #/albums/:id
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -75,7 +77,7 @@ function mount(active, inner, title) {
 }
 
 // ---------- Tổng quan ----------
-const ACT = { 'album.create': 'tạo album', 'album.update': 'lưu album', 'album.publish': 'xuất bản', 'album.unpublish': 'gỡ xuất bản', 'album.trash': 'chuyển vào thùng rác', 'album.restore': 'khôi phục', 'album.cover': 'đổi ảnh bìa', 'photo.upload': 'tải ảnh lên', 'photo.reorder': 'đổi thứ tự ảnh', 'photo.delete': 'xoá ảnh', 'taxonomy.create': 'thêm phân loại' };
+const ACT = { 'album.create': 'tạo album', 'album.update': 'lưu album', 'album.publish': 'xuất bản', 'album.unpublish': 'gỡ xuất bản', 'album.trash': 'chuyển vào thùng rác', 'album.restore': 'khôi phục', 'album.cover': 'đổi ảnh bìa', 'photo.upload': 'tải ảnh lên', 'photo.drive-import': 'nhập ảnh từ Google Drive', 'photo.reorder': 'đổi thứ tự ảnh', 'photo.delete': 'xoá ảnh', 'taxonomy.create': 'thêm phân loại' };
 async function viewDashboard() {
   if (!canAlbums()) {
     mount('dash', `<div class="top"><div><h1>Xin chào, ${esc(ME.name)}</h1><p>Vai trò: ${esc(ME.roleLabel)}</p></div></div>
@@ -163,6 +165,10 @@ async function viewEditor(id) {
           <b>Kéo thả ảnh vào đây hoặc bấm để chọn</b><span>JPG, PNG, WebP · tối đa ${25} MB mỗi ảnh · chọn được nhiều ảnh</span>
           <input type="file" id="fileIn" class="sr" accept="image/jpeg,image/png,image/webp" multiple ${isNew || A.deletedAt ? 'disabled' : ''}>
         </label>
+        ${isNew || A.deletedAt ? '' : `<div id="driveControls" ${A.status !== 'draft' ? 'hidden' : ''}>
+          <button class="btn" type="button" id="driveImport" style="margin-top:12px">Nhập ảnh từ Google Drive</button>
+          <p class="note" id="driveStatus" role="status"></p>
+        </div>`}
         <div id="queueWrap"></div>
         <p class="note" style="margin-top:12px">Kéo ảnh để đổi thứ tự (hoặc dùng nút ‹ ›). Ảnh có viền đỏ là ảnh bìa.</p>
         <div class="photos" id="photos"></div>
@@ -216,12 +222,17 @@ async function viewEditor(id) {
 
   $('#edHead').addEventListener('click', async (e) => {
     const b = e.target.closest('[data-act]'); if (!b) return;
-    const act = b.dataset.act; b.disabled = true;
+    const act = b.dataset.act;
+    if (act === 'publish' && (choosingDrive || running)) {
+      toast('Hãy chờ quá trình tải ảnh hoàn tất trước khi xuất bản.', true);
+      return;
+    }
+    b.disabled = true;
     try {
       if (act === 'save') await save();
       else if (act === 'preview') { if (dirty) await save(); window.open(`/?preview=${A.id}#bo-suu-tap`, '_blank', 'noopener'); }
-      else if (act === 'publish') { if (dirty) await save(); A = await api(`/api/admin/albums/${A.id}/publish`, { method: 'POST' }); refreshHead(); renderPhotos(); toast('Đã xuất bản — album hiện trên website.'); }
-      else if (act === 'unpublish') { A = await api(`/api/admin/albums/${A.id}/unpublish`, { method: 'POST' }); refreshHead(); toast('Đã gỡ xuất bản — album không còn hiện trên website.'); }
+      else if (act === 'publish') { if (dirty) await save(); A = await api(`/api/admin/albums/${A.id}/publish`, { method: 'POST' }); refreshHead(); syncDriveControls(); renderPhotos(); toast('Đã xuất bản — album hiện trên website.'); }
+      else if (act === 'unpublish') { A = await api(`/api/admin/albums/${A.id}/unpublish`, { method: 'POST' }); refreshHead(); syncDriveControls(); toast('Đã gỡ xuất bản — album không còn hiện trên website.'); }
       else if (act === 'trash') { if (!confirm(`Chuyển album "${A.title}" vào thùng rác? Album sẽ bị gỡ khỏi website; có thể khôi phục sau.`)) { b.disabled = false; return; } await api(`/api/admin/albums/${A.id}/trash`, { method: 'POST' }); toast('Đã chuyển vào thùng rác.'); location.hash = '#/albums?status=trash'; return; }
       else if (act === 'restore') { await api(`/api/admin/albums/${A.id}/restore`, { method: 'POST' }); toast('Đã khôi phục album (ở trạng thái nháp).'); viewEditor(String(A.id)); return; }
     } catch (err) { if (act !== 'save') fail(err); }
@@ -255,7 +266,7 @@ async function viewEditor(id) {
     const ids = A.photos.map((p) => p.id); const i = ids.indexOf(pid);
     if (e.target.closest('[data-mv]')) { const d = Number(e.target.closest('[data-mv]').dataset.mv); const j = i + d; if (j < 0 || j >= ids.length) return; [ids[i], ids[j]] = [ids[j], ids[i]]; await saveOrder(ids); }
     else if (e.target.closest('[data-cover]')) { try { A = await api(`/api/admin/albums/${A.id}/cover`, { method: 'PUT', body: { photoId: pid } }); renderPhotos(); toast('Đã đổi ảnh bìa.'); } catch (err) { fail(err); } }
-    else if (e.target.closest('[data-del]')) { if (!confirm('Xoá ảnh này khỏi album? Thao tác này xoá cả bản gốc.')) return; try { A = await api(`/api/admin/photos/${pid}`, { method: 'DELETE' }); renderPhotos(); toast('Đã xoá ảnh.'); } catch (err) { fail(err); } }
+    else if (e.target.closest('[data-del]')) { if (!confirm('Xoá ảnh này và các bản lưu trên website?')) return; try { A = await api(`/api/admin/photos/${pid}`, { method: 'DELETE' }); renderPhotos(); toast('Đã xoá ảnh.'); } catch (err) { fail(err); } }
   });
   // kéo thả đổi thứ tự
   let dragId = null;
@@ -272,18 +283,88 @@ async function viewEditor(id) {
   // tải ảnh: mỗi ảnh một yêu cầu, 3 ảnh song song, tiến độ + lỗi riêng từng ảnh, thử lại ảnh lỗi
   const queue = [];
   let running = 0;
+  let choosingDrive = false;
+  let driveToken;
+  let pickerConfig;
+  const queueWrap = $('#queueWrap');
+  const driveControls = $('#driveControls');
+  const driveButton = $('#driveImport');
+  const driveStatus = $('#driveStatus');
+  function syncDriveControls() {
+    if (driveControls) driveControls.hidden = A.status !== 'draft';
+  }
+  async function loadDrivePicker() {
+    const settings = await api('/api/admin/drive/config');
+    if (!settings.enabled) throw new Error('Chưa cấu hình Google Drive. Xem hướng dẫn trong README.');
+    await prepareDrivePicker();
+    pickerConfig = settings;
+  }
+  if (driveButton) {
+    driveButton.addEventListener('click', async () => {
+      choosingDrive = true;
+      driveButton.disabled = true;
+      driveStatus.textContent = '';
+      try {
+        if (!pickerConfig) {
+          await loadDrivePicker();
+          driveStatus.textContent = 'Đã sẵn sàng. Bấm nút để chọn ảnh.';
+          return;
+        }
+        const selection = await selectDrivePhotos(pickerConfig);
+        if (!selection || !queueWrap.isConnected) return;
+        driveToken = selection.token;
+        for (const drive of selection.files) {
+          const previous = queue.find((entry) => entry.drive?.id === drive.id);
+          if (previous) {
+            const wasRemoved = previous.state === 'ok' && !A.photos.some((photo) => photo.id === previous.photoId);
+            if (previous.state === 'fail' || wasRemoved) {
+              Object.assign(previous, { drive, state: 'wait', pct: 0 });
+            }
+          } else queue.push({ drive, state: 'wait', pct: 0 });
+        }
+        renderQueue();
+        pump();
+      } catch (err) {
+        driveStatus.textContent = err.message;
+      } finally {
+        choosingDrive = false;
+        driveButton.disabled = false;
+      }
+    });
+    if (!driveControls.hidden) {
+      driveButton.disabled = true;
+      loadDrivePicker().catch((err) => { driveStatus.textContent = err.message; })
+        .finally(() => { driveButton.disabled = false; });
+    }
+  }
   function renderQueue() {
     const done = queue.filter((q) => q.state === 'ok').length; const failed = queue.filter((q) => q.state === 'fail').length;
-    $('#queueWrap').innerHTML = queue.length ? `<div class="qhead"><span>Đã xong ${done}/${queue.length}${failed ? ` · <b style="color:var(--err)">${failed} lỗi</b>` : ''}</span>
+    queueWrap.innerHTML = queue.length ? `<div class="qhead"><span>Đã xong ${done}/${queue.length}${failed ? ` · <b style="color:var(--err)">${failed} lỗi</b>` : ''}</span>
       <span>${failed ? '<button type="button" class="btn btn--sm" data-retry-all>Thử lại ảnh lỗi</button>' : ''} ${queue.every((q) => q.state === 'ok' || q.state === 'fail') ? '<button type="button" class="btn btn--sm btn--ghost" data-clear>Ẩn danh sách</button>' : ''}</span></div>
-      <ul class="queue">${queue.map((q, i) => `<li class="${q.state}"><span class="name">${esc(q.file.name)}</span><span>${q.state === 'ok' ? '✓ Xong' : q.state === 'fail' ? `<button type="button" class="btn btn--sm" data-retry="${i}">Thử lại</button>` : q.state === 'wait' ? 'Đang chờ' : `${q.pct}%`}</span>
+      <ul class="queue">${queue.map((q, i) => `<li class="${q.state}"><span class="name">${esc(q.drive?.name || q.file?.name || 'Ảnh Google Drive')}</span><span>${q.state === 'ok' ? '✓ Xong' : q.state === 'fail' ? `<button type="button" class="btn btn--sm" data-retry="${i}">Thử lại</button>` : q.state === 'wait' ? 'Đang chờ' : (q.drive ? 'Đang nhập' : `${q.pct}%`)}</span>
         <span class="bar"><i style="width:${q.state === 'ok' ? 100 : q.pct}%"></i></span>${q.state === 'fail' ? `<span class="msg">${esc(q.error)}</span>` : ''}</li>`).join('')}</ul>` : '';
   }
-  $('#queueWrap').addEventListener('click', (e) => {
+  queueWrap.addEventListener('click', (e) => {
     if (e.target.closest('[data-retry]')) { const q = queue[Number(e.target.closest('[data-retry]').dataset.retry)]; q.state = 'wait'; q.pct = 0; renderQueue(); pump(); }
     if (e.target.closest('[data-retry-all]')) { queue.filter((q) => q.state === 'fail').forEach((q) => { q.state = 'wait'; q.pct = 0; }); renderQueue(); pump(); }
     if (e.target.closest('[data-clear]')) { queue.length = 0; renderQueue(); }
   });
+  async function importDrivePhoto(q) {
+    try {
+      const { id: fileId, name, resourceKey } = q.drive;
+      const photo = await api(`/api/admin/albums/${A.id}/photos/drive`, {
+        method: 'POST', body: { fileId, name, resourceKey, accessToken: driveToken },
+      });
+      q.state = 'ok';
+      q.photoId = photo.id;
+      if (!A.photos.some((item) => item.id === photo.id)) A.photos.push(photo);
+      if (!A.coverPhotoId) A.coverPhotoId = photo.id;
+      if (queueWrap.isConnected) renderPhotos();
+    } catch (err) {
+      q.state = 'fail';
+      q.error = err.status === 401 ? 'Phiên đăng nhập quản trị đã hết.' : err.message;
+    }
+  }
   function sendOne(q) {
     return new Promise((resolve) => {
       const xhr = new XMLHttpRequest(); const fd = new FormData(); fd.append('file', q.file, q.file.name);
@@ -291,7 +372,7 @@ async function viewEditor(id) {
       xhr.upload.onprogress = (e) => { if (e.lengthComputable) { q.pct = Math.min(95, Math.round((e.loaded / e.total) * 95)); renderQueue(); } };
       xhr.onload = () => {
         let j = {}; try { j = JSON.parse(xhr.responseText); } catch {}
-        if (xhr.status === 201) { q.state = 'ok'; A.photos.push(j); if (!A.coverPhotoId) A.coverPhotoId = j.id; renderPhotos(); }
+        if (xhr.status === 201) { q.state = 'ok'; A.photos.push(j); if (!A.coverPhotoId) A.coverPhotoId = j.id; if (queueWrap.isConnected) renderPhotos(); }
         else if (xhr.status === 401) { q.state = 'fail'; q.error = 'Phiên đăng nhập đã hết.'; }
         else { q.state = 'fail'; q.error = j.error || `Lỗi ${xhr.status}`; }
         resolve();
@@ -301,13 +382,27 @@ async function viewEditor(id) {
     });
   }
   async function pump() {
-    while (running < 3) {
+    while (queueWrap.isConnected && running < 3) {
       const q = queue.find((x) => x.state === 'wait'); if (!q) break;
       q.state = 'up'; q.pct = 0; running++; renderQueue();
-      sendOne(q).then(() => { running--; renderQueue(); pump(); if (!running && !queue.some((x) => x.state === 'wait')) refreshAlbum(); });
+      const task = q.drive ? importDrivePhoto(q) : sendOne(q);
+      task.then(() => {
+        running--;
+        if (!queueWrap.isConnected) return;
+        renderQueue();
+        pump();
+        if (!running && !queue.some((x) => x.state === 'wait')) refreshAlbum();
+      });
     }
   }
-  async function refreshAlbum() { try { A = await api(`/api/admin/albums/${A.id}`); renderPhotos(); } catch {} }
+  async function refreshAlbum() {
+    try {
+      const album = await api(`/api/admin/albums/${A.id}`);
+      if (!queueWrap.isConnected || running) return;
+      A = album;
+      renderPhotos();
+    } catch {}
+  }
   const addFiles = (files) => { for (const f of files) queue.push({ file: f, state: 'wait', pct: 0, error: '' }); renderQueue(); pump(); };
   $('#fileIn').addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
   const drop = $('#drop');
