@@ -49,11 +49,11 @@ tests/acceptance.mjs          Kịch bản nghiệm thu Mốc 1
 ## Vai trò
 | Vai trò | Quyền Mốc 1 |
 |---|---|
-| Admin | Album & Portfolio (+ quyền `users` dành cho mốc sau) |
+| Admin | Album & Portfolio, **Thông tin website** (+ quyền `users` dành cho mốc sau) |
 | Marketing/Design | Album & Portfolio |
-| Sale/Tư vấn | Đăng nhập, xem tổng quan; **mọi API album trả 403** |
+| Sale/Tư vấn | Đăng nhập, xem tổng quan; **mọi API album và Thông tin website trả 403** |
 
-Quyền được kiểm tra ở API (`requirePerm('albums')`), giao diện chỉ ẩn menu cho gọn.
+Quyền được kiểm tra ở API (`requirePerm('albums')`, `requirePerm('site')`), giao diện chỉ ẩn menu cho gọn.
 Tạo thêm tài khoản: thêm cặp `*_EMAIL` / `*_PASSWORD` vào `.env` rồi khởi động lại (chỉ tạo khi email chưa tồn tại).
 
 ## API
@@ -64,6 +64,16 @@ Công khai (chỉ album `published`, chưa vào thùng rác; không trả id n�
 Quản trị (`/api/admin/*`, cần đăng nhập + quyền `albums`): dashboard, taxonomies, albums CRUD,
 `publish` / `unpublish` / `trash` / `restore` / `preview`, tải ảnh (`POST /albums/:id/photos`, 1 tệp/yêu cầu),
 `photos/order`, `cover`, `DELETE /photos/:id`. Đăng nhập: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`.
+
+## Thông tin website (`/admin/#/site-settings`, chỉ Admin)
+Liên hệ (điện thoại, email, địa chỉ, giờ mở cửa, khu vực), mạng xã hội (Zalo, Facebook, TikTok, Instagram)
+và nội dung trang chủ (tiêu đề chính, mô tả, tiêu đề + nội dung giới thiệu). Lưu trong bảng `site_settings` (`server/site.js`).
+- `GET` / `PUT /api/admin/site-settings` — quyền `site`. Server kiểm tra từng trường; có trường lỗi thì **không lưu trường nào**
+  và trả `{ error, fields: { tên_trường: lỗi } }`. Liên kết mạng xã hội chỉ nhận đúng tên miền của mạng đó, tự thêm `https://`.
+- `GET /api/public/site` — chỉ trả `contact`, `social` (bỏ trường trống, kèm `phoneHref`/`emailHref`) và `home`
+  (trường trống thay bằng mặc định `HOME_DEFAULTS`, trùng chữ có sẵn trong `index.html`).
+- Trang công khai (`src/site.js`, nạp qua `main.js`) điền vào phần tử có `data-site`, `data-site-link`, `data-site-wrap`, `data-site-group`
+  ở đầu trang chủ, phần giới thiệu, mục Liên hệ và footer (cả `/profile/`). Dữ liệu được điền bằng JavaScript sau khi tải trang.
 
 ## Watermark
 Tắt cho tới khi có logo TCWedding. Khi có: lưu PNG nền trong suốt vào `data/brand/watermark.png`, đặt `WATERMARK_ENABLED=true`, khởi động lại.

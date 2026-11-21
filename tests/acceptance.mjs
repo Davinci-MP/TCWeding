@@ -151,12 +151,33 @@ try {
   check('Dashboard: đếm nháp/xuất bản + hoạt động gần đây', dash.drafts === 1 && dash.published === 1 && dash.recent.length > 0, `nháp ${dash.drafts}, xuất bản ${dash.published}, ảnh ${dash.photos}`);
   check('Watermark tắt khi chưa có logo TCWedding', dash.watermark.active === false && dash.watermark.hasAsset === false);
 
+  // 10b. Thông tin website — chỉ Admin
+  const SITE = '/api/admin/site-settings';
+  const siteDeny = await Promise.all([anon.req('GET', SITE), anon.req('PUT', SITE, { phone: '0900000000' }), mkt.req('GET', SITE), mkt.req('PUT', SITE, { phone: '0900000000' }), sale.req('GET', SITE), sale.req('PUT', SITE, { phone: '0900000000' })]);
+  check('Thông tin website: khách 401, Marketing/Design và Sale 403', siteDeny.map((r) => r.status).join() === '401,401,403,403,403,403', siteDeny.map((r) => r.status).join(','));
+  let pubSite = (await anon.req('GET', '/api/public/site')).data;
+  check('Thông tin website: chưa cấu hình thì ẩn liên hệ, trang chủ dùng mặc định', !Object.keys(pubSite.contact).length && !Object.keys(pubSite.social).length && pubSite.home.heroTitle === 'Ảnh cưới giữ nguyên cách hai bạn nhìn nhau');
+  const good = { phone: '0912 345 678', email: 'lienhe@tcwedding.vn', address: 'Đường Láng, Đống Đa', hours: '8:00–20:00 hằng ngày', area: 'Hà Nội', zalo: 'zalo.me/0912345678', facebook: 'https://www.facebook.com/tcwedding', tiktok: 'https://www.tiktok.com/@tcwedding', instagram: '', heroTitle: 'Ảnh cưới thật như ngày hai bạn', heroLead: 'Studio ảnh cưới tại Hà Nội.', introTitle: '', introBody: 'Dòng một.\n\nDòng hai.' };
+  const saved = await admin.req('PUT', SITE, good);
+  check('Thông tin website: Admin lưu được, liên kết được chuẩn hoá', saved.status === 200 && saved.data.values.zalo === 'https://zalo.me/0912345678' && saved.data.values.introBody === 'Dòng một.\n\nDòng hai.', saved.data.error || '');
+  pubSite = (await anon.req('GET', '/api/public/site')).data;
+  check('Công khai: hiện dữ liệu mới, tel:/mailto: bấm được', pubSite.contact.phone === '0912 345 678' && pubSite.contact.phoneHref === 'tel:0912345678' && pubSite.contact.emailHref === 'mailto:lienhe@tcwedding.vn' && pubSite.home.heroTitle === good.heroTitle && pubSite.social.facebook === good.facebook);
+  check('Công khai: trường trống bị ẩn / dùng mặc định', !('instagram' in pubSite.social) && pubSite.home.introTitle === 'Một ekip nhỏ, theo hai bạn từ buổi tư vấn đến cuốn album');
+  check('Công khai: chỉ trả trường được phép hiển thị', Object.keys(pubSite).sort().join() === 'contact,home,social' && !/updated|user|"id"/i.test(JSON.stringify(pubSite)));
+  const badSave = await admin.req('PUT', SITE, { ...good, phone: '0999 999 999', facebook: 'https://evil.example/tcwedding', instagram: 'javascript:alert(1)', email: 'khong-phai-email' });
+  check('Liên kết/email không hợp lệ bị từ chối, báo theo từng trường', badSave.status === 400 && ['facebook', 'instagram', 'email'].every((k) => badSave.data.fields?.[k]) && !badSave.data.fields.phone);
+  const afterBad = (await admin.req('GET', SITE)).data.values;
+  check('Form lỗi không ghi đè dữ liệu đã lưu', afterBad.phone === '0912 345 678' && afterBad.facebook === good.facebook && afterBad.email === good.email);
+  check('Trường quá dài bị từ chối', (await admin.req('PUT', SITE, { heroTitle: 'x'.repeat(121) })).data.fields?.heroTitle);
+
   // 11. Khởi động lại server: dữ liệu còn nguyên
   await stopServer(); await startServer();
   const after = (await admin.req('GET', '/api/admin/dashboard'));
   const listAfter = await anon.req('GET', '/api/public/albums');
   check('Sau khởi động lại: dữ liệu và phiên đăng nhập còn nguyên', after.status === 200 && after.data.published === 1 && after.data.drafts === 1 && after.data.photos === dash.photos && listAfter.data.length === 1);
   check('Sau khởi động lại: file ảnh còn trên đĩa', readdirSync(join(DATA, 'media', 'large')).length === dash.photos);
+  const siteAfter = (await anon.req('GET', '/api/public/site')).data;
+  check('Sau khởi động lại: Thông tin website còn nguyên', siteAfter.contact.phone === '0912 345 678' && siteAfter.home.heroTitle === good.heroTitle);
 
   // Nhập Drive qua HTTP thật của app; phản hồi Google được mô phỏng.
   const drivePath = `/api/admin/albums/${B.data.id}/photos/drive`;

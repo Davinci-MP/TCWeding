@@ -1,3 +1,5 @@
+import './site.js';
+
 // Ô ảnh: hiện ảnh thật khi file có trong /public/images, giữ khung chờ khi chưa có
 document.querySelectorAll('.slot img').forEach((img) => {
   const slot = img.closest('.slot');

@@ -4,7 +4,7 @@ import { config } from './config.js';
 
 // Vai trò và quyền. Kiểm tra quyền luôn ở API, giao diện chỉ ẩn/hiện cho tiện.
 export const ROLES = {
-  admin: { label: 'Admin', perms: ['albums', 'users'] },
+  admin: { label: 'Admin', perms: ['albums', 'users', 'site'] }, // 'site': Thông tin website
   marketing: { label: 'Marketing/Design', perms: ['albums'] },
   sale: { label: 'Sale/Tư vấn', perms: [] }, // các phân hệ khách hàng/hợp đồng sẽ cấp quyền ở mốc sau
 };

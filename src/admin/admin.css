@@ -141,6 +141,16 @@ a.stat:hover { transform: translateY(-2px); }
 .sec-h { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .sec-h h2 { margin: 0; }
 
+/* thông tin website */
+.site-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; align-items: start; }
+.site-grid .card h2 { margin-bottom: 4px; }
+.field.has-err textarea { border-color: var(--err); }
+.save-state { align-self: center; }
+.save-state.ok { color: var(--ok); font-weight: 500; }
+.save-state.bad { color: var(--err); font-weight: 500; }
+#siteErr:empty { display: none; }
+#siteErr { margin-bottom: 14px; }
+
 .toasts { position: fixed; right: 16px; bottom: 16px; z-index: 100; display: grid; gap: 8px; }
 .toast { background: var(--ink); color: #fff; padding: 12px 16px; border-radius: 10px; font-size: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.2); max-width: 360px; animation: tin .25s ease; }
 .toast.err { background: var(--err); }

@@ -5,6 +5,7 @@ import { config, paths } from './config.js';
 import { db } from './db.js';
 import { loadUser, requireAuth, sameOrigin, createSession, destroySession, verifyPassword, seedUsers, ROLES, can, loginLimited, loginFailed, loginOk } from './auth.js';
 import { adminAlbums, publicSummary, publicDetail } from './albums.js';
+import { adminSite, publicSite } from './site.js';
 
 seedUsers();
 
@@ -33,7 +34,10 @@ app.post('/api/auth/logout', sameOrigin, (req, res) => { destroySession(req, res
 app.get('/api/auth/me', requireAuth, (req, res) => { res.set('Cache-Control', 'no-store'); res.json(me(req.user)); });
 
 // ---- Quản trị ----
-app.use('/api/admin', (_req, res, next) => { res.set('Cache-Control', 'no-store'); next(); }, sameOrigin, adminAlbums);
+app.use('/api/admin', (_req, res, next) => { res.set('Cache-Control', 'no-store'); next(); }, sameOrigin, adminSite, adminAlbums);
+
+// ---- Công khai: thông tin website ----
+app.get('/api/public/site', (_req, res) => { res.set('Cache-Control', 'no-cache'); res.json(publicSite()); });
 
 // ---- Công khai: chỉ album đã xuất bản, không có bản gốc ----
 const PUB = "status = 'published' AND deleted_at IS NULL";
