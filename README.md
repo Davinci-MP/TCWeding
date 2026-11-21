@@ -80,30 +80,7 @@ Tắt cho tới khi có logo TCWedding. Khi có: lưu PNG nền trong suốt và
 Logo đóng lên bản thumb/large của **ảnh tải lên sau đó**; bản gốc luôn giữ nguyên trong `data/originals/`.
 (Đóng dấu lại ảnh đã tải trước đó: chưa có ở Mốc 1.)
 
-## Triển khai: Vercel (trang tĩnh) + Render (API, SQLite, ảnh)
-```
-trình duyệt ──> www.tcwedding.vn (Vercel)
-                 ├─ /, /admin/, /profile/, /assets/*   file tĩnh từ dist/
-                 └─ /api/*, /media/*  ──rewrite──>  tcwedding-api.onrender.com (Render, ổ đĩa /var/data)
-```
-Cấu hình nằm trong repo: `render.yaml` (Blueprint) và `vercel.json` (rewrite). Trình duyệt chỉ thấy một tên miền nên cookie đăng nhập hoạt động bình thường.
-
-1. **Đưa code vào `main`**: merge `feat/site-settings` và `deploy/render-vercel` (qua pull request). Vercel tự deploy lại từ `main`.
-2. **Render** › New › Blueprint › chọn repo `Davinci-MP/TCWeding`. Render đọc `render.yaml` và tạo service `tcwedding-api`
-   (gói trả phí vì có ổ đĩa 5 GB tại `/var/data`). Điền `ADMIN_EMAIL`, `ADMIN_PASSWORD` (mật khẩu mạnh) và nếu dùng Drive thì 3 biến Google.
-   Tài khoản admin được tạo ở lần khởi động đầu; dữ liệu ở máy local **không** tự chuyển lên.
-3. **Kiểm tra URL Render**: nếu service không có đúng địa chỉ `https://tcwedding-api.onrender.com`, sửa 2 dòng `destination` trong `vercel.json` rồi merge lại.
-4. **Thử**: `https://www.tcwedding.vn/api/health` trả `{"ok":true}`; đăng nhập `https://www.tcwedding.vn/admin/`; lưu Thông tin website; tải thử **một ảnh lớn hơn 5 MB**.
-5. **Nếu ảnh lớn bị lỗi 413 qua Vercel** (Vercel có giới hạn 4,5 MB cho body của Functions; chưa xác nhận được có áp dụng cho rewrite hay không):
-   Render đã phục vụ cả trang tĩnh, nên chỉ cần thêm tên miền `www.tcwedding.vn` vào service Render (Settings › Custom Domains) và trỏ DNS sang Render, không phải sửa code.
-6. **Sao lưu**: ổ đĩa Render chứa toàn bộ SQLite + ảnh; kiểm tra mục Disks › Snapshots của service và tải bản sao định kỳ.
-
-Biến môi trường quan trọng trên Render: `NODE_ENV=production` (cookie `Secure`), `DATA_DIR=/var/data`,
-`ALLOWED_ORIGINS=https://www.tcwedding.vn,https://tcwedding.vn` (Origin của trình duyệt khác Host gửi tới Render),
-`TRUST_PROXY=2` (Vercel + Render, để giới hạn đăng nhập sai theo đúng IP khách).
-Ảnh của album đã xuất bản có `Cache-Control: max-age=300`, nên sau khi gỡ xuất bản ảnh có thể còn trong bộ nhớ đệm tối đa 5 phút.
-
-## Điều kiện chung khi tự host (VPS)
+## Điều kiện để đưa lên hosting (chưa làm ở Mốc 1)
 - Cần máy chủ chạy **Node.js ≥ 22.13** liên tục (VPS, hoặc hosting hỗ trợ Node như Render/Railway/Fly.io có ổ đĩa bền vững).
   Hosting tĩnh thuần (Cloudflare Pages, Netlify tĩnh) **không chạy được** phần quản trị nếu không viết lại API cho nền tảng đó.
 - Ổ đĩa bền vững cho `DATA_DIR` (SQLite + ảnh), có sao lưu định kỳ thư mục này.
