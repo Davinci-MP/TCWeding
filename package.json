@@ -1,0 +1,25 @@
+{
+  "name": "tcwedding",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "vite",
+    "build": "vite build",
+    "start": "node --env-file-if-exists=.env server/index.js",
+    "preview": "vite preview",
+    "test:acceptance": "node --env-file-if-exists=.env tests/acceptance.mjs"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "express": "^5.3.0",
+    "multer": "^2.5.0",
+    "sharp": "^0.34.5"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}
