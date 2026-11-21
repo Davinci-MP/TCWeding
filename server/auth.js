@@ -72,12 +72,12 @@ export function sameOrigin(req, res, next) {
   res.status(403).json({ error: 'Nguồn yêu cầu không hợp lệ.' });
 }
 
-// Giới hạn đăng nhập sai: 10 lần / 15 phút / IP + email
+// Giới hạn đăng nhập sai trong 15 phút (mặc định 10 lần cho mỗi khoá)
 const fails = new Map();
-export function loginLimited(key) {
+export function loginLimited(key, max = 10) {
   const now = Date.now(); const f = fails.get(key);
   if (f && now - f.t > 15 * 60e3) { fails.delete(key); return false; }
-  return !!f && f.n >= 10;
+  return !!f && f.n >= max;
 }
 export function loginFailed(key) { const f = fails.get(key) || { n: 0, t: Date.now() }; f.n++; fails.set(key, f); }
 export function loginOk(key) { fails.delete(key); }
