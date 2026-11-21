@@ -32,7 +32,7 @@ async function watermarkLayer(imgW, imgH) {
 }
 
 // Lưu bản gốc (nội bộ) + tạo bản thumb và large dạng WebP (công khai khi album xuất bản)
-export async function processUpload(buffer, originalName) {
+export async function processUpload(buffer, originalName, { fromDrive = false } = {}) {
   let meta;
   try { meta = await sharp(buffer, { limitInputPixels: MAX_PIXELS }).metadata(); }
   catch { throw new MediaError('Tệp không phải ảnh hợp lệ (chỉ nhận JPG, PNG, WebP).', 415); }
@@ -41,19 +41,25 @@ export async function processUpload(buffer, originalName) {
   if (!meta.width || !meta.height) throw new MediaError('Không đọc được kích thước ảnh.', 415);
 
   const id = randomUUID();
-  const originalFile = `${id}.${ext}`;
+  const originalFile = fromDrive ? '' : `${id}.${ext}`;
+  const variants = fromDrive ? paths.drive : paths;
   const wm = watermarkState();
   const written = [];
   try {
-    await writeFile(join(paths.originals, originalFile), buffer); written.push(join(paths.originals, originalFile));
+    if (originalFile) {
+      const original = join(paths.originals, originalFile);
+      written.push(original);
+      await writeFile(original, buffer);
+    }
     let dims;
     for (const [size, o] of Object.entries(SIZES)) {
       const base = sharp(buffer, { limitInputPixels: MAX_PIXELS }).rotate().resize({ width: o.width, height: o.height, fit: o.fit, withoutEnlargement: true });
       const { data, info } = await base.toBuffer({ resolveWithObject: true });
       let pipe = sharp(data);
       if (wm.active) pipe = pipe.composite([await watermarkLayer(info.width, info.height)]);
-      const out = join(paths[size], `${id}.webp`);
-      await pipe.webp({ quality: o.quality }).toFile(out); written.push(out);
+      const out = join(variants[size], `${id}.webp`);
+      written.push(out);
+      await pipe.webp({ quality: o.quality }).toFile(out);
       if (size === 'large') dims = { width: info.width, height: info.height };
     }
     return { id, originalFile, originalName: String(originalName || 'anh').slice(0, 200), bytes: buffer.length, ...dims, watermarked: wm.active ? 1 : 0 };
@@ -65,11 +71,10 @@ export async function processUpload(buffer, originalName) {
 }
 
 export async function removeFiles(photo) {
-  await Promise.all([
-    unlink(join(paths.originals, photo.original_file)).catch(() => {}),
-    unlink(join(paths.thumb, `${photo.id}.webp`)).catch(() => {}),
-    unlink(join(paths.large, `${photo.id}.webp`)).catch(() => {}),
-  ]);
+  const variants = photo.drive_file_id ? paths.drive : paths;
+  const files = Object.keys(SIZES).map((size) => join(variants[size], `${photo.id}.webp`));
+  if (photo.original_file) files.push(join(paths.originals, photo.original_file));
+  await Promise.all(files.map((file) => unlink(file).catch(() => {})));
 }
 
 export const mediaUrl = (size, id) => `/media/${size}/${id}.webp`;

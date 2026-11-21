@@ -53,13 +53,13 @@ app.get('/media/:size/:file', (req, res) => {
   const { size, file } = req.params;
   const m = /^([0-9a-f-]{36})\.webp$/.exec(file);
   if (!['thumb', 'large'].includes(size) || !m) return res.sendStatus(404);
-  const row = db.prepare('SELECT a.status, a.deleted_at FROM photos p JOIN albums a ON a.id = p.album_id WHERE p.id = ?').get(m[1]);
+  const row = db.prepare('SELECT a.status, a.deleted_at, p.drive_file_id FROM photos p JOIN albums a ON a.id = p.album_id WHERE p.id = ?').get(m[1]);
   if (!row) return res.sendStatus(404);
   const isPublic = row.status === 'published' && !row.deleted_at;
   if (!isPublic && !can(req.user, 'albums')) return res.sendStatus(404);
   res.set('Cache-Control', isPublic ? 'public, max-age=300' : 'private, no-store');
   // tên file đã khớp regex UUID ở trên; dotfiles:'allow' để DATA_DIR nằm trong thư mục có dấu chấm (vd .tmp) vẫn chạy
-  res.sendFile(join(paths[size], file), { dotfiles: 'allow' }, (err) => { if (err && !res.headersSent) res.sendStatus(404); });
+  res.sendFile(join((row.drive_file_id ? paths.drive : paths)[size], file), { dotfiles: 'allow' }, (err) => { if (err && !res.headersSent) res.sendStatus(404); });
 });
 
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Không tìm thấy.' }));

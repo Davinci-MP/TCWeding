@@ -3,6 +3,7 @@ import multer from 'multer';
 import { db, slugify, tx, logActivity } from './db.js';
 import { config } from './config.js';
 import { requirePerm } from './auth.js';
+import { downloadDrivePhoto, driveEnabled } from './drive.js';
 import { parseVideo } from './video.js';
 import { processUpload, removeFiles, mediaUrl, MediaError, watermarkState } from './media.js';
 
@@ -159,6 +160,66 @@ adminAlbums.get('/albums/:id/preview', (req, res) => {
 });
 
 // ---- Ảnh ----
+const findDrivePhoto = db.prepare('SELECT * FROM photos WHERE album_id = ? AND drive_file_id = ?');
+const nextPhotoOrder = db.prepare('SELECT COALESCE(MAX(sort_order), -1) + 1 AS n FROM photos WHERE album_id = ?');
+const insertPhoto = db.prepare(`
+  INSERT INTO photos (id, album_id, original_name, original_file, width, height, bytes, watermarked, sort_order, drive_file_id)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(album_id, drive_file_id) WHERE drive_file_id IS NOT NULL DO NOTHING
+`);
+const photoById = db.prepare('SELECT * FROM photos WHERE id = ?');
+const updateCover = db.prepare(`UPDATE albums SET cover_photo_id = COALESCE(cover_photo_id, ?), updated_at = datetime('now') WHERE id = ?`);
+
+function checkPhotoAlbum(album, draftOnly) {
+  if (!album) throw new MediaError('Không tìm thấy album.', 404);
+  if (album.deleted_at) throw new MediaError('Album đang ở thùng rác.', 409);
+  if (draftOnly && album.status !== 'draft') throw new MediaError('Chỉ nhập ảnh Drive vào album nháp.', 409);
+}
+
+async function savePhoto(albumId, photo, userId, driveId = null) {
+  const cleanup = () => removeFiles({ id: photo.id, original_file: photo.originalFile, drive_file_id: driveId });
+  let row;
+  try {
+    row = tx(() => {
+      checkPhotoAlbum(getAlbumRow.get(albumId), !!driveId);
+      const result = insertPhoto.run(photo.id, albumId, photo.originalName, photo.originalFile, photo.width,
+        photo.height, photo.bytes, photo.watermarked, nextPhotoOrder.get(albumId).n, driveId);
+      if (!result.changes) return findDrivePhoto.get(albumId, driveId);
+      updateCover.run(photo.id, albumId);
+      logActivity(userId, driveId ? 'photo.drive-import' : 'photo.upload', albumId, photo.originalName);
+      return photoById.get(photo.id);
+    });
+  } catch (err) {
+    await cleanup();
+    throw err;
+  }
+  if (row.id !== photo.id) await cleanup();
+  return row;
+}
+
+adminAlbums.get('/drive/config', (_req, res) => {
+  res.json({ enabled: driveEnabled(), ...(driveEnabled() ? config.drive : {}) });
+});
+
+adminAlbums.post('/albums/:id/photos/drive', async (req, res) => {
+  if (!driveEnabled()) return bad(res, 'Chưa cấu hình Google Drive.', 503);
+  const albumId = Number(req.params.id);
+  const { fileId, name } = req.body || {};
+  try {
+    checkPhotoAlbum(getAlbumRow.get(albumId), true);
+    const existing = typeof fileId === 'string' && findDrivePhoto.get(albumId, fileId);
+    if (existing) return res.json(photoOut(existing));
+    const buffer = await downloadDrivePhoto(req.body || {});
+    const photo = await processUpload(buffer, name, { fromDrive: true });
+    const row = await savePhoto(albumId, photo, req.user.id, fileId);
+    res.status(row.id === photo.id ? 201 : 200).json(photoOut(row));
+  } catch (err) {
+    if (err instanceof MediaError) return bad(res, err.message, err.status);
+    console.error(err);
+    bad(res, 'Lỗi máy chủ khi nhập ảnh từ Google Drive.', 500);
+  }
+});
+
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: config.maxUploadMb * 1024 * 1024, files: 1 } });
 adminAlbums.post('/albums/:id/photos', (req, res) => {
   upload.single('file')(req, res, async (err) => {
@@ -172,14 +233,7 @@ adminAlbums.post('/albums/:id/photos', (req, res) => {
     if (!req.file) return bad(res, 'Chưa chọn tệp.', 400);
     try {
       const p = await processUpload(req.file.buffer, Buffer.from(req.file.originalname, 'latin1').toString('utf8'));
-      const row = tx(() => {
-        const max = db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM photos WHERE album_id = ?').get(a.id).m;
-        db.prepare(`INSERT INTO photos (id, album_id, original_name, original_file, width, height, bytes, watermarked, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`)
-          .run(p.id, a.id, p.originalName, p.originalFile, p.width, p.height, p.bytes, p.watermarked, max + 1);
-        db.prepare(`UPDATE albums SET cover_photo_id = COALESCE(cover_photo_id, ?), updated_at = datetime('now') WHERE id = ?`).run(p.id, a.id);
-        return db.prepare('SELECT * FROM photos WHERE id = ?').get(p.id);
-      });
-      logActivity(req.user.id, 'photo.upload', a.id, p.originalName);
+      const row = await savePhoto(a.id, p, req.user.id);
       res.status(201).json(photoOut(row));
     } catch (e) {
       if (e instanceof MediaError) return bad(res, e.message, e.status);

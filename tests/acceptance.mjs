@@ -18,7 +18,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let server;
 async function startServer() {
-  server = spawn(process.execPath, ['server/index.js'], { cwd: ROOT, env: { ...env, PORT: String(PORT), DATA_DIR: DATA, MAX_UPLOAD_MB: '5', ALLOWED_ORIGINS: '' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  server = spawn(process.execPath, ['--import', './tests/mock-drive.mjs', 'server/index.js'], { cwd: ROOT, env: { ...env, PORT: String(PORT), DATA_DIR: DATA, MAX_UPLOAD_MB: '5', ALLOWED_ORIGINS: '',
+    GOOGLE_DRIVE_CLIENT_ID: 'fixture', GOOGLE_PICKER_API_KEY: 'fixture', GOOGLE_CLOUD_PROJECT_NUMBER: '1',
+    DRIVE_MEDIA_DIR: join(DATA, 'separate-media') }, stdio: ['ignore', 'pipe', 'pipe'] });
   server.stderr.on('data', (d) => process.stderr.write(`[server] ${d}`));
   for (let i = 0; i < 50; i++) { try { if ((await fetch(`${BASE}/api/health`)).ok) return; } catch {} await sleep(200); }
   throw new Error('Server không khởi động được');
@@ -155,6 +157,28 @@ try {
   const listAfter = await anon.req('GET', '/api/public/albums');
   check('Sau khởi động lại: dữ liệu và phiên đăng nhập còn nguyên', after.status === 200 && after.data.published === 1 && after.data.drafts === 1 && after.data.photos === dash.photos && listAfter.data.length === 1);
   check('Sau khởi động lại: file ảnh còn trên đĩa', readdirSync(join(DATA, 'media', 'large')).length === dash.photos);
+
+  // Nhập Drive qua HTTP thật của app; phản hồi Google được mô phỏng.
+  const drivePath = `/api/admin/albums/${B.data.id}/photos/drive`;
+  const drive = (client, fileId, path = drivePath) => client.req('POST', path, { fileId, name: 'Ảnh cưới.jpg', accessToken: 'fixture' });
+  check('Drive: chỉ người có quyền album được nhập', (await drive(anon, 'photo-a')).status === 401 && (await drive(sale, 'photo-a')).status === 403);
+  const busy = await Promise.all([
+    drive(mkt, 'photo-a'), drive(mkt, 'photo-a'), drive(mkt, 'photo-b'),
+    drive(mkt, 'missing'), drive(mkt, 'invalid-image'), drive(mkt, 'oversized'),
+  ]);
+  const [first, repeated, second, missing, invalid, tooBig] = busy;
+  check('Drive: nhập nhiều ảnh đồng thời và tránh trùng', [first.status, repeated.status].sort().join() === '200,201' && first.data.id === repeated.data.id && second.status === 201);
+  check('Drive: báo riêng ảnh không tải được, hỏng hoặc quá giới hạn', missing.status === 424 && invalid.status === 415 && tooBig.status === 413);
+  const driveFile = (size) => join(DATA, 'separate-media', size, `${first.data.id}.webp`);
+  check('Drive: lưu 2 bản WebP trên ổ riêng và không lưu bản gốc', existsSync(driveFile('thumb')) && existsSync(driveFile('large')) && readdirSync(join(DATA, 'originals')).length === dash.photos);
+  check('Drive: khách không thấy ảnh nháp, admin xem được', (await anon.req('GET', first.data.thumb)).status === 404 && (await admin.req('GET', first.data.thumb)).status === 200);
+  const driveCover = await admin.req('PUT', `/api/admin/albums/${B.data.id}/cover`, { photoId: first.data.id });
+  const drivePublished = await admin.req('POST', `/api/admin/albums/${B.data.id}/publish`);
+  const drivePublic = await anon.req('GET', `/api/public/albums/${B.data.slug}`);
+  check('Drive: ảnh bìa và ảnh công khai xuất hiện sau khi xuất bản', driveCover.status === 200 && drivePublished.status === 200 && drivePublic.data.cover?.thumb === first.data.thumb && (await anon.req('GET', first.data.large)).status === 200);
+  check('Drive: không nhập thêm vào album đã xuất bản', (await drive(admin, 'photo-c')).status === 409);
+  await admin.req('DELETE', `/api/admin/photos/${first.data.id}`);
+  check('Drive: xóa ảnh dọn hai bản WebP', !existsSync(driveFile('thumb')) && !existsSync(driveFile('large')));
 
   // 12. Đăng xuất
   await admin.req('POST', '/api/auth/logout');
