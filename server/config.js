@@ -21,6 +21,8 @@ export const config = {
   // Watermark chỉ bật khi WATERMARK_ENABLED=true VÀ có file logo TCWedding
   watermarkEnabled: env.WATERMARK_ENABLED === 'true',
   watermarkFile: resolve(ROOT, env.WATERMARK_FILE || 'data/brand/watermark.png'),
+  // Số lớp proxy phía trước (Render + Vercel = 2) để req.ip là IP thật của khách; mặc định chỉ tin loopback
+  trustProxy: /^\d+$/.test(env.TRUST_PROXY || '') ? Number(env.TRUST_PROXY) : (env.TRUST_PROXY || 'loopback'),
   // Origin được phép gọi API ghi (chống CSRF); để trống = cùng host
   allowedOrigins: (env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean),
 };
