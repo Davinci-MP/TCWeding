@@ -3,7 +3,8 @@ import { CardFan } from "@/components/home/CardFan";
 import { DemoPhone } from "@/components/home/DemoPhone";
 import { TemplateRail } from "@/components/home/TemplateRail";
 import { DEMO_PHOTOS, SECTION_LABELS, unsplash } from "@/lib/invitation";
-import { getPlans } from "@/lib/settings";
+import { money } from "@/lib/orders";
+import { getOrderSettings, getPlans } from "@/lib/settings";
 import { listTemplates } from "@/lib/templates";
 import { Icon, type IconName } from "@/templates/icons";
 import { LAYOUT_NAMES } from "@/templates/registry";
@@ -32,7 +33,7 @@ const FAQS: [string, string][] = [
 ];
 
 export default async function Home() {
-  const [templates, plans] = await Promise.all([listTemplates(), getPlans()]);
+  const [templates, plans, order] = await Promise.all([listTemplates(), getPlans(), getOrderSettings()]);
   const fan = templates.slice(0, 6).map((t) => ({ id: t.id, name: t.name }));
   const rail = templates.map((t) => ({ id: t.id, name: t.name, category: t.category, isPremium: t.isPremium, layoutName: LAYOUT_NAMES[t.layout] }));
 
@@ -221,6 +222,14 @@ export default async function Home() {
               </div>
             ))}
           </div>
+          {order.enabled && (
+            <p className="mt-10 text-center text-white/70">
+              Không có thời gian tự làm?{" "}
+              <Link href="/dat-lam-thiep" className="font-semibold text-[#d8cdbf] underline underline-offset-4">
+                Đặt TCWedding làm thiệp, {money(order.price)}
+              </Link>
+            </p>
+          )}
         </div>
       </section>
 

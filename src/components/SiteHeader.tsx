@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { logoutAction } from "@/app/actions/auth";
+import { getOrderSettings } from "@/lib/settings";
 
 /** Logo TCWedding: dấu tròn chữ "TC" + chữ TCWedding (Cormorant Garamond), giống tcwedding.vn. */
 export function Logo({ dark }: { dark?: boolean }) {
@@ -27,8 +28,10 @@ const MAIN_NAV = [
 ] as const;
 
 export async function SiteHeader({ dark = false }: { dark?: boolean }) {
-  const user = await getCurrentUser();
-  const link = `rounded-full px-3 py-2 transition ${dark ? "text-white/75 hover:text-white" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"}`;
+  const [user, order] = await Promise.all([getCurrentUser(), getOrderSettings()]);
+  // Chỉ hiện "Đặt làm thiệp" khi admin đang nhận đơn
+  const nav: (readonly [string, string])[] = order.enabled ? [MAIN_NAV[0], ["/dat-lam-thiep", "Đặt làm thiệp"], ...MAIN_NAV.slice(1)] : [...MAIN_NAV];
+  const link = `whitespace-nowrap rounded-full px-3 py-2 transition ${dark ? "text-white/75 hover:text-white" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"}`;
   return (
     <header
       className={`sticky top-0 z-30 backdrop-blur ${dark ? "border-b border-white/10 bg-[#1d1a17]/80 text-white" : "border-b border-zinc-200 bg-white/90"}`}
@@ -38,15 +41,15 @@ export async function SiteHeader({ dark = false }: { dark?: boolean }) {
           <Logo dark={dark} />
         </Link>
         <nav className="flex items-center gap-1 text-sm sm:gap-2">
-          <div className="hidden items-center gap-1 lg:flex">
-            {MAIN_NAV.map(([href, label]) => (
+          <div className="hidden items-center gap-1 xl:flex">
+            {nav.map(([href, label]) => (
               <Link key={href} href={href} className={link}>
                 {label}
               </Link>
             ))}
             <span className={`mx-2 h-4 w-px ${dark ? "bg-white/20" : "bg-zinc-200"}`} aria-hidden />
           </div>
-          <details className="group relative lg:hidden">
+          <details className="group relative xl:hidden">
             <summary className={`${link} flex min-h-11 cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden`}>
               Menu
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition group-open:rotate-180" aria-hidden>
@@ -54,7 +57,7 @@ export async function SiteHeader({ dark = false }: { dark?: boolean }) {
               </svg>
             </summary>
             <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-zinc-200 bg-white p-2 text-zinc-700 shadow-xl">
-              {MAIN_NAV.map(([href, label]) => (
+              {nav.map(([href, label]) => (
                 <Link key={href} href={href} className="block rounded-xl px-3 py-2.5 hover:bg-zinc-100">
                   {label}
                 </Link>
@@ -82,7 +85,7 @@ export async function SiteHeader({ dark = false }: { dark?: boolean }) {
             </div>
           </details>
           {user ? (
-            <div className="hidden items-center gap-1 lg:flex">
+            <div className="hidden items-center gap-1 xl:flex">
               <Link href="/dashboard" className={link}>
                 Thiệp của tôi
               </Link>
@@ -97,7 +100,7 @@ export async function SiteHeader({ dark = false }: { dark?: boolean }) {
             </div>
           ) : (
             <>
-              <Link href="/login" className={`${link} hidden lg:inline-flex`}>
+              <Link href="/login" className={`${link} hidden xl:inline-flex`}>
                 Đăng nhập
               </Link>
               <Link

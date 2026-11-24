@@ -6,6 +6,7 @@ const NAV = [
   ["/admin", "📊 Tổng quan"],
   ["/admin/users", "👥 Người dùng"],
   ["/admin/invitations", "💌 Thiệp cưới"],
+  ["/admin/orders", "🧾 Đơn đặt thiệp"],
   ["/admin/templates", "🎨 Mẫu thiệp"],
   ["/admin/pricing", "💳 Bảng giá"],
   ["/admin/music", "🎵 Thư viện nhạc"],

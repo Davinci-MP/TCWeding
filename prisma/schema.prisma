@@ -34,6 +34,7 @@ model Invitation {
   updatedAt  DateTime @updatedAt
   rsvps      Rsvp[]
   wishes     Wish[]
+  order      Order?
 
   @@index([userId])
 }
@@ -63,6 +64,58 @@ model Wish {
   createdAt    DateTime   @default(now())
 
   @@index([invitationId])
+}
+
+// Đơn đặt TCWedding làm thiệp hộ. Khách mở đơn bằng link bí mật /don/<token>, không cần tài khoản.
+model Order {
+  id               String         @id @default(cuid())
+  token            String         @unique
+  code             String         @unique // mã ngắn, dùng làm nội dung chuyển khoản
+  status           String         @default("NEW") // xem src/lib/orders.ts
+  contactName      String
+  phone            String
+  groom            String
+  bride            String
+  weddingDate      String // yyyy-mm-dd
+  templateId       String
+  details          String // khách mô tả: gia đình, lễ, địa điểm…
+  price            Int // chốt theo giá lúc đặt (đồng)
+  deposit          Int
+  depositClaimedAt DateTime? // khách báo đã chuyển
+  depositPaidAt    DateTime? // admin xác nhận đã nhận
+  finalClaimedAt   DateTime?
+  finalPaidAt      DateTime?
+  claimedAt        DateTime? // khách đã nhận thiệp về tài khoản của mình
+  adminNote        String         @default("")
+  invitationId     String?        @unique
+  invitation       Invitation?    @relation(fields: [invitationId], references: [id], onDelete: SetNull)
+  photos           OrderPhoto[]
+  messages         OrderMessage[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([status])
+}
+
+model OrderPhoto {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  url       String
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model OrderMessage {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  sender    String // CUSTOMER | SHOP
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
 }
 
 // Cấu hình mẫu thiệp do admin chỉnh (bật/tắt, premium, thứ tự).
