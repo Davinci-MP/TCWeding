@@ -183,7 +183,7 @@ Cookie đăng nhập có cờ `Secure` khi chạy production → **bắt buộc 
 - [ ] `https://tcwedding.vn/templates` hiện 30 mẫu; mở "Xem thử" một mẫu, bấm "Mở thiệp" → có nhạc.
 - [ ] Đăng nhập `/login` bằng tài khoản admin → vào được `/admin`.
 - [ ] `/admin/pricing` và `/admin/music` mở được.
-- [ ] `/admin/orders` mở được (cần `npx prisma db push` để tạo bảng đơn). Dịch vụ mặc định tắt, chủ dự án tự nhập giá và tài khoản nhận tiền.
+- [ ] `/admin/orders` mở được (cần `npx prisma db push` để tạo bảng đơn). Dịch vụ mặc định tắt, chủ dự án tự nhập giá và tài khoản nhận tiền. Thông báo đơn qua Telegram cần VPS gọi ra được `https://api.telegram.org` và `APP_URL` đúng tên miền.
 - [ ] Tạo thiệp thử, tải 1 ảnh lên → ảnh hiện (kiểm tra quyền ghi thư mục `uploads/`). Xoá thiệp thử sau đó.
 - [ ] Đăng xuất rồi đăng ký tài khoản mới → tạo được thiệp.
 - [ ] `pm2 logs tcwedding --lines 50` không có lỗi.

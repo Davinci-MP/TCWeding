@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
-import { isOpen, money, ORDER_STATUS, viDate, type OrderStatus } from "@/lib/orders";
+import { getNotify } from "@/lib/notify";
+import { money, ORDER_STATUS, orderTodo, viDate, type OrderStatus } from "@/lib/orders";
 import { getOrderSettings } from "@/lib/settings";
+import { NotifyForm } from "./NotifyForm";
 import { SettingsForm } from "./SettingsForm";
 
 export const metadata = { title: "Đơn đặt thiệp" };
@@ -9,10 +11,11 @@ export const metadata = { title: "Đơn đặt thiệp" };
 export default async function AdminOrders({ searchParams }: { searchParams: Promise<{ status?: string; saved?: string }> }) {
   const { status, saved } = await searchParams;
   const filter = status && Object.hasOwn(ORDER_STATUS, status) ? status : undefined;
-  const [orders, settings, counts] = await Promise.all([
+  const [orders, settings, counts, notify] = await Promise.all([
     db.order.findMany({ where: filter ? { status: filter } : undefined, orderBy: { updatedAt: "desc" }, take: 200, include: { messages: { orderBy: { createdAt: "desc" }, take: 1 } } }),
     getOrderSettings(),
     db.order.groupBy({ by: ["status"], _count: true }),
+    getNotify(),
   ]);
   return (
     <div className="space-y-6">
@@ -26,6 +29,14 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
         <summary className="cursor-pointer font-semibold">Cài đặt dịch vụ: {settings.enabled ? `đang nhận đơn, ${money(settings.price)}` : "đang tắt"}</summary>
         <SettingsForm initial={settings} />
       </details>
+      <NotifyForm
+        bot={notify.bot}
+        linkCode={notify.linkCode}
+        connected={!!notify.chatId}
+        chatName={notify.chatName}
+        lastError={notify.error}
+        defaultOpen={settings.enabled && (!notify.chatId || !!notify.error)}
+      />
       <nav className="flex flex-wrap gap-2 text-sm">
         <Link href="/admin/orders" className={`rounded-full border px-3 py-1.5 ${!filter ? "border-brand text-brand" : "border-zinc-200"}`}>
           Tất cả
@@ -49,11 +60,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
           </thead>
           <tbody>
             {orders.map((o) => {
-              const todo = [
-                o.status === "NEW" && o.depositClaimedAt && "Kiểm tra cọc",
-                o.status === "APPROVED" && o.finalClaimedAt && !o.finalPaidAt && "Kiểm tra thanh toán",
-                isOpen(o.status) && o.messages[0]?.sender === "CUSTOMER" && "Tin nhắn mới",
-              ].filter(Boolean);
+              const todo = orderTodo(o);
               return (
                 <tr key={o.id} className="border-t border-zinc-100">
                   <td className="px-4 py-3">
