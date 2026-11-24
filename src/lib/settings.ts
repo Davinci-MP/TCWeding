@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { DEFAULT_ORDER_SETTINGS, type OrderSettings } from "@/lib/orders";
 import { DEFAULT_PLANS, type Plan } from "@/lib/plans";
 
 const PLANS_KEY = "plans";
@@ -38,4 +39,22 @@ export async function saveMusicLibrary(list: LibraryTrack[]) {
 export async function savePlans(plans: Plan[]) {
   const value = JSON.stringify(plans);
   await db.siteSetting.upsert({ where: { key: PLANS_KEY }, create: { key: PLANS_KEY, value }, update: { value } });
+}
+
+const ORDER_KEY = "order";
+
+/** Cài đặt dịch vụ đặt làm thiệp. Mặc định tắt cho đến khi admin nhập giá và tài khoản. */
+export async function getOrderSettings(): Promise<OrderSettings> {
+  const row = await db.siteSetting.findUnique({ where: { key: ORDER_KEY } }).catch(() => null);
+  if (!row) return DEFAULT_ORDER_SETTINGS;
+  try {
+    return { ...DEFAULT_ORDER_SETTINGS, ...(JSON.parse(row.value) as Partial<OrderSettings>) };
+  } catch {
+    return DEFAULT_ORDER_SETTINGS;
+  }
+}
+
+export async function saveOrderSettings(s: OrderSettings) {
+  const value = JSON.stringify(s);
+  await db.siteSetting.upsert({ where: { key: ORDER_KEY }, create: { key: ORDER_KEY, value }, update: { value } });
 }
