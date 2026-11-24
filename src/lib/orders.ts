@@ -21,6 +21,17 @@ export const money = (n: number) => `${n.toLocaleString("vi-VN")}đ`;
 
 export const viDate = (iso: string) => iso.split("-").reverse().join("/");
 
+type Todo = { status: string; depositClaimedAt: Date | null; finalClaimedAt: Date | null; finalPaidAt: Date | null; messages: { sender: string }[] };
+
+/** Việc admin cần xử lý; messages chỉ cần tin mới nhất. */
+export function orderTodo(o: Todo) {
+  return [
+    o.status === "NEW" && (o.depositClaimedAt ? "Kiểm tra cọc" : "Đơn mới"),
+    o.status === "APPROVED" && o.finalClaimedAt && !o.finalPaidAt && "Kiểm tra thanh toán",
+    isOpen(o.status) && o.messages[0]?.sender === "CUSTOMER" && "Tin nhắn mới",
+  ].filter((x): x is string => !!x);
+}
+
 export type OrderSettings = {
   enabled: boolean;
   price: number;

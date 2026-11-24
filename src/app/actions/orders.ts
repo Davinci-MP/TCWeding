@@ -6,10 +6,12 @@ import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import { getCurrentUser, requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { BANKS, defaultInvitationData, parseInvitationData, uid } from "@/lib/invitation";
+import { orderNotice } from "@/lib/notify";
 import { isOpen, settingsError, type OrderSettings } from "@/lib/orders";
 import { rateLimit } from "@/lib/rateLimit";
 import { getOrderSettings, saveOrderSettings } from "@/lib/settings";
@@ -53,7 +55,9 @@ export async function createOrderAction(_: OrderFormState, fd: FormData): Promis
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const code = `TCW${Array.from({ length: 6 }, () => alphabet[randomInt(alphabet.length)]).join("")}`;
   const token = randomBytes(24).toString("base64url");
-  await db.order.create({ data: { ...parsed.data, code, token, price: settings.price, deposit: settings.deposit } });
+  const o = await db.order.create({ data: { ...parsed.data, code, token, price: settings.price, deposit: settings.deposit } });
+  after(() => orderNotice("Đơn đặt thiệp mới", o));
+  revalidatePath("/admin", "layout");
   redirect(`/don/${token}`);
 }
 
@@ -64,16 +68,22 @@ async function byToken(fd: FormData) {
 
 function refresh(o: { id: string; token: string }) {
   revalidatePath(`/don/${o.token}`);
-  revalidatePath(`/admin/orders/${o.id}`);
-  revalidatePath("/admin/orders");
+  revalidatePath("/admin", "layout"); // gồm cả số đơn cần xử lý trên menu
 }
 
 /** Khách báo đã chuyển khoản; admin kiểm tra tài khoản rồi mới xác nhận. */
 export async function claimPaymentAction(fd: FormData) {
   const o = await byToken(fd);
   if (!o) return;
-  if (o.status === "NEW" && o.deposit > 0 && !o.depositPaidAt) await db.order.update({ where: { id: o.id }, data: { depositClaimedAt: new Date() } });
-  else if (o.status === "APPROVED" && !o.finalPaidAt) await db.order.update({ where: { id: o.id }, data: { finalClaimedAt: new Date() } });
+  // Chỉ ghi nhận lần báo đầu nên bấm lại không gửi thông báo trùng
+  const now = new Date();
+  if (o.status === "NEW" && o.deposit > 0) {
+    const r = await db.order.updateMany({ where: { id: o.id, status: "NEW", depositClaimedAt: null, depositPaidAt: null }, data: { depositClaimedAt: now } });
+    if (r.count) after(() => orderNotice("Khách báo đã chuyển cọc, cần kiểm tra tài khoản", o));
+  } else if (o.status === "APPROVED") {
+    const r = await db.order.updateMany({ where: { id: o.id, status: "APPROVED", finalClaimedAt: null, finalPaidAt: null }, data: { finalClaimedAt: now } });
+    if (r.count) after(() => orderNotice("Khách báo đã trả phần còn lại, cần kiểm tra tài khoản", o));
+  }
   refresh(o);
 }
 
@@ -82,6 +92,9 @@ export async function customerMessageAction(fd: FormData) {
   const body = text(fd, "body").slice(0, 2000);
   if (!o || !body || !isOpen(o.status) || !rateLimit(`order-msg:${o.id}`, 10)) return;
   await db.orderMessage.create({ data: { orderId: o.id, sender: "CUSTOMER", body } });
+  // Khách nhắn liên tiếp chỉ báo một lần mỗi 2 phút; riêng yêu cầu sửa luôn báo
+  if (o.status === "REVIEW") after(() => orderNotice("Khách yêu cầu sửa thiệp", o));
+  else if (rateLimit(`notify-msg:${o.id}`, 1, 120_000)) after(() => orderNotice("Khách nhắn tin mới", o));
   // Nhắn khi đang chờ duyệt = yêu cầu sửa
   if (o.status === "REVIEW") await db.order.updateMany({ where: { id: o.id, status: "REVIEW" }, data: { status: "WORKING" } });
   refresh(o);
@@ -90,7 +103,8 @@ export async function customerMessageAction(fd: FormData) {
 export async function approveOrderAction(fd: FormData) {
   const o = await byToken(fd);
   if (!o?.invitationId) return;
-  await db.order.updateMany({ where: { id: o.id, status: "REVIEW" }, data: { status: "APPROVED" } });
+  const r = await db.order.updateMany({ where: { id: o.id, status: "REVIEW" }, data: { status: "APPROVED" } });
+  if (r.count) after(() => orderNotice("Khách đã duyệt thiệp", o));
   refresh(o);
 }
 
@@ -245,6 +259,6 @@ export async function deleteOrderAction(fd: FormData) {
   if (!o || o.status !== "CANCELLED") return;
   await db.order.delete({ where: { id: o.id } });
   if (!o.invitationId) await Promise.all(o.photos.map((p) => removeFile(p.url)));
-  revalidatePath("/admin/orders");
+  revalidatePath("/admin", "layout");
   redirect("/admin/orders");
 }
