@@ -7,7 +7,7 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
       <SiteHeader dark />
       <main className="overflow-x-clip">{children}</main>
       <footer className="bg-[#1d1a17] px-4 pb-10 pt-16 text-white/70">
-        <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-[2fr_1fr_1fr]">
+        <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-[2fr_1fr_1fr_1fr]">
           <div>
             <span className="text-white">
               <Logo dark />
@@ -24,6 +24,15 @@ export default function HomeLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <Link href="/templates/classic-ivory" className="block hover:text-white">
               Thiệp mẫu
+            </Link>
+          </div>
+          <div className="space-y-2 text-sm">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-[#d8cdbf]">Công cụ miễn phí</p>
+            <Link href="/man-hinh-led" className="block hover:text-white">
+              Màn hình LED
+            </Link>
+            <Link href="/slideshow" className="block hover:text-white">
+              Slideshow ảnh cưới
             </Link>
           </div>
           <div className="space-y-2 text-sm">

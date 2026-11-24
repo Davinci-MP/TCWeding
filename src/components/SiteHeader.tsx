@@ -21,6 +21,8 @@ export function Logo({ dark }: { dark?: boolean }) {
 
 const MAIN_NAV = [
   ["/templates", "Mẫu thiệp"],
+  ["/man-hinh-led", "Màn hình LED"],
+  ["/slideshow", "Slideshow"],
   ["/#bang-gia", "Bảng giá"],
 ] as const;
 
