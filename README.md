@@ -1,6 +1,6 @@
 # TCWedding — thiệp mời cưới online (tcwedding.vn)
 
-Nền tảng tạo thiệp cưới online mang thương hiệu TCWedding (chụp ảnh cưới, thiệp mời online và album cưới).
+Nền tảng tạo thiệp mời cưới online mang thương hiệu TCWedding.
 **Triển khai lên VPS:** xem [DEPLOY-VPS.md](DEPLOY-VPS.md). Biến môi trường mẫu: [.env.example](.env.example).
 
 Người dùng đăng ký, chọn mẫu, tuỳ biến nội dung và chia sẻ thiệp bằng link `/w/<slug>`.
