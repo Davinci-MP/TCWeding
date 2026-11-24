@@ -8,7 +8,7 @@ export default async function AdminPricing({ searchParams }: { searchParams: Pro
   return (
     <div>
       <h1 className="font-display text-3xl font-semibold">Bảng giá</h1>
-      <p className="mt-1 text-sm text-zinc-500">Nội dung các gói hiển thị ở mục Bảng giá trên trang Thiệp mời online (/thiep-moi). Lưu xong, trang cập nhật ngay.</p>
+      <p className="mt-1 text-sm text-zinc-500">Nội dung các gói hiển thị ở mục Bảng giá trên trang chủ. Lưu xong, trang chủ cập nhật ngay.</p>
       {saved && (
         <p role="status" className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
           Đã lưu bảng giá.

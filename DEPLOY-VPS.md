@@ -179,12 +179,10 @@ Cookie đăng nhập có cờ `Secure` khi chạy production → **bắt buộc 
 
 ## 9. Kiểm tra sau deploy (checklist)
 
-- [ ] `https://tcwedding.vn` mở trang chủ studio có logo TCWedding. CSDL mới chưa có album nên phần mở đầu chưa có ảnh nền và mục Bộ sưu tập bị ẩn — đó là bình thường, chủ dự án tự thêm ảnh ở `/admin/albums` và `/admin/studio`.
-- [ ] `https://tcwedding.vn/thiep-moi` mở trang giới thiệu thiệp mời online.
+- [ ] `https://tcwedding.vn` mở trang chủ có logo TCWedding.
 - [ ] `https://tcwedding.vn/templates` hiện 30 mẫu; mở "Xem thử" một mẫu, bấm "Mở thiệp" → có nhạc.
 - [ ] Đăng nhập `/login` bằng tài khoản admin → vào được `/admin`.
-- [ ] `/admin/studio`, `/admin/albums`, `/admin/pricing` và `/admin/music` mở được.
-- [ ] Tạo album thử ở `/admin/albums`, kéo 2–3 ảnh vào → ảnh hiện; chuyển sang "Hiện trên trang" → album có ở `/bo-suu-tap`. Xoá album thử sau đó.
+- [ ] `/admin/pricing` và `/admin/music` mở được.
 - [ ] Tạo thiệp thử, tải 1 ảnh lên → ảnh hiện (kiểm tra quyền ghi thư mục `uploads/`). Xoá thiệp thử sau đó.
 - [ ] Đăng xuất rồi đăng ký tài khoản mới → tạo được thiệp.
 - [ ] `pm2 logs tcwedding --lines 50` không có lỗi.

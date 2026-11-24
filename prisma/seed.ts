@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { DEMO_PHOTOS, demoInvitationData, type DemoPhotoKey } from "../src/lib/invitation";
+import { demoInvitationData } from "../src/lib/invitation";
 
 const db = new PrismaClient();
 
@@ -56,45 +56,7 @@ async function main() {
     });
   }
 
-  await seedDemoAlbums();
-
   console.log(`✔ Seed xong. Admin: ${email}${prod ? "" : ` / ${password}`} · Demo: demo@thiepcuoi.local / demo123 · Thiệp mẫu: /w/quan-ha`);
-}
-
-/** Album minh hoạ bằng ảnh Unsplash để trang chủ studio có nội dung khi phát triển. */
-async function seedDemoAlbums() {
-  if ((await db.album.count()) > 0) return;
-  const ph = (k: DemoPhotoKey, w: number, h: number) => ({
-    url: `https://images.unsplash.com/photo-${DEMO_PHOTOS[k]}?auto=format&fit=crop&w=${w}&h=${h}&q=75`,
-    width: w,
-    height: h,
-  });
-  const V = (k: DemoPhotoKey) => ph(k, 1200, 1600);
-  const H = (k: DemoPhotoKey) => ph(k, 1600, 1067);
-  const albums: { title: string; category: string; location: string; description: string; featured?: boolean; photos: ReturnType<typeof ph>[] }[] = [
-    { title: "Hoàng hôn trên đồi", category: "ngoai-canh", location: "Đà Lạt", featured: true, description: "Buổi chụp cuối chiều trên đồi thông, ánh nắng xiên và gió lạnh.", photos: [H("coupleHill"), V("coupleSunset"), V("coupleField"), H("coupleWalk"), V("handsHold"), V("coupleForehead")] },
-    { title: "Một ngày ở biệt thự cũ", category: "studio", location: "Hà Nội", featured: true, description: "Hành lang, cầu thang gỗ và cửa sổ lớn — ánh sáng tự nhiên trong nhà.", photos: [V("coupleHallway"), H("coupleEstate"), V("coupleClose"), V("brideLetter"), H("lace")] },
-    { title: "Biển sáng sớm", category: "ngoai-canh", location: "Phú Quốc", featured: true, description: "Chụp lúc 5 giờ sáng khi bãi biển còn vắng.", photos: [V("brideSea"), H("coupleBeach"), V("coupleCanoe"), V("coupleLaugh"), H("coupleBlue")] },
-    { title: "Ngày chung đôi", category: "phong-su", location: "Hà Nội", featured: true, description: "Phóng sự ngày cưới: chuẩn bị, làm lễ và tiệc tối.", photos: [V("coupleVeilKiss"), H("table"), V("bouquet"), V("rings"), H("placeSetting"), V("shoes"), V("coupleDance")] },
-    { title: "Vườn nho mùa thu", category: "ngoai-canh", location: "Ninh Thuận", description: "Những hàng nho chín và nắng vàng cuối mùa.", photos: [H("coupleVineyard"), V("brideBlossom"), V("coupleForest")] },
-    { title: "Trắng đen", category: "studio", location: "Studio TCWedding", description: "Bộ ảnh đen trắng trong studio, ánh sáng một nguồn.", photos: [V("coupleBW"), V("coupleCastle"), H("ringsCard")] },
-  ];
-  for (const [i, a] of albums.entries()) {
-    const slug = a.title.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/gi, "d").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    await db.album.create({
-      data: {
-        slug,
-        title: a.title,
-        category: a.category,
-        location: a.location,
-        description: a.description,
-        featured: !!a.featured,
-        status: "PUBLISHED",
-        sortOrder: i,
-        photos: { create: a.photos.map((p, j) => ({ ...p, sortOrder: j })) },
-      },
-    });
-  }
 }
 
 main().finally(() => db.$disconnect());

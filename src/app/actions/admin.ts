@@ -73,7 +73,7 @@ export async function savePlansAction(fd: FormData) {
     };
   });
   await savePlans(plans);
-  revalidatePath("/thiep-moi");
+  revalidatePath("/");
   revalidatePath("/admin/pricing");
   redirect("/admin/pricing?saved=1");
 }

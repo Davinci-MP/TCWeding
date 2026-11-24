@@ -20,10 +20,8 @@ export function Logo({ dark }: { dark?: boolean }) {
 }
 
 const MAIN_NAV = [
-  ["/bo-suu-tap", "Bộ sưu tập"],
-  ["/thiep-moi", "Thiệp mời online"],
   ["/templates", "Mẫu thiệp"],
-  ["/#lien-he", "Liên hệ"],
+  ["/#bang-gia", "Bảng giá"],
 ] as const;
 
 export async function SiteHeader({ dark = false }: { dark?: boolean }) {
