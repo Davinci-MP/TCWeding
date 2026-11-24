@@ -11,12 +11,10 @@
 | Địa chỉ IP VPS + cách SSH (user, khoá SSH) | Khuyến nghị Ubuntu 22.04/24.04, tối thiểu 1 vCPU / 2 GB RAM / 20 GB ổ |
 | Quyền quản lý DNS của `tcwedding.vn` | Hiện tên miền đang trỏ về **Vercel** (website portfolio cũ). Chỉ đổi DNS khi chủ dự án đồng ý |
 | Email + mật khẩu quản trị muốn dùng | Mật khẩu ≥ 10 ký tự. **Không** ghi mật khẩu vào file trong repo hay vào lịch sử chat |
-| Nhánh sẽ deploy | Code nằm ở nhánh `feat/thiep-moi-online` (PR vào `main`). Hỏi đã merge chưa |
+| Nhánh sẽ deploy | `main` |
 
-⚠️ **Lưu ý về Vercel:** repo này trước là website portfolio tĩnh deploy trên Vercel. Nếu Vercel vẫn
-nối với nhánh `main`, khi merge PR Vercel sẽ cố build app Next.js này và **sẽ chạy sai** (Vercel
-không giữ được file SQLite và ảnh tải lên). Hãy nhắc chủ dự án ngắt kết nối dự án Vercel (hoặc tắt
-auto-deploy) trước/sau khi merge, rồi trỏ DNS về VPS.
+⚠️ **Lưu ý về Vercel:** `vercel.json` đã tắt tự deploy. Không deploy app này lên Vercel vì sẽ mất file SQLite và
+ảnh tải lên. Tên miền có thể vẫn trỏ về website cũ trên Vercel, xem mục 8.
 
 ## 1. Tổng quan kiến trúc
 
@@ -78,7 +76,7 @@ EOF
 
 git clone git@github-tcwedding:Davinci-MP/TCWeding.git /var/www/tcwedding
 cd /var/www/tcwedding
-git checkout main        # hoặc feat/thiep-moi-online nếu PR chưa merge
+git checkout main
 ```
 
 ## 4. Cấu hình môi trường
@@ -105,7 +103,7 @@ nano .env
 
 ```bash
 cd /var/www/tcwedding
-npm ci                                   # tự chạy prisma generate
+npm ci --include=dev                     # tự chạy prisma generate; cần devDependencies để build
 npx prisma db push                       # tạo/cập nhật bảng trong prisma/prod.db
 NODE_ENV=production npm run db:seed      # tạo tài khoản admin (chỉ admin, không tạo demo)
 npm run build
@@ -194,7 +192,7 @@ Cookie đăng nhập có cờ `Secure` khi chạy production → **bắt buộc 
 cd /var/www/tcwedding
 /home/tcwedding/backup.sh                 # sao lưu trước (script ở mục 11)
 git pull
-npm ci
+npm ci --include=dev
 npx prisma db push          # áp thay đổi schema (nếu có)
 npm run build
 pm2 reload tcwedding
@@ -230,7 +228,7 @@ Khuyến nghị chép thêm thư mục `backups/` ra ngoài VPS (rclone lên Goo
 ```bash
 pm2 stop tcwedding
 git log --oneline -5 && git checkout <commit-trước>
-npm ci && npm run build
+npm ci --include=dev && npm run build
 cp /home/tcwedding/backups/db-<ngày>.db prisma/prod.db   # chỉ khi cần khôi phục dữ liệu
 pm2 start tcwedding
 ```
