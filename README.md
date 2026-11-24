@@ -27,7 +27,13 @@ Thiệp mẫu đã xuất bản: http://localhost:3000/w/quan-ha?to=Anh%20Nam
 
 ## Tính năng
 
-**Khách truy cập / người dùng**
+**Trang studio**
+- Trang chủ `/`: ảnh mở đầu, giới thiệu, album nổi bật, dịch vụ, thiệp mời online, liên hệ (Zalo, điện thoại, mạng xã hội). Toàn bộ chữ, ảnh, liên hệ chỉnh ở `/admin/studio`; ô trống thì phần đó tự ẩn.
+- Bộ sưu tập `/bo-suu-tap` (lọc Studio / Ngoại cảnh / Phóng sự cưới) và trang album `/bo-suu-tap/<slug>` có xem ảnh lớn (phím mũi tên, vuốt trên điện thoại).
+- Quản lý album ở `/admin/albums`: kéo thả nhiều ảnh (tự thu nhỏ còn cạnh dài 2400px trước khi tải lên), đổi thứ tự, chọn ảnh bìa, nháp/hiện, ưu tiên ở trang chủ.
+- Trang giới thiệu thiệp mời online chuyển sang `/thiep-moi`.
+
+**Khách truy cập / người dùng (thiệp mời)**
 - Kho mẫu thiệp có lọc theo phong cách, “Xem thử” với dữ liệu demo.
 - Trình chỉnh sửa có **xem trước trực tiếp** khung điện thoại: cô dâu chú rể, gia đình hai bên, lời mời, nhiều sự kiện (Vu Quy, Thành Hôn, Tiệc cưới, ngày âm lịch, bản đồ Google), chuyện tình yêu, album ảnh, hộp mừng cưới (QR VietQR tự tạo), nhạc nền, màu chủ đạo, bật/tắt từng phần. `Ctrl+S` để lưu.
 - Tải ảnh/nhạc lên (`/api/upload`, lưu ở `./uploads`).
@@ -46,7 +52,8 @@ Thiệp mẫu đã xuất bản: http://localhost:3000/w/quan-ha?to=Anh%20Nam
 ## Cấu trúc
 
 ```
-prisma/schema.prisma        User, Invitation, Rsvp, Wish, TemplateConfig
+prisma/schema.prisma        User, Invitation, Rsvp, Wish, TemplateConfig, Album, AlbumPhoto, SiteSetting
+src/lib/studio.ts           Nội dung trang chủ studio (SiteSetting "studio") + truy vấn album
 src/templates/registry.ts   ⭐ Khai báo mẫu thiệp (màu, font, kiểu hero, hoạ tiết)
 src/templates/heroes.tsx    Các kiểu phần đầu thiệp: frame, songhy, editorial, floral, starry, split
 src/templates/InvitationView.tsx  Render thiệp (dùng chung cho xem trước & thiệp thật)

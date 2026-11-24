@@ -19,6 +19,13 @@ export function Logo({ dark }: { dark?: boolean }) {
   );
 }
 
+const MAIN_NAV = [
+  ["/bo-suu-tap", "Bộ sưu tập"],
+  ["/thiep-moi", "Thiệp mời online"],
+  ["/templates", "Mẫu thiệp"],
+  ["/#lien-he", "Liên hệ"],
+] as const;
+
 export async function SiteHeader({ dark = false }: { dark?: boolean }) {
   const user = await getCurrentUser();
   const link = `rounded-full px-3 py-2 transition ${dark ? "text-white/75 hover:text-white" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"}`;
@@ -31,31 +38,71 @@ export async function SiteHeader({ dark = false }: { dark?: boolean }) {
           <Logo dark={dark} />
         </Link>
         <nav className="flex items-center gap-1 text-sm sm:gap-2">
-          <Link href="/templates" className={`${link} hidden sm:inline-flex`}>
-            Mẫu thiệp
-          </Link>
+          <div className="hidden items-center gap-1 lg:flex">
+            {MAIN_NAV.map(([href, label]) => (
+              <Link key={href} href={href} className={link}>
+                {label}
+              </Link>
+            ))}
+            <span className={`mx-2 h-4 w-px ${dark ? "bg-white/20" : "bg-zinc-200"}`} aria-hidden />
+          </div>
+          <details className="group relative lg:hidden">
+            <summary className={`${link} flex min-h-11 cursor-pointer list-none items-center gap-1 [&::-webkit-details-marker]:hidden`}>
+              Menu
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="transition group-open:rotate-180" aria-hidden>
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </summary>
+            <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-zinc-200 bg-white p-2 text-zinc-700 shadow-xl">
+              {MAIN_NAV.map(([href, label]) => (
+                <Link key={href} href={href} className="block rounded-xl px-3 py-2.5 hover:bg-zinc-100">
+                  {label}
+                </Link>
+              ))}
+              <hr className="my-2 border-zinc-100" />
+              {user ? (
+                <>
+                  <Link href="/dashboard" className="block rounded-xl px-3 py-2.5 hover:bg-zinc-100">
+                    Thiệp của tôi
+                  </Link>
+                  {user.role === "ADMIN" && (
+                    <Link href="/admin" className="block rounded-xl px-3 py-2.5 hover:bg-zinc-100">
+                      Quản trị
+                    </Link>
+                  )}
+                  <form action={logoutAction}>
+                    <button className="block w-full cursor-pointer rounded-xl px-3 py-2.5 text-left hover:bg-zinc-100">Đăng xuất</button>
+                  </form>
+                </>
+              ) : (
+                <Link href="/login" className="block rounded-xl px-3 py-2.5 hover:bg-zinc-100">
+                  Đăng nhập
+                </Link>
+              )}
+            </div>
+          </details>
           {user ? (
-            <>
+            <div className="hidden items-center gap-1 lg:flex">
               <Link href="/dashboard" className={link}>
                 Thiệp của tôi
               </Link>
               {user.role === "ADMIN" && (
-                <Link href="/admin" className={`${link} hidden sm:inline-flex`}>
+                <Link href="/admin" className={link}>
                   Quản trị
                 </Link>
               )}
               <form action={logoutAction}>
                 <button className={`${link} cursor-pointer`}>Đăng xuất</button>
               </form>
-            </>
+            </div>
           ) : (
             <>
-              <Link href="/login" className={link}>
+              <Link href="/login" className={`${link} hidden lg:inline-flex`}>
                 Đăng nhập
               </Link>
               <Link
                 href="/register"
-                className={`rounded-full px-4 py-2 font-semibold transition ${dark ? "bg-[#d8cdbf] text-[#1d1a17] hover:bg-[#ede6dc]" : "bg-brand text-white hover:bg-brand-dark"}`}
+                className={`whitespace-nowrap rounded-full px-4 py-2 font-semibold transition ${dark ? "bg-[#d8cdbf] text-[#1d1a17] hover:bg-[#ede6dc]" : "bg-brand text-white hover:bg-brand-dark"}`}
               >
                 Tạo thiệp
               </Link>

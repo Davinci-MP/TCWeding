@@ -4,6 +4,8 @@ import { requireAdmin } from "@/lib/auth";
 
 const NAV = [
   ["/admin", "📊 Tổng quan"],
+  ["/admin/studio", "🏠 Nội dung trang chủ"],
+  ["/admin/albums", "📷 Bộ sưu tập"],
   ["/admin/users", "👥 Người dùng"],
   ["/admin/invitations", "💌 Thiệp cưới"],
   ["/admin/templates", "🎨 Mẫu thiệp"],
