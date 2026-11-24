@@ -1,0 +1,82 @@
+// SQLite cho phát triển. Khi lên production đổi provider = "postgresql"
+// và DATABASE_URL tương ứng — schema không cần sửa gì thêm.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String
+  passwordHash String
+  role         String       @default("USER") // USER | ADMIN
+  plan         String       @default("FREE") // FREE | PREMIUM
+  createdAt    DateTime     @default(now())
+  invitations  Invitation[]
+}
+
+model Invitation {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug       String   @unique
+  title      String
+  templateId String
+  status     String   @default("DRAFT") // DRAFT | PUBLISHED
+  data       String // JSON: InvitationData
+  views      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  rsvps      Rsvp[]
+  wishes     Wish[]
+
+  @@index([userId])
+}
+
+model Rsvp {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  name         String
+  phone        String?
+  attending    String // YES | NO | MAYBE
+  guests       Int        @default(1)
+  side         String? // GROOM | BRIDE
+  note         String?
+  createdAt    DateTime   @default(now())
+
+  @@index([invitationId])
+}
+
+model Wish {
+  id           String     @id @default(cuid())
+  invitationId String
+  invitation   Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  name         String
+  message      String
+  hidden       Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@index([invitationId])
+}
+
+// Cấu hình mẫu thiệp do admin chỉnh (bật/tắt, premium, thứ tự).
+// Giao diện của mẫu nằm trong code: src/templates/registry.ts
+model TemplateConfig {
+  id        String  @id
+  isActive  Boolean @default(true)
+  isPremium Boolean @default(false)
+  sortOrder Int     @default(0)
+}
+
+// Cài đặt chung của hệ thống do admin chỉnh (bảng giá…). value là JSON.
+model SiteSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}

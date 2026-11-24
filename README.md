@@ -1,106 +1,75 @@
-# TCWedding — tcwedding.vn
+# TCWedding — thiệp mời cưới online (tcwedding.vn)
 
-Website portfolio ảnh cưới + trang quản trị `/admin/`.
-Giao diện: Vite + HTML/CSS/JS thuần. Máy chủ: Node.js + Express, dữ liệu SQLite (`node:sqlite`), xử lý ảnh bằng sharp.
+Nền tảng tạo thiệp cưới online mang thương hiệu TCWedding (chụp ảnh cưới, thiệp mời online và album cưới).
+**Triển khai lên VPS:** xem [DEPLOY-VPS.md](DEPLOY-VPS.md). Biến môi trường mẫu: [.env.example](.env.example).
 
-## Chạy trên máy (Windows/macOS/Linux, cần Node.js ≥ 22.13 — đang dùng 24)
+Người dùng đăng ký, chọn mẫu, tuỳ biến nội dung và chia sẻ thiệp bằng link `/w/<slug>`.
+Admin quản lý người dùng, gói cước, thiệp và mẫu thiệp.
 
-Lần đầu:
-```bash
+**Công nghệ:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · Prisma 6 (SQLite khi dev) · JWT cookie (jose) · bcrypt · zod
+
+## Chạy thử
+
+```powershell
 npm install
+npm run setup     # tạo DB + dữ liệu mẫu
+npm run dev       # http://localhost:3000
 ```
-Tạo `.env` từ `.env.example` nếu chưa có, đặt `ADMIN_EMAIL` / `ADMIN_PASSWORD` (tài khoản được tạo khi server khởi động).
 
-**Cách 1 — giống môi trường thật (khuyên dùng để thử):**
-```bash
-npm run build
-npm start
-```
-- Website công khai: http://localhost:8787/ (Bộ sưu tập: http://localhost:8787/#bo-suu-tap)
-- Quản trị: http://localhost:8787/admin/
+Tài khoản mẫu (tạo bởi `prisma/seed.ts`):
 
-**Cách 2 — khi sửa giao diện (tự tải lại):**
-```bash
-npm run dev
-```
-- Website: http://localhost:5173/ · Quản trị: http://localhost:5173/admin/ (Vite chuyển `/api`, `/media` sang server cổng 8787)
+| Vai trò | Email | Mật khẩu |
+|---|---|---|
+| Admin | `admin@thiepcuoi.local` | `admin123` (đổi trong `.env`) |
+| Người dùng | `demo@thiepcuoi.local` | `demo123` |
 
-**Kiểm thử nghiệm thu** (server riêng cổng 8799, dữ liệu tạm `.tmp/`, không đụng `data/`):
-```bash
-npm run build
-npm run test:acceptance
-```
+Thiệp mẫu đã xuất bản: http://localhost:3000/w/quan-ha?to=Anh%20Nam
+
+## Tính năng
+
+**Khách truy cập / người dùng**
+- Kho mẫu thiệp có lọc theo phong cách, “Xem thử” với dữ liệu demo.
+- Trình chỉnh sửa có **xem trước trực tiếp** khung điện thoại: cô dâu chú rể, gia đình hai bên, lời mời, nhiều sự kiện (Vu Quy, Thành Hôn, Tiệc cưới, ngày âm lịch, bản đồ Google), chuyện tình yêu, album ảnh, hộp mừng cưới (QR VietQR tự tạo), nhạc nền, màu chủ đạo, bật/tắt từng phần. `Ctrl+S` để lưu.
+- Tải ảnh/nhạc lên (`/api/upload`, lưu ở `./uploads`).
+- Đường dẫn tuỳ chỉnh, nháp/xuất bản, **link mời đích danh** `?to=Tên khách`.
+- Thiệp công khai: màn “Mở thiệp”, đếm ngược, RSVP, sổ lưu bút, nhạc nền, hiệu ứng cuộn.
+- Quản lý khách: thống kê, danh sách RSVP, xuất CSV (mở bằng Excel), ẩn/hiện lời chúc.
+
+**Admin** (`/admin`)
+- Tổng quan số liệu, mẫu được dùng nhiều.
+- Người dùng: tìm kiếm, nâng/hạ gói Premium, cấp quyền admin, xoá.
+- Thiệp: tìm kiếm, gỡ/xuất bản, sửa, xoá.
+- Mẫu thiệp: bật/tắt, đặt Premium, thứ tự hiển thị.
+
+**Gói cước:** FREE tạo tối đa `FREE_INVITATION_LIMIT` thiệp (trong `src/lib/templates.ts`) và không dùng mẫu Premium. Hiện admin nâng cấp thủ công; có thể nối cổng thanh toán (VNPay/MoMo/PayOS) để tự cập nhật `user.plan`.
 
 ## Cấu trúc
+
 ```
-index.html, profile/          Trang công khai (Ngày 1). #bo-suu-tap đọc album đã xuất bản từ API
-admin/index.html              Trang quản trị (SPA, src/admin/)
-src/collection.js             Lưới album + trình xem album/ảnh lớn công khai (#album-<slug>)
-src/admin/                    admin.js, admin.css
-server/index.js               Express: auth, API công khai, phục vụ ảnh, phục vụ dist/
-server/albums.js              API quản trị album/ảnh/phân loại (yêu cầu quyền "albums")
-server/auth.js                Mật khẩu (scrypt), phiên (cookie HttpOnly), vai trò & quyền, chống CSRF
-server/media.js               Kiểm tra tệp, tạo thumb 720px + large 2200px (WebP), watermark
-server/db.js                  Lược đồ SQLite
-data/                         (không commit) tcwedding.sqlite, originals/ (bản gốc, không public), media/thumb|large
-tests/acceptance.mjs          Kịch bản nghiệm thu Mốc 1
+prisma/schema.prisma        User, Invitation, Rsvp, Wish, TemplateConfig
+src/templates/registry.ts   ⭐ Khai báo mẫu thiệp (màu, font, kiểu hero, hoạ tiết)
+src/templates/heroes.tsx    Các kiểu phần đầu thiệp: frame, songhy, editorial, floral, starry, split
+src/templates/InvitationView.tsx  Render thiệp (dùng chung cho xem trước & thiệp thật)
+src/templates/interactive.tsx     Đếm ngược, RSVP, lời chúc, album, mừng cưới, nhạc, phong bì
+src/components/editor/      Trình chỉnh sửa
+src/app/(site)/             Trang chủ, kho mẫu, đăng nhập/đăng ký
+src/app/dashboard/          Khu vực người dùng
+src/app/admin/              Khu vực quản trị
+src/app/w/[slug]/           Thiệp công khai
+src/app/api/                upload, files, rsvp, wishes, invitations (lưu, xuất CSV)
 ```
 
-## Vai trò
-| Vai trò | Quyền Mốc 1 |
-|---|---|
-| Admin | Album & Portfolio, **Thông tin website** (+ quyền `users` dành cho mốc sau) |
-| Marketing/Design | Album & Portfolio |
-| Sale/Tư vấn | Đăng nhập, xem tổng quan; **mọi API album và Thông tin website trả 403** |
+## Thêm mẫu thiệp mới
 
-Quyền được kiểm tra ở API (`requirePerm('albums')`, `requirePerm('site')`), giao diện chỉ ẩn menu cho gọn.
-Tạo thêm tài khoản: thêm cặp `*_EMAIL` / `*_PASSWORD` vào `.env` rồi khởi động lại (chỉ tạo khi email chưa tồn tại).
+1. Thêm một object vào `TEMPLATES` trong `src/templates/registry.ts` (id, tên, màu, font, `hero`, `ornament`).
+2. Muốn bố cục đầu thiệp khác hẳn: viết thêm một component trong `heroes.tsx` và thêm vào `HeroVariant`.
+3. Nếu dùng font mới, khai báo trong `fontUrl()` (Google Fonts, nhớ chọn font hỗ trợ tiếng Việt).
 
-## API
-Công khai (chỉ album `published`, chưa vào thùng rác; không trả id nội bộ hay đường dẫn bản gốc):
-- `GET /api/public/albums` · `GET /api/public/albums/:slug`
-- `GET /media/thumb|large/<id>.webp` — chỉ trả ảnh của album đã xuất bản; ảnh album nháp chỉ trả cho người có quyền album
+Mẫu tự xuất hiện ở kho mẫu, trình chỉnh sửa và trang admin.
 
-Quản trị (`/api/admin/*`, cần đăng nhập + quyền `albums`): dashboard, taxonomies, albums CRUD,
-`publish` / `unpublish` / `trash` / `restore` / `preview`, tải ảnh (`POST /albums/:id/photos`, 1 tệp/yêu cầu),
-`photos/order`, `cover`, `DELETE /photos/:id`. Đăng nhập: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`.
+## Đưa lên production
 
-## Thông tin website (`/admin/#/site-settings`, chỉ Admin)
-Liên hệ (điện thoại, email, địa chỉ, giờ mở cửa, khu vực), mạng xã hội (Zalo, Facebook, TikTok, Instagram)
-và nội dung trang chủ (tiêu đề chính, mô tả, tiêu đề + nội dung giới thiệu). Lưu trong bảng `site_settings` (`server/site.js`).
-- `GET` / `PUT /api/admin/site-settings` — quyền `site`. Server kiểm tra từng trường; có trường lỗi thì **không lưu trường nào**
-  và trả `{ error, fields: { tên_trường: lỗi } }`. Liên kết mạng xã hội chỉ nhận đúng tên miền của mạng đó, tự thêm `https://`.
-- `GET /api/public/site` — chỉ trả `contact`, `social` (bỏ trường trống, kèm `phoneHref`/`emailHref`) và `home`
-  (trường trống thay bằng mặc định `HOME_DEFAULTS`, trùng chữ có sẵn trong `index.html`).
-- Trang công khai (`src/site.js`, nạp qua `main.js`) điền vào phần tử có `data-site`, `data-site-link`, `data-site-wrap`, `data-site-group`
-  ở đầu trang chủ, phần giới thiệu, mục Liên hệ và footer (cả `/profile/`). Dữ liệu được điền bằng JavaScript sau khi tải trang.
-
-## Watermark
-Tắt cho tới khi có logo TCWedding. Khi có: lưu PNG nền trong suốt vào `data/brand/watermark.png`, đặt `WATERMARK_ENABLED=true`, khởi động lại.
-Logo đóng lên bản thumb/large của **ảnh tải lên sau đó**; bản gốc luôn giữ nguyên trong `data/originals/`.
-(Đóng dấu lại ảnh đã tải trước đó: chưa có ở Mốc 1.)
-
-## Điều kiện để đưa lên hosting (chưa làm ở Mốc 1)
-- Cần máy chủ chạy **Node.js ≥ 22.13** liên tục (VPS, hoặc hosting hỗ trợ Node như Render/Railway/Fly.io có ổ đĩa bền vững).
-  Hosting tĩnh thuần (Cloudflare Pages, Netlify tĩnh) **không chạy được** phần quản trị nếu không viết lại API cho nền tảng đó.
-- Ổ đĩa bền vững cho `DATA_DIR` (SQLite + ảnh), có sao lưu định kỳ thư mục này.
-- HTTPS phía trước (Nginx/Caddy hoặc nền tảng), đặt `NODE_ENV=production` (bật cookie `Secure`) và `ALLOWED_ORIGINS=https://tcwedding.vn`.
-- Mật khẩu thật, mạnh trong `.env` trên máy chủ; không dùng mật khẩu thử của máy local.
-- Giới hạn kích thước upload ở reverse proxy ≥ `MAX_UPLOAD_MB` (vd Nginx `client_max_body_size 30m`).
-
-## Tiến độ
-- [x] Ngày 1: header, menu mobile, hero, giới thiệu, footer, khung các section, khung /profile/
-- [x] Mốc 1: /admin/ (đăng nhập, dashboard, Album & Portfolio), tải ảnh, xuất bản → /#bo-suu-tap
-- [ ] Thiệp mời · Bảng giá · Liên hệ (kết nối form) · Profile · Khách hàng (Sale) · Domain/hosting
-
-## Nhập nhiều ảnh từ Google Drive
-
-1. Tạo hoặc chọn một dự án Google Cloud. Bật **Google Drive API** và **Google Picker API**.
-2. Thiết lập màn hình đồng ý OAuth và thêm tài khoản Google của bạn làm người dùng thử nếu ứng dụng còn ở chế độ Testing. Tạo OAuth Client ID loại **Web application** và thêm origin bạn dùng để mở admin (ví dụ `http://localhost:8787`, `http://localhost:5173` hoặc `https://tcwedding.vn`).
-3. Tạo API key cho Picker, giới hạn theo origin website và Google Picker API. Điền `GOOGLE_DRIVE_CLIENT_ID`, `GOOGLE_PICKER_API_KEY` và `GOOGLE_CLOUD_PROJECT_NUMBER` trong `.env`. Số dự án khác với tên hoặc ID dự án. Khởi động lại server.
-4. Vào **Album & Portfolio**, lưu một album nháp rồi bấm **Nhập ảnh từ Google Drive**. Chọn nhiều ảnh JPG, PNG hoặc WebP. Bạn có thể thử lại từng ảnh lỗi. Nếu phiên Drive hết hạn, mở lại bộ chọn và chọn lại ảnh cần nhập. Cùng một tệp Drive trong cùng album chỉ tạo một ảnh.
-5. Kiểm tra ảnh đã nhập, chọn **Đặt làm bìa**, dùng **Xem trước**, rồi bấm **Xuất bản** khi sẵn sàng.
-
-TCWedding tải tệp đã chọn bằng quyền Google `drive.file`. Token ngắn hạn chỉ phục vụ lần nhập và không lưu vào SQLite. Ảnh gốc nằm trên Drive. Máy chủ tạo bản WebP 720 px và 2200 px, giữ cơ chế watermark và quyền xem ảnh nháp của album hiện có.
-
-Mặc định hai bản WebP được lưu trong `DATA_DIR/drive-media`. Để chuyển dung lượng sang ổ riêng, cấu hình `DRIVE_MEDIA_DIR` trỏ vào ổ lưu trữ bền vững trước khi nhập. Nếu đổi đường dẫn sau khi đã nhập ảnh, di chuyển cả thư mục `thumb` và `large` sang vị trí mới. Sao lưu thư mục này cùng SQLite. Website vẫn phục vụ ảnh qua `/media/` để kiểm tra quyền xem ảnh nháp.
+- Đổi `AUTH_SECRET`, `ADMIN_PASSWORD` trong `.env`.
+- Đổi `provider = "postgresql"` trong `schema.prisma` và `DATABASE_URL` (Supabase/Neon…), chạy `npx prisma db push`.
+- Ảnh/nhạc đang lưu trên ổ đĩa (`./uploads`) — nếu deploy lên Vercel/serverless cần chuyển sang S3/Cloudflare R2/Cloudinary (sửa `src/app/api/upload/route.ts`).
+- Giới hạn tần suất RSVP/lời chúc đang lưu trong bộ nhớ (`src/lib/rateLimit.ts`); nhiều server thì dùng Redis.

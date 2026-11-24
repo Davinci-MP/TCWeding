@@ -1,0 +1,287 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #7b2d26;
+  --color-brand-dark: #5f221d;
+  --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", Georgia, serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: #1d1a17;
+  background: #f6f2ec;
+}
+
+.font-serif-display {
+  font-family: "Cormorant Garamond", Georgia, serif;
+}
+
+/* ---- Các lớp dùng trong mẫu thiệp (biến CSS do InvitationView đặt) ---- */
+.tpl-root {
+  font-family: var(--f-body);
+}
+.tpl-heading {
+  font-family: var(--f-heading);
+}
+.tpl-script {
+  font-family: var(--f-script);
+}
+.tpl-stars {
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 70% 20%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 40% 70%, #f3e3b5 50%, transparent 51%),
+    radial-gradient(1px 1px at 85% 60%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 10% 80%, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 60% 45%, #fff 50%, transparent 51%),
+    radial-gradient(1px 1px at 30% 10%, #f3e3b5 50%, transparent 51%),
+    radial-gradient(1px 1px at 90% 90%, #fff 50%, transparent 51%);
+  background-size: 300px 300px;
+  animation: twinkle 6s ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 -20px;
+  }
+}
+
+/* ---- Chuyển động của thiệp ---- */
+html {
+  scroll-behavior: smooth;
+}
+@keyframes kenburns {
+  from {
+    transform: scale(1.12) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1) translate3d(0, -1.5%, 0);
+  }
+}
+.tpl-kenburns {
+  animation: kenburns 14s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.6em, 0);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+.tpl-rise {
+  animation: rise 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes marquee {
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+.tpl-marquee {
+  animation: marquee var(--marquee-duration, 40s) linear infinite;
+}
+.tpl-marquee:hover {
+  animation-play-state: paused;
+}
+@keyframes cue {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translateY(8px);
+    opacity: 1;
+  }
+}
+.tpl-cue {
+  animation: cue 2.2s ease-in-out infinite;
+}
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.tpl-spin {
+  animation: spin-slow 8s linear infinite;
+}
+@keyframes seal-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 18px transparent;
+  }
+}
+.tpl-seal {
+  animation: seal-pulse 2.4s ease-out infinite;
+}
+/* ---- Hiệu ứng mở đầu của các mẫu mới ---- */
+@keyframes curtain-l {
+  to { transform: translate3d(-102%, 0, 0); }
+}
+@keyframes curtain-r {
+  to { transform: translate3d(102%, 0, 0); }
+}
+.tpl-curtain-l { animation: curtain-l 2.2s cubic-bezier(0.7, 0, 0.2, 1) 0.4s both; }
+.tpl-curtain-r { animation: curtain-r 2.2s cubic-bezier(0.7, 0, 0.2, 1) 0.4s both; }
+@keyframes draw {
+  from { stroke-dashoffset: var(--len, 1200); }
+  to { stroke-dashoffset: 0; }
+}
+.tpl-draw {
+  stroke-dasharray: var(--len, 1200);
+  animation: draw 2.6s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+@keyframes flap-open {
+  0%, 49% { z-index: 30; }
+  50%, 100% { z-index: 5; }
+  to { transform: rotateX(180deg); }
+}
+.tpl-flap { transform-origin: top; animation: flap-open 1.2s cubic-bezier(0.6, 0, 0.3, 1) 0.6s both; }
+@keyframes letter-up {
+  from { transform: translate3d(0, 55%, 0); }
+  to { transform: translate3d(0, 0, 0); }
+}
+.tpl-letter { animation: letter-up 1.4s cubic-bezier(0.22, 1, 0.36, 1) 1.5s both; }
+@keyframes moon-rise {
+  from { transform: translate3d(0, 30%, 0) scale(0.92); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.tpl-moon { animation: moon-rise 3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes vinyl-out {
+  from { transform: translate3d(-40%, 0, 0) rotate(-90deg); }
+  to { transform: none; }
+}
+.tpl-vinyl-out { animation: vinyl-out 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both; }
+.tpl-spin-vinyl { animation: spin-slow 6s linear infinite; }
+.tpl-foil {
+  background: linear-gradient(110deg, #8a6a2f 0%, #e9d29a 22%, #b8903f 40%, #f6e7b8 55%, #a07a35 75%, #e3c784 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: foil-shine 6s ease-in-out infinite alternate;
+}
+@keyframes foil-shine {
+  to { background-position: 100% 0; }
+}
+
+/* Chờ khách mở thiệp rồi mới chạy hiệu ứng phần đầu */
+.tpl-root[data-gate="closed"] header .tpl-rise,
+.tpl-root[data-gate="closed"] header .tpl-kenburns,
+.tpl-root[data-gate="closed"] header .tpl-curtain-l,
+.tpl-root[data-gate="closed"] header .tpl-curtain-r,
+.tpl-root[data-gate="closed"] header .tpl-draw,
+.tpl-root[data-gate="closed"] header .tpl-flap,
+.tpl-root[data-gate="closed"] header .tpl-letter,
+.tpl-root[data-gate="closed"] header .tpl-moon,
+.tpl-root[data-gate="closed"] header .tpl-vinyl-out {
+  animation-play-state: paused;
+}
+.tpl-reveal {
+  opacity: 0;
+  transition:
+    opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tpl-reveal[data-v="up"] {
+  transform: translate3d(0, 28px, 0);
+}
+.tpl-reveal[data-v="left"] {
+  transform: translate3d(-36px, 0, 0);
+}
+.tpl-reveal[data-v="right"] {
+  transform: translate3d(36px, 0, 0);
+}
+.tpl-reveal[data-v="zoom"] {
+  transform: scale(0.94);
+}
+.tpl-reveal[data-v="blur"] {
+  filter: blur(10px);
+}
+.tpl-reveal.is-in {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+.tpl-noscroll {
+  scrollbar-width: none;
+}
+.tpl-noscroll::-webkit-scrollbar {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tpl-kenburns,
+  .tpl-rise,
+  .tpl-marquee,
+  .tpl-cue,
+  .tpl-spin,
+  .tpl-seal,
+  .tpl-stars,
+  .tpl-curtain-l,
+  .tpl-curtain-r,
+  .tpl-draw,
+  .tpl-flap,
+  .tpl-letter,
+  .tpl-moon,
+  .tpl-vinyl-out,
+  .tpl-spin-vinyl,
+  .tpl-foil {
+    animation: none !important;
+  }
+  .tpl-curtain-l,
+  .tpl-curtain-r {
+    display: none;
+  }
+  .tpl-flap {
+    transform: rotateX(180deg);
+    z-index: 5 !important;
+  }
+  .tpl-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ---- UI ứng dụng ---- */
+.input {
+  @apply w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/20;
+}
+.label {
+  @apply mb-1 block text-sm font-medium text-zinc-700;
+}
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-50;
+}
+.btn-primary {
+  @apply bg-brand text-white hover:bg-brand-dark;
+}
+.btn-outline {
+  @apply border border-zinc-300 bg-white text-zinc-800 hover:bg-zinc-50;
+}
+.btn-danger {
+  @apply border border-red-200 bg-white text-red-600 hover:bg-red-50;
+}
+.card {
+  @apply rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm;
+}
