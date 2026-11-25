@@ -1,8 +1,6 @@
 "use server";
 
 import { randomBytes, randomInt } from "node:crypto";
-import { unlink } from "node:fs/promises";
-import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -16,7 +14,7 @@ import { isOpen, settingsError, type OrderSettings } from "@/lib/orders";
 import { rateLimit } from "@/lib/rateLimit";
 import { getOrderSettings, saveOrderSettings } from "@/lib/settings";
 import { getTemplateWithConfig } from "@/lib/templates";
-import { FILE_NAME_RE, UPLOAD_DIR } from "@/lib/uploads";
+import { deleteUpload } from "@/lib/storage";
 
 export type OrderFormState = { error?: string } | undefined;
 
@@ -108,10 +106,7 @@ export async function approveOrderAction(fd: FormData) {
   refresh(o);
 }
 
-async function removeFile(url: string) {
-  const name = url.split("/").pop() ?? "";
-  if (FILE_NAME_RE.test(name)) await unlink(path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, name)).catch(() => null);
-}
+const removeFile = (url: string) => deleteUpload(url);
 
 /** Chỉ xoá được ảnh khi chưa dựng thiệp, vì sau đó thiệp đang dùng chính file này. */
 export async function deleteOrderPhotoAction(fd: FormData) {

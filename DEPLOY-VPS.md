@@ -13,8 +13,7 @@
 | Email + mật khẩu quản trị muốn dùng | Mật khẩu ≥ 10 ký tự. **Không** ghi mật khẩu vào file trong repo hay vào lịch sử chat |
 | Nhánh sẽ deploy | `main` |
 
-⚠️ **Lưu ý về Vercel:** `vercel.json` đã tắt tự deploy. Không deploy app này lên Vercel vì sẽ mất file SQLite và
-ảnh tải lên. Tên miền có thể vẫn trỏ về website cũ trên Vercel, xem mục 8.
+ℹ️ Website hiện có thể chạy trên Vercel với Turso + Vercel Blob (xem README mục 2). Tài liệu này dành cho cách tự host trên VPS; khi đó không đặt `TURSO_DATABASE_URL`, `BLOB_READ_WRITE_TOKEN`.
 
 ## 1. Tổng quan kiến trúc
 

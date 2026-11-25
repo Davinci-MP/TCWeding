@@ -1,8 +1,6 @@
 "use server";
 
 import { randomBytes, randomInt } from "node:crypto";
-import { access } from "node:fs/promises";
-import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { after } from "next/server";
@@ -13,18 +11,13 @@ import { rateLimit } from "@/lib/rateLimit";
 import { getMusicLibrary, getOrderSettings } from "@/lib/settings";
 import { getTemplateWithConfig } from "@/lib/templates";
 import { draftExtras, draftToInvitationData, getSlideStyle, mainDate, normalizeDraft, templateCode } from "@/lib/thiep";
-import { UPLOAD_DIR } from "@/lib/uploads";
+import { uploadExists } from "@/lib/storage";
 import { ensureVisitorId } from "@/lib/visitor";
 import { TRACKS } from "@/templates/music/tracks";
 
 export type ThiepSubmitResult = { error?: string; token?: string };
 
-async function fileExists(url: string) {
-  const name = url.replace(/^\/api\/files\//, "");
-  return access(path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, name))
-    .then(() => true)
-    .catch(() => false);
-}
+const fileExists = (url: string) => uploadExists(url);
 
 /** Khách gửi thông tin làm thiệp từ /thiep: tạo đơn mới, không cần tài khoản, không bắt trả tiền trước. */
 export async function submitThiepAction(json: string): Promise<ThiepSubmitResult> {

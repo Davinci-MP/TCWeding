@@ -7,7 +7,7 @@ Website của studio TCWedding (tcwedding.vn). Trang chủ `/` là trang studio:
 | Bạn cần | Xem |
 |---|---|
 | Chạy thử trên máy | [1. Chạy trên máy](#1-chạy-trên-máy) |
-| Đưa lên máy chủ | [2. Đưa lên VPS](#2-đưa-lên-vps), chi tiết ở [DEPLOY-VPS.md](DEPLOY-VPS.md) |
+| Đưa lên mạng | [2. Đưa lên Vercel](#2-đưa-lên-vercel-cách-đang-dùng) (Turso + Vercel Blob), hoặc [2b. VPS](#2b-đưa-lên-vps-cách-khác) ([DEPLOY-VPS.md](DEPLOY-VPS.md)) |
 | Thiết lập sau khi web chạy | [3. Thiết lập lần đầu](#3-thiết-lập-lần-đầu) |
 | Dùng hằng ngày | [4. Hướng dẫn sử dụng](#4-hướng-dẫn-sử-dụng) |
 | Cập nhật, sao lưu, xử lý lỗi | [5. Vận hành](#5-vận-hành) |
@@ -42,7 +42,62 @@ npm run dev       # mở http://localhost:3000
 - Trang quản trị: gõ `/admin` (không có nút đăng nhập trên website).
 - Thiệp mẫu: http://localhost:3000/w/quan-ha?to=Anh%20Nam
 
-## 2. Đưa lên VPS
+## 2. Đưa lên Vercel (cách đang dùng)
+
+Trên Vercel website dùng **Turso** (SQLite online) làm cơ sở dữ liệu và **Vercel Blob** để lưu ảnh, nhạc tải lên, vì Vercel không có ổ đĩa lưu lâu dài. Code tự nhận: có `TURSO_DATABASE_URL` thì dùng Turso, có `BLOB_READ_WRITE_TOKEN` thì dùng Blob; không có thì dùng file SQLite và thư mục `uploads/` như khi chạy trên máy / VPS.
+
+> Gói Hobby (miễn phí) của Vercel chỉ dành cho mục đích cá nhân, phi thương mại. Website studio nhận đơn nên dùng gói **Pro**.
+
+### Bước 1. Tạo database Turso (dùng riêng cho website)
+
+1. Vào https://app.turso.tech › **Create Database**, đặt tên `tcwedding`, vùng **Singapore** (gần Việt Nam). Không dùng chung database với dự án khác.
+2. Mở database › chép **URL** (dạng `libsql://tcwedding-….turso.io`).
+3. Bấm **Create Token** (quyền Read & Write, không hết hạn) › chép **token**.
+
+### Bước 2. Tạo bảng và tài khoản admin trên Turso (chạy trên máy, 1 lần)
+
+```bash
+cp .env.turso.example .env.turso   # PowerShell: Copy-Item .env.turso.example .env.turso
+# mở .env.turso, điền TURSO_DATABASE_URL, TURSO_AUTH_TOKEN, ADMIN_EMAIL, ADMIN_PASSWORD (≥ 10 ký tự)
+npm run turso:push   # tạo bảng
+npm run turso:seed   # tạo tài khoản admin
+```
+
+`.env.turso` chứa khoá bí mật, đã được `.gitignore`, không commit.
+
+### Bước 3. Tạo project Vercel
+
+1. https://vercel.com › **Add New… › Project** › chọn repo `Davinci-MP/TCWeding` › Framework: **Next.js**.
+2. Mở **Environment Variables**, thêm (cho Production và Preview):
+
+| Biến | Giá trị |
+|---|---|
+| `TURSO_DATABASE_URL` | URL ở bước 1 |
+| `TURSO_AUTH_TOKEN` | token ở bước 1 |
+| `DATABASE_URL` | `file:./dev.db` (chỉ để Prisma không báo thiếu; website dùng Turso) |
+| `AUTH_SECRET` | chuỗi ngẫu nhiên dài, tạo bằng lệnh bên dưới |
+| `APP_URL` | `https://www.tcwedding.vn` |
+
+```powershell
+[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }))
+```
+
+3. Bấm **Deploy**.
+4. Vào tab **Storage › Create Database › Blob**, đặt tên, nối với project này. Vercel tự thêm `BLOB_READ_WRITE_TOKEN`. Vào **Deployments › Redeploy** để bản đang chạy nhận biến mới.
+5. Mở `https://<tên-project>.vercel.app/admin`, đăng nhập bằng tài khoản ở bước 2, thử tải một ảnh trong Bộ sưu tập.
+
+### Bước 4. Chuyển tên miền tcwedding.vn sang project mới
+
+1. Ở project **cũ** (đang báo lỗi): **Settings › Domains** › gỡ `tcwedding.vn` và `www.tcwedding.vn`. Nên **Settings › Git › Disconnect** (hoặc xoá project cũ) để nó không tự deploy theo repo nữa.
+2. Ở project **mới**: **Settings › Domains** › thêm `www.tcwedding.vn` (chính) và `tcwedding.vn` (chuyển hướng về www). DNS đang trỏ về Vercel sẵn nên thường không phải sửa DNS.
+
+### Cập nhật về sau
+
+- Gộp code vào `main` là Vercel tự deploy.
+- Khi `prisma/schema.prisma` thay đổi (thêm bảng, cột): chạy `npm run turso:push` trên máy **trước** khi gộp vào `main`. Script tự so sánh và chỉ thêm phần còn thiếu; nếu có lệnh xoá dữ liệu, script dừng lại và yêu cầu chạy lại với `-- --yes` (hãy sao lưu trước).
+- Sao lưu: Turso có lịch sử khôi phục theo thời điểm (tuỳ gói); ảnh nằm trong Vercel Blob của project.
+
+## 2b. Đưa lên VPS (cách khác)
 
 **Cần có**
 
@@ -50,7 +105,7 @@ npm run dev       # mở http://localhost:3000
 - Tên miền trỏ về VPS và HTTPS. Production bắt buộc HTTPS thì mới đăng nhập được.
 - Node.js 22, PM2, Nginx, certbot, sqlite3.
 
-**Không dùng Vercel hay nền tảng serverless**: cơ sở dữ liệu SQLite và ảnh khách tải lên nằm trên ổ đĩa, serverless sẽ làm mất. `vercel.json` đã tắt tự deploy.
+Trên VPS website dùng file SQLite và thư mục `uploads/` trên ổ đĩa: **không** đặt `TURSO_DATABASE_URL` hay `BLOB_READ_WRITE_TOKEN`.
 
 ### Các bước chính
 

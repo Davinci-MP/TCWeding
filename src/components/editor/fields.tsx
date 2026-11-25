@@ -2,7 +2,28 @@
 
 import { useRef, useState, type ReactNode } from "react";
 
+const EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "audio/mpeg": "mp3", "audio/mp4": "m4a", "audio/x-m4a": "m4a" };
+
+/** File lớn (> 4MB, vd nhạc) trên Vercel: tải thẳng lên Vercel Blob. Trả null nếu website không dùng Blob. */
+async function uploadLargeToBlob(file: File): Promise<string | null> {
+  const ext = EXT[file.type];
+  if (!ext) return null;
+  const { upload } = await import("@vercel/blob/client");
+  const name = Array.from(crypto.getRandomValues(new Uint8Array(12)), (b) => b.toString(16).padStart(2, "0")).join("");
+  try {
+    const blob = await upload(`uploads/${name}.${ext}`, file, { access: "public", handleUploadUrl: "/api/blob-upload", contentType: file.type });
+    return blob.url;
+  } catch (e) {
+    if (/501|Chưa bật Vercel Blob/.test(String((e as Error).message))) return null;
+    throw new Error((e as Error).message || "Tải lên thất bại");
+  }
+}
+
 export async function uploadFile(file: File): Promise<string> {
+  if (file.size > 4 * 1024 * 1024) {
+    const url = await uploadLargeToBlob(file);
+    if (url) return url;
+  }
   const fd = new FormData();
   fd.append("file", file);
   const res = await fetch("/api/upload", { method: "POST", body: fd });

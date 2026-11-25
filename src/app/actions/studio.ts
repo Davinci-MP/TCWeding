@@ -1,7 +1,5 @@
 "use server";
 
-import { unlink } from "node:fs/promises";
-import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -26,7 +24,7 @@ import {
   type StudioContent,
   type StudioPackage,
 } from "@/lib/studio";
-import { FILE_NAME_RE, UPLOAD_DIR } from "@/lib/uploads";
+import { deleteUpload, isUploadUrl } from "@/lib/storage";
 
 type Kind = "COLLECTION" | "SAMPLE";
 const kindOf = (v: unknown): Kind => (v === "SAMPLE" ? "SAMPLE" : "COLLECTION");
@@ -164,13 +162,12 @@ export async function updateAlbumAction(fd: FormData) {
   redirect(`/admin/albums/${id}?saved=1`);
 }
 
-/** Xoá file trong uploads/ nếu không còn album/ảnh nào khác dùng. */
+/** Xoá file đã tải lên (ổ đĩa hoặc Vercel Blob) nếu không còn album/ảnh nào khác dùng. */
 async function removeUploads(urls: string[]) {
   for (const url of urls) {
-    const name = url.replace(/^\/api\/files\//, "");
-    if (name === url || !FILE_NAME_RE.test(name)) continue;
+    if (!isUploadUrl(url)) continue;
     const used = await db.albumPhoto.count({ where: { url } });
-    if (!used) await unlink(path.join(UPLOAD_DIR, name)).catch(() => {});
+    if (!used) await deleteUpload(url);
   }
 }
 
