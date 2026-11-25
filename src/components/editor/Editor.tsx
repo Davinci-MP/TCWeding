@@ -123,8 +123,8 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
     <div className="flex h-[calc(100vh-4rem)] flex-col">
       {/* Thanh công cụ */}
       <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200 bg-white px-4 py-2">
-        <Link href="/dashboard" className="text-sm text-zinc-500 hover:text-zinc-800">
-          ← Thiệp của tôi
+        <Link href="/admin/invitations" className="text-sm text-zinc-500 hover:text-zinc-800">
+          ← Thiệp đã làm
         </Link>
         <span className="mx-2 hidden text-zinc-300 sm:inline">|</span>
         <span className="hidden text-sm font-semibold sm:inline">

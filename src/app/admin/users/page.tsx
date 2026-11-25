@@ -18,7 +18,7 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="font-display text-3xl font-semibold">Người dùng</h1>
+        <h1 className="font-display text-3xl font-semibold">Tài khoản quản trị</h1>
         <form className="flex gap-2">
           <input name="q" defaultValue={q} placeholder="Tìm email, tên…" className="input w-64" />
           <button className="btn btn-outline">Tìm</button>

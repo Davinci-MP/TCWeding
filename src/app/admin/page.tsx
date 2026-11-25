@@ -28,7 +28,7 @@ export default async function AdminHome() {
   const studioCards = [
     ["Yêu cầu tư vấn mới", newBookings, `+${bookings7} trong 7 ngày`, "/admin/bookings?status=NEW"],
     ["Album đang hiện", albums, "trong Bộ sưu tập", "/admin/albums"],
-    ["Album mẫu đang hiện", samples, "trang /album-mau", "/admin/album-mau"],
+    ["Album mẫu đang hiện", samples, "trang /ghep-album", "/admin/ghep-album"],
   ] as const;
 
   const cards = [

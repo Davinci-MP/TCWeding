@@ -27,7 +27,7 @@ export function FavoritesBar() {
 
   return (
     <>
-      <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 print:hidden">
+      <div data-site-chrome className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 print:hidden">
         <div className="flex items-center gap-1 rounded-full bg-[#1d1a17] p-1.5 pl-2 text-white shadow-2xl ring-1 ring-white/10">
           <button type="button" onClick={() => setOpen(true)} className="flex min-h-11 items-center gap-2 rounded-full px-3 text-sm hover:bg-white/10" aria-haspopup="dialog">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#e4574c" aria-hidden>

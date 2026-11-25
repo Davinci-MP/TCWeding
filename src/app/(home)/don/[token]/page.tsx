@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { approveOrderAction, claimInvitationAction, claimPaymentAction, customerMessageAction, deleteOrderPhotoAction } from "@/app/actions/orders";
+import { approveOrderAction, claimPaymentAction, customerMessageAction, deleteOrderPhotoAction } from "@/app/actions/orders";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { CopyLink } from "@/components/order/CopyLink";
 import { Messages } from "@/components/order/Messages";
 import { PhotoUploader } from "@/components/order/PhotoUploader";
-import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { BANKS } from "@/lib/invitation";
 import { isOpen, MAX_ORDER_PHOTOS, money, ORDER_STATUS, ORDER_STEPS, paymentQrUrl, settingsError, viDate, type OrderStatus } from "@/lib/orders";
@@ -23,11 +22,17 @@ export default async function OrderDetail({ params }: { params: Promise<{ token:
     include: {
       photos: { orderBy: { createdAt: "asc" } },
       messages: { orderBy: { createdAt: "asc" } },
-      invitation: { select: { slug: true } },
+      invitation: {
+        select: {
+          slug: true,
+          rsvps: { orderBy: { createdAt: "desc" }, take: 500 },
+          wishes: { where: { hidden: false }, orderBy: { createdAt: "desc" }, take: 200 },
+        },
+      },
     },
   });
   if (!o) notFound();
-  const [s, user] = await Promise.all([getOrderSettings(), getCurrentUser()]);
+  const s = await getOrderSettings();
   const status = o.status as OrderStatus;
   const step = ORDER_STEPS.indexOf(status);
   const open = isOpen(status);
@@ -131,28 +136,67 @@ export default async function OrderDetail({ params }: { params: Promise<{ token:
               </Link>
               <CopyLink path={`/w/${o.invitation.slug}`} label="Sao chép link thiệp" />
             </div>
-            {o.claimedAt ? (
-              <p className="mt-4 text-sm text-zinc-600">Thiệp đã được chuyển về tài khoản của bạn.</p>
-            ) : user ? (
-              <form action={claimInvitationAction} className="mt-5 border-t border-zinc-100 pt-5">
-                {hidden}
-                <p className="mb-3 text-sm text-zinc-600">Chuyển thiệp về tài khoản {user.email} để xem khách xác nhận, lời chúc và tự sửa thiệp. Chỉ chuyển được một lần.</p>
-                <ConfirmButton className="btn btn-outline min-h-11" message={`Chuyển thiệp về tài khoản ${user.email}?`}>
-                  Nhận thiệp về tài khoản
-                </ConfirmButton>
-              </form>
-            ) : (
-              <p className="mt-5 border-t border-zinc-100 pt-5 text-sm text-zinc-600">
-                Muốn xem khách xác nhận và lời chúc?{" "}
-                <Link href="/register" className="text-brand underline">
-                  Tạo tài khoản
-                </Link>{" "}
-                hoặc{" "}
-                <Link href="/login" className="text-brand underline">
-                  đăng nhập
-                </Link>
-                , rồi mở lại link này để nhận thiệp.
-              </p>
+          </div>
+        )}
+
+        {o.invitation && (status === "DONE" || o.invitation.rsvps.length > 0 || o.invitation.wishes.length > 0) && (
+          <div className="card">
+            <h2 className="text-lg font-semibold">Khách xác nhận & lời chúc</h2>
+            <p className="mt-1 text-sm text-zinc-600">Không cần tài khoản: mở lại link đơn này bất cứ lúc nào để xem ai sẽ đến và đọc lời chúc.</p>
+            {(() => {
+              const yes = o.invitation.rsvps.filter((r) => r.attending === "YES");
+              const stats: [string, string | number][] = [
+                ["Phản hồi", o.invitation.rsvps.length],
+                ["Sẽ tham dự", yes.length],
+                ["Tổng số khách", yes.reduce((n, r) => n + r.guests, 0)],
+                ["Nhà trai / nhà gái", `${yes.filter((r) => r.side === "GROOM").length} / ${yes.filter((r) => r.side === "BRIDE").length}`],
+              ];
+              return (
+                <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {stats.map(([k, v]) => (
+                    <div key={k} className="rounded-xl bg-zinc-50 p-3">
+                      <dt className="text-xs text-zinc-500">{k}</dt>
+                      <dd className="mt-1 text-2xl font-semibold">{v}</dd>
+                    </div>
+                  ))}
+                </dl>
+              );
+            })()}
+            {o.invitation.rsvps.length > 0 && (
+              <div className="mt-5 overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-zinc-500">
+                    <tr>
+                      <th className="py-2 pr-3 font-medium">Tên</th>
+                      <th className="py-2 pr-3 font-medium">Tham dự</th>
+                      <th className="py-2 pr-3 font-medium">Số người</th>
+                      <th className="py-2 pr-3 font-medium">Khách của</th>
+                      <th className="py-2 font-medium">Ghi chú</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100">
+                    {o.invitation.rsvps.map((r) => (
+                      <tr key={r.id}>
+                        <td className="py-2 pr-3">{r.name}</td>
+                        <td className="py-2 pr-3">{r.attending === "YES" ? "Sẽ đến" : r.attending === "NO" ? "Không đến" : "Chưa chắc"}</td>
+                        <td className="py-2 pr-3 tabular-nums">{r.guests}</td>
+                        <td className="py-2 pr-3">{r.side === "GROOM" ? "Nhà trai" : r.side === "BRIDE" ? "Nhà gái" : ""}</td>
+                        <td className="py-2 text-zinc-600">{r.note}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {o.invitation.wishes.length > 0 && (
+              <ul className="mt-5 space-y-3">
+                {o.invitation.wishes.map((w) => (
+                  <li key={w.id} className="rounded-xl bg-zinc-50 p-3">
+                    <p className="whitespace-pre-line">{w.message}</p>
+                    <p className="mt-1 text-xs text-zinc-500">{w.name}</p>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         )}

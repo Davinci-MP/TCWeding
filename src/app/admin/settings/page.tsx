@@ -36,11 +36,11 @@ export default async function AdminSettings() {
         <ul className="grid gap-1 sm:grid-cols-2">
           {[
             ["/admin/studio", "Nội dung trang chủ, liên hệ, mạng xã hội, SEO"],
+            ["/admin/about", "Trang Về tôi"],
             ["/admin/studio-pricing", "Bảng giá gói chụp"],
             ["/admin/albums", "Bộ sưu tập ảnh"],
-            ["/admin/album-mau", "Album mẫu"],
-            ["/admin/orders", "Dịch vụ đặt làm thiệp: giá, cọc, ngân hàng"],
-            ["/admin/pricing", "Bảng giá gói thiệp"],
+            ["/admin/ghep-album", "Ghép album (album mẫu)"],
+            ["/admin/orders", "Đơn làm thiệp: giá, cọc, ngân hàng"],
             ["/admin/templates", "Mẫu thiệp"],
             ["/admin/music", "Thư viện nhạc"],
           ].map(([href, label]) => (

@@ -32,7 +32,7 @@ type Kind = "COLLECTION" | "SAMPLE";
 const kindOf = (v: unknown): Kind => (v === "SAMPLE" ? "SAMPLE" : "COLLECTION");
 const validCategory = (kind: Kind, c: string) => (kind === "SAMPLE" ? isSampleStyle(c) : isCategory(c));
 const defaultCategory = (kind: Kind) => (kind === "SAMPLE" ? "prewedding" : "studio");
-const listPath = (kind: Kind) => (kind === "SAMPLE" ? "/admin/album-mau" : "/admin/albums");
+const listPath = (kind: Kind) => (kind === "SAMPLE" ? "/admin/ghep-album" : "/admin/albums");
 
 /** Ảnh phải là file đã tải lên hệ thống hoặc link https. */
 const imageUrl = (v: unknown) => {
@@ -55,7 +55,7 @@ const webUrl = (v: unknown) => {
 function refreshPublic(slug?: string) {
   revalidatePath("/");
   revalidatePath("/bo-suu-tap");
-  revalidatePath("/album-mau");
+  revalidatePath("/ghep-album");
   if (slug) revalidatePath(`/bo-suu-tap/${slug}`);
 }
 
@@ -68,6 +68,7 @@ export async function saveStudioAction(fd: FormData) {
     seoDescription: one("seoDescription", 200),
     footerText: one("footerText", 200),
     pricingNote: one("pricingNote", 300),
+    albumNote: str("albumNote", 600),
     steps: STUDIO_DEFAULTS.steps.map((_, i) => ({ title: one(`steps.${i}.title`, 60), body: one(`steps.${i}.body`, 300) })),
     faqs: STUDIO_DEFAULTS.faqs.map((_, i) => ({ q: one(`faqs.${i}.q`, 200), a: str(`faqs.${i}.a`, 1000) })),
     heroTitle: one("heroTitle", 120) || STUDIO_DEFAULTS.heroTitle,
@@ -96,7 +97,7 @@ export async function saveStudioAction(fd: FormData) {
   };
   await saveStudio(content);
   refreshPublic();
-  revalidatePath("/", "layout"); // chân trang dùng chung cho các trang
+  revalidatePath("/", "layout"); // chân trang và các trang dùng chung nội dung
   revalidatePath("/admin/studio");
   redirect("/admin/studio?saved=1");
 }
@@ -353,4 +354,36 @@ export async function setAlbumCoverAction(albumId: string, url: string) {
   const album = await db.album.update({ where: { id: albumId }, data: { coverUrl: imageUrl(url) } });
   refreshPublic(album.slug);
   revalidatePath(`/admin/albums/${albumId}`);
+}
+
+// ---------------- Trang Về tôi ----------------
+
+export async function saveAboutAction(fd: FormData) {
+  await requireAdmin();
+  const { ABOUT_DEFAULTS, saveAbout } = await import("@/lib/about");
+  const str = (k: string, max = 200) => String(fd.get(k) ?? "").replace(/\r\n?/g, "\n").trim().slice(0, max);
+  const one = (k: string, max = 200) => str(k, max).replace(/\s+/g, " ");
+  await saveAbout({
+    eyebrow: one("eyebrow", 80),
+    headline: one("headline", 200) || ABOUT_DEFAULTS.headline,
+    name: one("name", 80) || ABOUT_DEFAULTS.name,
+    role: one("role", 120),
+    intro: str("intro", 600),
+    photo: imageUrl(fd.get("photo")),
+    stats: ABOUT_DEFAULTS.stats.map((_, i) => ({ value: one(`stats.${i}.value`, 20), label: one(`stats.${i}.label`, 60) })),
+    storyTitle: one("storyTitle", 150),
+    storyBody: str("storyBody", 4000).replace(/\n{3,}/g, "\n\n"),
+    fieldsTitle: one("fieldsTitle", 100) || ABOUT_DEFAULTS.fieldsTitle,
+    fields: ABOUT_DEFAULTS.fields.map((_, i) => ({ title: one(`fields.${i}.title`, 80), body: one(`fields.${i}.body`, 400) })),
+    blocks: ABOUT_DEFAULTS.blocks.map((_, i) => ({
+      eyebrow: one(`blocks.${i}.eyebrow`, 60),
+      title: one(`blocks.${i}.title`, 200),
+      body: str(`blocks.${i}.body`, 3000).replace(/\n{3,}/g, "\n\n"),
+    })),
+    reviewText: one("reviewText", 400),
+    reviewUrl: webUrl(fd.get("reviewUrl")),
+  });
+  revalidatePath("/ve-toi");
+  revalidatePath("/admin/about");
+  redirect("/admin/about?saved=1");
 }

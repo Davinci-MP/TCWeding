@@ -148,6 +148,8 @@ export type StudioContent = {
   footerText: string;
   /** Câu dưới tiêu đề Bảng giá gói chụp. */
   pricingNote: string;
+  /** Trang Ghép album: giá và mô tả dịch vụ ghép album (vd "Ghép album 400.000đ, nhận file in 300 DPI"). */
+  albumNote: string;
   /** Quy trình (tối đa 4 bước) và hỏi đáp (tối đa 8 câu). Bước/câu trống thì ẩn. */
   steps: StudioStep[];
   faqs: StudioFaq[];
@@ -178,6 +180,7 @@ export const STUDIO_DEFAULTS: StudioContent = {
   seoDescription: "",
   footerText: "Chụp ảnh cưới, thiệp mời online và album cưới.",
   pricingNote: "Chi phí cuối cùng được xác nhận sau buổi tư vấn, tuỳ theo concept và hạng mục hai bạn chọn.",
+  albumNote: "Studio chọn ảnh, chỉnh màu đồng bộ và dàn trang theo mẫu hai bạn thích. Duyệt bản thiết kế qua Zalo, nhận file in 300 DPI gửi được mọi xưởng in.",
   steps: [
     { title: "Tư vấn", body: "Trao đổi về phong cách, ngày chụp và ngân sách để xây dựng concept riêng cho hai bạn." },
     { title: "Chuẩn bị", body: "Chọn váy cưới, vest và lên phương án trang điểm, làm tóc cùng ekip." },

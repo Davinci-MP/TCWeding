@@ -32,7 +32,7 @@ export default async function GuestsPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <Link href="/dashboard" className="text-sm text-zinc-500 hover:text-zinc-800">
+      <Link href="/admin/invitations" className="text-sm text-zinc-500 hover:text-zinc-800">
         ← Thiệp của tôi
       </Link>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-3">

@@ -19,7 +19,7 @@ export default async function AdminOrders({ searchParams }: { searchParams: Prom
   ]);
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-3xl font-semibold">Đơn đặt thiệp</h1>
+      <h1 className="font-display text-3xl font-semibold">Đơn làm thiệp &amp; video</h1>
       {saved && (
         <p role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800">
           Đã lưu cài đặt.

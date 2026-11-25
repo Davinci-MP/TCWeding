@@ -5,6 +5,9 @@ import { FavoritesBar } from "@/components/studio/FavoritesBar";
 import { contactLinks, getStudio } from "@/lib/studio";
 import { Icon } from "@/templates/icons";
 
+// Nội dung do admin sửa trên web (trang chủ, mẫu thiệp, giá, album…): luôn đọc mới, không đóng băng lúc build.
+export const dynamic = "force-dynamic";
+
 export default async function HomeLayout({ children }: { children: React.ReactNode }) {
   const { contact, footerText } = await getStudio();
   const l = contactLinks(contact);
@@ -16,7 +19,7 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
       <SiteHeader dark />
       <main className="overflow-x-clip">{children}</main>
       <FavoritesBar />
-      <footer className="bg-[#1d1a17] px-4 pb-24 pt-16 text-white/70">
+      <footer data-site-chrome className="bg-[#1d1a17] px-4 pb-24 pt-16 text-white/70">
         <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr_1fr]">
           <div>
             <span className="text-white">
@@ -46,29 +49,29 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
             <Link href="/bo-suu-tap" className="block hover:text-white">
               Bộ sưu tập
             </Link>
-            <Link href="/album-mau" className="block hover:text-white">
-              Album mẫu
+            <Link href="/ghep-album" className="block hover:text-white">
+              Ghép album
             </Link>
             <Link href="/#bang-gia" className="block hover:text-white">
               Bảng giá chụp
+            </Link>
+            <Link href="/ve-toi" className="block hover:text-white">
+              Về tôi
             </Link>
             <Link href="/#lien-he" className="block hover:text-white">
               Đặt lịch tư vấn
             </Link>
           </div>
           <div className={col}>
-            <p className={head}>Thiệp mời online</p>
-            <Link href="/thiep-moi" className="block hover:text-white">
-              Giới thiệu
+            <p className={head}>Thiệp & video</p>
+            <Link href="/thiep" className="block hover:text-white">
+              Mẫu thiệp cưới online
             </Link>
-            <Link href="/templates" className="block hover:text-white">
-              Mẫu thiệp
+            <Link href="/thiep#chon" className="block hover:text-white">
+              Đặt làm thiệp
             </Link>
-            <Link href="/thiep-moi#bang-gia" className="block hover:text-white">
-              Bảng giá thiệp
-            </Link>
-            <Link href="/dashboard" className="block hover:text-white">
-              Thiệp của tôi
+            <Link href="/#slideshow" className="block hover:text-white">
+              Slideshow tiệc cưới
             </Link>
           </div>
           <div className={col}>
@@ -77,7 +80,7 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
               Màn hình LED
             </Link>
             <Link href="/slideshow" className="block hover:text-white">
-              Slideshow ảnh cưới
+              Tự làm slideshow
             </Link>
           </div>
           {(contact.phone || contact.email || contact.address) && (

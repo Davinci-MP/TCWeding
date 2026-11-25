@@ -23,7 +23,7 @@ export function SettingsForm({ initial }: { initial: OrderSettings }) {
       }}
       className="mt-4 space-y-4">
       <label className="flex items-center gap-2 text-sm font-semibold">
-        <input type="checkbox" name="enabled" checked={v.enabled} onChange={(e) => setV({ ...v, enabled: e.target.checked })} /> Nhận đơn đặt làm thiệp
+        <input type="checkbox" name="enabled" checked={v.enabled} onChange={(e) => setV({ ...v, enabled: e.target.checked })} /> Thu tiền cọc qua chuyển khoản (cần điền ngân hàng). Tắt: đơn mới không cần cọc, bạn bấm “Bắt đầu làm”.
       </label>
       <div className="grid gap-4 sm:grid-cols-2">
         <label>

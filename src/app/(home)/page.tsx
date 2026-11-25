@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CardFan } from "@/components/home/CardFan";
 import { AlbumCard } from "@/components/studio/AlbumCard";
 import { ContactBlock } from "@/components/studio/Contact";
 import { Packages } from "@/components/studio/Packages";
+import { HomeInvitations } from "@/components/thiep/HomeInvitations";
+import { SlideshowGallery } from "@/components/thiep/SlideshowGallery";
+import type { TplLite } from "@/components/thiep/TemplateCard";
+import { fontLabel } from "@/lib/thiep";
 import { listTemplates } from "@/lib/templates";
 import { bookingServices, getPackages, getStudio, listPublishedAlbums, listSampleAlbums, pickPortraitPhoto, sampleStyleLabel, sizeLabel } from "@/lib/studio";
 import { Icon } from "@/templates/icons";
 
-const SERVICE_LINKS = ["/bo-suu-tap", "/thiep-moi", "/album-mau"];
-const SERVICE_CTA = ["Xem bộ sưu tập", "Tạo thiệp mời", "Lật xem album mẫu"];
+const SERVICE_LINKS = ["/bo-suu-tap", "/thiep", "/ghep-album"];
+const SERVICE_CTA = ["Xem bộ sưu tập", "Chọn mẫu thiệp", "Xem mẫu ghép album"];
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getStudio();
@@ -43,7 +46,7 @@ export default async function StudioHome() {
   const steps = studio.steps.filter((s) => s.title);
   const faqs = studio.faqs.filter((f) => f.q && f.a);
   const grid = albums.slice(0, 5);
-  const fan = templates.slice(0, 6).map((t) => ({ id: t.id, name: t.name }));
+  const featuredTemplates: TplLite[] = templates.slice(0, 8).map((t) => ({ id: t.id, name: t.name, description: t.description, category: t.category, premium: t.isPremium, fonts: fontLabel(t) }));
   const [lead, ...rest] = studio.heroTitle.split(" ");
 
   return (
@@ -186,26 +189,38 @@ export default async function StudioHome() {
       </section>
 
       {/* ============ THIỆP MỜI ONLINE ============ */}
-      <section className="overflow-hidden bg-[#1d1a17] px-4 py-24 text-white lg:py-28">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1fr_1.05fr]">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-[#d8cdbf]">Thiệp mời online</p>
-            <h2 className="font-serif-display mt-5 text-4xl leading-[1.02] sm:text-5xl lg:text-6xl">
-              Đẹp như thiệp in, <em className="text-[#d8cdbf]">gửi bằng một đường link.</em>
-            </h2>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-white/70">
-              {templates.length} mẫu thiệp có nhạc nền, bản đồ, xác nhận tham dự và mừng cưới qua mã QR. Thiệp đầu tiên miễn phí, dùng chính ảnh cưới của hai bạn.
-            </p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/thiep-moi" className="rounded-full bg-[#d8cdbf] px-7 py-3.5 font-semibold text-[#1d1a17] transition hover:bg-[#ede6dc]">
-                Tìm hiểu thiệp mời
-              </Link>
-              <Link href="/templates" className="rounded-full border border-white/25 px-7 py-3.5 font-semibold text-white transition hover:border-white/60">
-                Xem các mẫu thiệp
-              </Link>
-            </div>
+      <section id="thiep-moi" className="scroll-mt-16 overflow-hidden bg-[#1d1a17] px-4 py-24 text-white lg:py-28">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-[#d8cdbf]">Thiệp cưới online</p>
+          <h2 className="font-serif-display mt-5 max-w-3xl text-4xl leading-[1.02] sm:text-5xl lg:text-6xl">
+            Tự chọn thiệp, <em className="text-[#d8cdbf]">xem ngay thiệp của hai bạn</em>
+          </h2>
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
+            Chọn một trong {templates.length} mẫu chạy thật có nhạc nền, đếm ngược, chỉ đường, xác nhận tham dự và hộp mừng cưới. Điền thông tin, bấm xem là thấy ngay thiệp mang tên hai bạn. Không cần tạo tài khoản.
+          </p>
+          <HomeInvitations templates={featuredTemplates} total={templates.length} />
+        </div>
+      </section>
+
+      {/* ============ SLIDESHOW TIỆC CƯỚI ============ */}
+      <section id="slideshow" className="scroll-mt-16 border-t border-white/10 bg-[#161210] px-4 py-24 text-white lg:py-28">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-[#d8cdbf]">Slideshow tiệc cưới</p>
+          <h2 className="font-serif-display mt-5 max-w-3xl text-4xl leading-[1.02] sm:text-5xl lg:text-6xl">
+            Ngày cưới, <em className="text-[#d8cdbf]">kể thành thước phim.</em>
+          </h2>
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
+            Một bộ ảnh, những lời muốn nói. Từ lời chào, lời tri ân gia đình đến khoảnh khắc chung đôi — chiếu toàn màn hình trong tiệc cưới, xuất file MP4 Full HD.
+          </p>
+          <div className="mb-12 mt-8 flex flex-wrap gap-3">
+            <Link href="/thiep#chon" className="inline-flex min-h-12 items-center rounded-full bg-[#efe7dc] px-7 font-semibold text-[#1d1a17] transition hover:bg-white">
+              Đặt làm video slideshow
+            </Link>
+            <Link href="/slideshow" className="inline-flex min-h-12 items-center rounded-full border border-white/25 px-7 font-semibold text-white transition hover:border-white/60">
+              Tự làm miễn phí ↗
+            </Link>
           </div>
-          <CardFan templates={fan} />
+          <SlideshowGallery />
         </div>
       </section>
 
@@ -245,11 +260,11 @@ export default async function StudioHome() {
               <Packages packages={packages} />
             </div>
             <p className="mt-10 text-sm text-zinc-500">
-              Bảng giá thiệp mời online xem tại{" "}
-              <Link href="/thiep-moi#bang-gia" className="font-medium text-[#7b2d26] underline-offset-4 hover:underline">
-                trang Thiệp mời
+              Chỉ cần thiệp cưới online hoặc video slideshow?{" "}
+              <Link href="/thiep#chon" className="font-medium text-[#7b2d26] underline-offset-4 hover:underline">
+                Đặt làm thiệp & video
               </Link>
-              .
+              , không cần tài khoản.
             </p>
           </div>
         </section>
@@ -266,7 +281,7 @@ export default async function StudioHome() {
                   Lật xem <em className="text-[#d8cdbf]">album mẫu</em>
                 </h2>
               </div>
-              <Link href="/album-mau" className="group inline-flex items-center gap-2 font-semibold text-[#d8cdbf]">
+              <Link href="/ghep-album" className="group inline-flex items-center gap-2 font-semibold text-[#d8cdbf]">
                 Xem tất cả {samples.length} album mẫu
                 <Icon name="arrow" size={18} className="transition group-hover:translate-x-1" />
               </Link>
@@ -274,7 +289,7 @@ export default async function StudioHome() {
             <ul className="mt-12 grid gap-6 sm:grid-cols-3">
               {samples.slice(0, 3).map((a) => (
                 <li key={a.id}>
-                  <Link href={`/album-mau#${a.slug}`} className="group block">
+                  <Link href={`/ghep-album#${a.slug}`} className="group block">
                     <div className="aspect-[4/3] overflow-hidden bg-white/5">
                       {a.cover && (
                         // eslint-disable-next-line @next/next/no-img-element

@@ -120,7 +120,7 @@ export default async function AdminStudio({ searchParams }: { searchParams: Prom
         </fieldset>
 
         <fieldset className="card space-y-4 p-5">
-          <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">Bảng giá & chân trang</legend>
+          <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">Bảng giá, ghép album & chân trang</legend>
           <label className="block text-sm">
             <span className="font-medium">Ghi chú dưới tiêu đề Bảng giá</span>
             <span className="block text-xs text-zinc-500">
@@ -131,6 +131,11 @@ export default async function AdminStudio({ searchParams }: { searchParams: Prom
               .
             </span>
             <textarea name="pricingNote" defaultValue={s.pricingNote} maxLength={300} rows={2} className="input mt-1" />
+          </label>
+          <label className="block text-sm">
+            <span className="font-medium">Trang Ghép album: giá & mô tả dịch vụ</span>
+            <span className="block text-xs text-zinc-500">Hiện ở đầu trang /ghep-album, vd “Ghép album cưới 400.000đ · nhận file in 300 DPI”.</span>
+            <textarea name="albumNote" defaultValue={s.albumNote} maxLength={600} rows={2} className="input mt-1" />
           </label>
           <Text name="footerText" label="Câu giới thiệu ở chân trang" value={s.footerText} max={200} hint="Hiện dưới logo ở cuối mọi trang." />
         </fieldset>

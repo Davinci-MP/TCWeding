@@ -16,10 +16,10 @@ export async function AlbumList({ kind, error, deleted }: { kind: "COLLECTION" |
 
   return (
     <div className="max-w-5xl">
-      <h1 className="font-display text-3xl font-semibold">{sample ? "Album mẫu" : "Bộ sưu tập"}</h1>
+      <h1 className="font-display text-3xl font-semibold">{sample ? "Ghép album (album mẫu)" : "Bộ sưu tập"}</h1>
       <p className="mt-1 text-sm text-zinc-500">
         {sample
-          ? "Album in mẫu để khách lật xem ở trang /album-mau. Mỗi ảnh là một trang; ảnh bìa là trang đầu. Nên tải ảnh đúng tỉ lệ khổ album (vd 30×30 → ảnh vuông)."
+          ? "Album in mẫu để khách lật xem ở trang /ghep-album. Mỗi ảnh là một trang; ảnh bìa là trang đầu. Nên tải ảnh đúng tỉ lệ khổ album (vd 30×30 → ảnh vuông)."
           : "Album ảnh hiện ở trang /bo-suu-tap. Khách thả tim ảnh và gửi kèm yêu cầu tư vấn. Album đánh dấu “Trang chủ” được ưu tiên hiện ở trang chủ (tối đa 5 album)."}
       </p>
       {deleted && (
