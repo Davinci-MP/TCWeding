@@ -46,7 +46,7 @@ export async function updateTemplateConfigAction(fd: FormData) {
   };
   await db.templateConfig.upsert({ where: { id }, create: { id, ...data }, update: data });
   revalidatePath("/admin/templates");
-  revalidatePath("/thiep");
+  revalidatePath("/", "layout"); // trang chủ và /thiep hiện danh sách mẫu
 }
 
 export async function savePlansAction(fd: FormData) {
@@ -89,6 +89,7 @@ export async function addMusicAction(fd: FormData) {
   list.push({ id: `u${Date.now().toString(36)}`, name, note, url });
   await saveMusicLibrary(list);
   revalidatePath("/admin/music");
+  revalidatePath("/", "layout"); // form /thiep, công cụ slideshow / LED dùng thư viện nhạc
   redirect("/admin/music?saved=1");
 }
 
@@ -98,4 +99,5 @@ export async function deleteMusicAction(fd: FormData) {
   const { getMusicLibrary, saveMusicLibrary } = await import("@/lib/settings");
   await saveMusicLibrary((await getMusicLibrary()).filter((t) => t.id !== id));
   revalidatePath("/admin/music");
+  revalidatePath("/", "layout"); // form /thiep, công cụ slideshow / LED dùng thư viện nhạc
 }

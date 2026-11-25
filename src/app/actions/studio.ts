@@ -51,6 +51,7 @@ const webUrl = (v: unknown) => {
 };
 
 function refreshPublic(slug?: string) {
+  revalidatePath("/", "layout"); // mọi trang công khai (trang chủ, Về tôi, Bộ sưu tập…) dùng chung dữ liệu
   revalidatePath("/");
   revalidatePath("/bo-suu-tap");
   revalidatePath("/ghep-album");
@@ -205,7 +206,7 @@ export async function savePackagesAction(fd: FormData) {
     badge: one(`${d.id}.badge`, 30),
   }));
   await savePackages(pkgs);
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   revalidatePath("/admin/studio-pricing");
   redirect("/admin/studio-pricing?saved=1");
 }
@@ -380,7 +381,7 @@ export async function saveAboutAction(fd: FormData) {
     reviewText: one("reviewText", 400),
     reviewUrl: webUrl(fd.get("reviewUrl")),
   });
-  revalidatePath("/ve-toi");
+  revalidatePath("/", "layout");
   revalidatePath("/admin/about");
   redirect("/admin/about?saved=1");
 }

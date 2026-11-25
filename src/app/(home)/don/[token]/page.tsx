@@ -12,6 +12,9 @@ import { isOpen, MAX_ORDER_PHOTOS, money, ORDER_STATUS, ORDER_STEPS, paymentQrUr
 import { getOrderSettings } from "@/lib/settings";
 import { getTemplateDef } from "@/templates/registry";
 
+// Trang đơn thay đổi liên tục (trạng thái, tin nhắn, ảnh): luôn đọc mới, không cache.
+export const dynamic = "force-dynamic";
+
 // Link là chìa khoá của đơn: không cho máy tìm kiếm lưu, không lộ qua Referer
 export const metadata: Metadata = { title: "Đơn đặt thiệp", robots: { index: false, follow: false }, referrer: "same-origin" };
 

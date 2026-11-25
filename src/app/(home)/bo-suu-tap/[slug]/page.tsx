@@ -8,6 +8,11 @@ import { Icon } from "@/templates/icons";
 
 type Props = { params: Promise<{ slug: string }> };
 
+/** Không dựng sẵn lúc build; album được lưu cache ở lần mở đầu tiên rồi dùng lại (làm mới khi admin sửa album). */
+export async function generateStaticParams() {
+  return [];
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const album = await getPublishedAlbum((await params).slug);
   if (!album) return {};
