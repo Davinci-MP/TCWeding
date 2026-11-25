@@ -61,7 +61,7 @@ export async function linkChat() {
   const m = r.result.find((u) => u.message?.text === `/start ${n.linkCode}` && u.message.chat.type === "private")?.message;
   if (!m) return "Chưa thấy tin nhắn. Mở link kết nối, bấm Start trong Telegram rồi thử lại.";
   await save({ ...n, linkCode: "", chatId: String(m.chat.id), chatName: m.chat.first_name || m.chat.username || "Telegram", error: "" });
-  return sendNotice("Đã kết nối. Đơn đặt thiệp mới sẽ báo về đây.");
+  return sendNotice("Đã kết nối. Đơn đặt thiệp và yêu cầu tư vấn mới sẽ báo về đây.");
 }
 
 export async function disconnect() {

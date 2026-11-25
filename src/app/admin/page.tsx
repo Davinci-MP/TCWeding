@@ -17,6 +17,19 @@ export default async function AdminHome() {
     db.invitation.findMany({ orderBy: { createdAt: "desc" }, take: 8, include: { user: { select: { email: true } } } }),
   ]);
   const byTemplate = await db.invitation.groupBy({ by: ["templateId"], _count: true, orderBy: { _count: { templateId: "desc" } } });
+  const [newBookings, bookings7, albums, samples, recentBookings] = await Promise.all([
+    db.booking.count({ where: { status: "NEW" } }),
+    db.booking.count({ where: { createdAt: { gte: since } } }),
+    db.album.count({ where: { kind: "COLLECTION", status: "PUBLISHED" } }),
+    db.album.count({ where: { kind: "SAMPLE", status: "PUBLISHED" } }),
+    db.booking.findMany({ orderBy: { createdAt: "desc" }, take: 6 }),
+  ]);
+
+  const studioCards = [
+    ["Yêu cầu tư vấn mới", newBookings, `+${bookings7} trong 7 ngày`, "/admin/bookings?status=NEW"],
+    ["Album đang hiện", albums, "trong Bộ sưu tập", "/admin/albums"],
+    ["Album mẫu đang hiện", samples, "trang /album-mau", "/admin/album-mau"],
+  ] as const;
 
   const cards = [
     ["Người dùng", users, `+${newUsers} trong 7 ngày`],
@@ -30,6 +43,34 @@ export default async function AdminHome() {
   return (
     <div className="space-y-8">
       <h1 className="font-display text-3xl font-semibold">Tổng quan</h1>
+      <div>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-zinc-400">Studio</h2>
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
+          {studioCards.map(([l, v, sub, href]) => (
+            <Link key={l} href={href} className="card transition hover:border-zinc-300">
+              <p className="text-sm text-zinc-500">{l}</p>
+              <p className={`mt-1 text-3xl font-semibold ${l.startsWith("Yêu cầu") && v > 0 ? "text-red-700" : ""}`}>{v}</p>
+              <p className="mt-1 text-xs text-zinc-400">{sub}</p>
+            </Link>
+          ))}
+        </div>
+        {recentBookings.length > 0 && (
+          <div className="card mt-4">
+            <h3 className="font-semibold">Yêu cầu tư vấn gần đây</h3>
+            <ul className="mt-3 divide-y divide-zinc-100 text-sm">
+              {recentBookings.map((b) => (
+                <li key={b.id} className="flex justify-between gap-2 py-2">
+                  <Link href={`/admin/bookings/${b.id}`} className="truncate hover:underline">
+                    {b.name} · {b.phone}
+                  </Link>
+                  <span className="shrink-0 text-zinc-400">{b.createdAt.toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+      <h2 className="-mb-4 text-sm font-semibold uppercase tracking-wider text-zinc-400">Thiệp mời online</h2>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         {cards.map(([l, v, sub]) => (
           <div key={l} className="card">

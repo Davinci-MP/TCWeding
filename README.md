@@ -1,6 +1,6 @@
-# TCWedding: thiệp mời cưới online
+# TCWedding: chụp ảnh cưới, album & thiệp mời online
 
-Website tạo và gửi thiệp cưới online (tcwedding.vn). Khách tự làm thiệp từ 30 mẫu hoặc đặt TCWedding làm hộ, rồi gửi bằng link `/w/<đường-dẫn>`. TCWedding chỉ làm thiệp mời online, không chụp ảnh cưới và không dàn trang album.
+Website của studio TCWedding (tcwedding.vn). Trang chủ `/` là trang studio: bộ sưu tập ảnh cưới (khách thả tim ảnh thích), bảng giá gói chụp, album mẫu lật trang và form đặt lịch tư vấn. Phần thiệp mời online ở `/thiep-moi`: khách tự làm thiệp từ 30 mẫu hoặc đặt TCWedding làm hộ, rồi gửi bằng link `/w/<đường-dẫn>`.
 
 **Đọc phần nào?**
 
@@ -111,6 +111,20 @@ Giá dịch vụ, tài khoản ngân hàng và mã bot Telegram **không** nằm
 
 ## 4. Hướng dẫn sử dụng
 
+### Studio: bộ sưu tập, album mẫu, bảng giá, đặt lịch
+
+| Trang khách xem | Admin quản lý |
+|---|---|
+| `/bo-suu-tap`, `/bo-suu-tap/<album>`: album ảnh cưới. Khách **thả tim** từng ảnh; thanh "ảnh đã thích" hiện ở cuối màn hình | `/admin/albums`: tạo album, kéo thả nhiều ảnh, ảnh bìa, thứ tự, nháp/hiện, ưu tiên trang chủ |
+| `/album-mau`: album in mẫu **lật trang**, lọc theo phong cách và khổ; bảng khổ album & ảnh phóng | `/admin/album-mau`: mỗi ảnh là một trang, ảnh bìa là trang đầu. Nên tải ảnh đúng tỉ lệ khổ (30×30 → ảnh vuông) |
+| `/#bang-gia`: 3 gói chụp, nút "Chọn gói này" chọn sẵn gói trong form | `/admin/studio-pricing`: tên, giá, quyền lợi. Giá ban đầu là "Liên hệ", phải sửa trước khi mở web |
+| `/#lien-he`: form đặt lịch tư vấn (họ tên, SĐT, ngày chụp, dịch vụ, lời nhắn) **kèm ảnh đã thả tim** | `/admin/bookings`: danh sách yêu cầu, ảnh khách thích, trạng thái (Mới / Đã liên hệ / Đã chốt / Không chốt), ghi chú |
+| Chữ & ảnh mở đầu, giới thiệu, dịch vụ, quy trình, hỏi đáp, ghi chú bảng giá, chân trang, liên hệ, mạng xã hội, SEO (tiêu đề & mô tả khi chia sẻ) | `/admin/studio` |
+
+- Danh sách ảnh thả tim lưu trên trình duyệt của khách (tối đa 60 ảnh), gửi đi khi khách bấm "Gửi yêu cầu tư vấn".
+- Yêu cầu tư vấn mới được báo qua Telegram nếu đã nối bot ở `/admin/orders`. Số yêu cầu "Mới" hiện trên menu quản trị.
+- Khi phát triển (`npm run setup`), seed tạo 6 album và 3 album mẫu bằng ảnh Unsplash. Production không tạo, trừ khi `SEED_DEMO=true`.
+
 ### Khách tự làm thiệp
 
 1. Đăng ký tại `/register`, vào `/dashboard`, chọn mẫu.
@@ -149,14 +163,19 @@ Cả hai dựng video ngay trong trình duyệt, ảnh không tải lên máy ch
 | Trang | Việc làm được |
 |---|---|
 | `/admin` | Xem số liệu |
+| `/admin/bookings` | Yêu cầu đặt lịch tư vấn |
+| `/admin/studio` | Nội dung trang chủ studio, liên hệ |
+| `/admin/albums` · `/admin/album-mau` | Bộ sưu tập ảnh · Album mẫu lật trang |
+| `/admin/studio-pricing` | Bảng giá gói chụp |
 | `/admin/users` | Đổi gói, cấp quyền admin, xoá người dùng |
 | `/admin/invitations` | Gỡ/xuất bản, sửa, xoá thiệp |
 | `/admin/orders` | Đơn đặt thiệp, cài đặt dịch vụ, Telegram |
 | `/admin/templates` | Bật/tắt, Premium, thứ tự mẫu |
-| `/admin/pricing` | Nội dung bảng giá |
+| `/admin/pricing` | Bảng giá gói thiệp (trang `/thiep-moi`) |
 | `/admin/music` | Thư viện nhạc |
+| `/admin/settings` | Đổi mật khẩu của bạn, thông báo Telegram (đơn thiệp + yêu cầu tư vấn) |
 
-Web **chưa có đổi mật khẩu hay quên mật khẩu**, kể cả cho admin. Nếu mất mật khẩu admin: đặt `ADMIN_EMAIL` (email chưa đăng ký) và `ADMIN_PASSWORD` mới trong `.env`, chạy lại `NODE_ENV=production npm run db:seed` để tạo admin mới, rồi hạ quyền tài khoản cũ ở `/admin/users`. Chạy seed lại không đổi mật khẩu của tài khoản đã có.
+Đổi mật khẩu của mình ở `/admin/settings`; đặt mật khẩu mới cho người dùng khác (khách quên mật khẩu) bằng nút "Đặt mật khẩu" ở `/admin/users`. Web **chưa có tự lấy lại mật khẩu qua email**. Nếu mất mật khẩu admin: đặt `ADMIN_EMAIL` (email chưa đăng ký) và `ADMIN_PASSWORD` mới trong `.env`, chạy lại `NODE_ENV=production npm run db:seed` để tạo admin mới, rồi hạ quyền tài khoản cũ ở `/admin/users`. Chạy seed lại không đổi mật khẩu của tài khoản đã có.
 
 ## 5. Vận hành
 

@@ -1,4 +1,5 @@
 import { deleteUserAction, setUserPlanAction, setUserRoleAction } from "@/app/actions/admin";
+import { ResetPasswordButton } from "@/components/admin/PasswordForms";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -62,12 +63,15 @@ export default async function AdminUsers({ searchParams }: { searchParams: Promi
                 <td className="whitespace-nowrap px-4 py-3 text-zinc-500">{u.createdAt.toLocaleDateString("vi-VN")}</td>
                 <td className="px-4 py-3">
                   {u.id !== me.id && (
-                    <form action={deleteUserAction}>
-                      <input type="hidden" name="id" value={u.id} />
-                      <ConfirmButton message={`Xoá người dùng ${u.email} và toàn bộ thiệp của họ?`} className="text-xs text-red-600 hover:underline">
-                        Xoá
-                      </ConfirmButton>
-                    </form>
+                    <div className="flex flex-col items-start gap-2">
+                      <ResetPasswordButton id={u.id} email={u.email} />
+                      <form action={deleteUserAction}>
+                        <input type="hidden" name="id" value={u.id} />
+                        <ConfirmButton message={`Xoá người dùng ${u.email} và toàn bộ thiệp của họ?`} className="text-xs text-red-600 hover:underline">
+                          Xoá
+                        </ConfirmButton>
+                      </form>
+                    </div>
                   )}
                 </td>
               </tr>

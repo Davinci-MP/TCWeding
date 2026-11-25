@@ -3,8 +3,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.APP_URL || "https://tcwedding.vn"),
-  title: { default: "TCWedding — Thiệp mời cưới online", template: "%s · TCWedding" },
-  description: "Thiệp mời cưới online của TCWedding: chọn mẫu, điền thông tin và gửi cho khách bằng một đường link qua Zalo, Messenger.",
+  title: { default: "TCWedding — Chụp ảnh cưới, thiệp mời online & album cưới", template: "%s · TCWedding" },
+  description: "TCWedding chụp ảnh cưới studio, ngoại cảnh, phóng sự ngày cưới; làm album cưới và thiệp mời online gửi bằng một đường link.",
   icons: { icon: "/favicon.svg" },
   openGraph: { siteName: "TCWedding", locale: "vi_VN", type: "website" },
 };

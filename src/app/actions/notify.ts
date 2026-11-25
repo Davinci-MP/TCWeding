@@ -20,5 +20,6 @@ export async function notifyAction(_: NotifyState, fd: FormData): Promise<Notify
     ok = "Đã gửi tin thử.";
   } else if (op === "off") await disconnect();
   revalidatePath("/admin/orders");
+  revalidatePath("/admin/settings");
   return error ? { error } : { ok };
 }

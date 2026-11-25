@@ -133,3 +133,56 @@ model SiteSetting {
   value     String
   updatedAt DateTime @updatedAt
 }
+
+// ---------------- Studio ----------------
+
+// Album ảnh. kind = COLLECTION: bộ sưu tập ảnh cưới (/bo-suu-tap).
+// kind = SAMPLE: album in mẫu để khách lật xem (/album-mau), có khổ và phong cách.
+model Album {
+  id          String       @id @default(cuid())
+  kind        String       @default("COLLECTION") // COLLECTION | SAMPLE
+  slug        String       @unique
+  title       String
+  description String       @default("")
+  category    String       @default("studio") // COLLECTION: studio | ngoai-canh | phong-su · SAMPLE: prewedding | phong-su | anh-phong
+  location    String       @default("")
+  size        String       @default("") // SAMPLE: khổ album, vd "30x30"
+  coverUrl    String       @default("") // trống = ảnh đầu tiên
+  status      String       @default("DRAFT") // DRAFT | PUBLISHED
+  featured    Boolean      @default(false) // hiện ở trang chủ
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  photos      AlbumPhoto[]
+
+  @@index([kind, status, sortOrder])
+}
+
+model AlbumPhoto {
+  id        String @id @default(cuid())
+  albumId   String
+  album     Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  url       String
+  width     Int    @default(0)
+  height    Int    @default(0)
+  sortOrder Int    @default(0)
+
+  @@index([albumId, sortOrder])
+}
+
+// Yêu cầu đặt lịch tư vấn từ form Liên hệ. Có thể kèm danh sách ảnh khách thả tim.
+model Booking {
+  id         String   @id @default(cuid())
+  name       String
+  phone      String
+  shootDate  String   @default("") // yyyy-mm-dd, không bắt buộc
+  service    String   @default("") // id gói chụp hoặc dịch vụ khác
+  message    String   @default("")
+  favorites  String   @default("[]") // JSON: [{ url, album, albumTitle }]
+  status     String   @default("NEW") // NEW | CONTACTED | DONE | CANCELLED
+  adminNote  String   @default("")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([status, createdAt])
+}

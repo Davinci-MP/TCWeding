@@ -6,12 +6,18 @@ import { orderTodo } from "@/lib/orders";
 
 const NAV = [
   ["/admin", "📊 Tổng quan"],
+  ["/admin/bookings", "📅 Lịch tư vấn"],
+  ["/admin/studio", "🏠 Nội dung trang chủ"],
+  ["/admin/albums", "📷 Bộ sưu tập"],
+  ["/admin/album-mau", "📖 Album mẫu"],
+  ["/admin/studio-pricing", "💰 Gói chụp"],
   ["/admin/users", "👥 Người dùng"],
   ["/admin/invitations", "💌 Thiệp cưới"],
   ["/admin/orders", "🧾 Đơn đặt thiệp"],
   ["/admin/templates", "🎨 Mẫu thiệp"],
   ["/admin/pricing", "💳 Bảng giá"],
   ["/admin/music", "🎵 Thư viện nhạc"],
+  ["/admin/settings", "⚙️ Cài đặt"],
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     select: { status: true, depositClaimedAt: true, finalClaimedAt: true, finalPaidAt: true, messages: { orderBy: { createdAt: "desc" }, take: 1, select: { sender: true } } },
   });
   const todo = open.filter((o) => orderTodo(o).length).length;
+  const newBookings = await db.booking.count({ where: { status: "NEW" } });
   return (
     <>
       <SiteHeader />
@@ -35,6 +42,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                   <span className="ml-2 rounded-full bg-red-700 px-1.5 py-0.5 text-xs font-semibold text-white">
                     {todo}
                     <span className="sr-only"> đơn cần xử lý</span>
+                  </span>
+                )}
+                {href === "/admin/bookings" && newBookings > 0 && (
+                  <span className="ml-2 rounded-full bg-red-700 px-1.5 py-0.5 text-xs font-semibold text-white">
+                    {newBookings}
+                    <span className="sr-only"> yêu cầu mới</span>
                   </span>
                 )}
               </Link>

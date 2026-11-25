@@ -20,17 +20,27 @@ export function Logo({ dark }: { dark?: boolean }) {
   );
 }
 
-const MAIN_NAV = [
+type NavItem = readonly [string, string];
+
+/** Menu chính (hiện trên máy tính). Menu điện thoại có thêm các công cụ miễn phí. */
+const MAIN_NAV: NavItem[] = [
+  ["/bo-suu-tap", "Bộ sưu tập"],
+  ["/album-mau", "Album mẫu"],
+  ["/#bang-gia", "Bảng giá"],
+  ["/thiep-moi", "Thiệp mời"],
+  ["/#lien-he", "Liên hệ"],
+];
+const TOOLS_NAV: NavItem[] = [
   ["/templates", "Mẫu thiệp"],
   ["/man-hinh-led", "Màn hình LED"],
   ["/slideshow", "Slideshow"],
-  ["/#bang-gia", "Bảng giá"],
-] as const;
+];
 
 export async function SiteHeader({ dark = false }: { dark?: boolean }) {
   const [user, order] = await Promise.all([getCurrentUser(), getOrderSettings()]);
   // Chỉ hiện "Đặt làm thiệp" khi admin đang nhận đơn
-  const nav: (readonly [string, string])[] = order.enabled ? [MAIN_NAV[0], ["/dat-lam-thiep", "Đặt làm thiệp"], ...MAIN_NAV.slice(1)] : [...MAIN_NAV];
+  const nav: NavItem[] = order.enabled ? [...MAIN_NAV.slice(0, 4), ["/dat-lam-thiep", "Đặt làm thiệp"], ...MAIN_NAV.slice(4)] : MAIN_NAV;
+  const mobileNav: NavItem[] = [...nav, ...TOOLS_NAV];
   const link = `whitespace-nowrap rounded-full px-3 py-2 transition ${dark ? "text-white/75 hover:text-white" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"}`;
   return (
     <header
@@ -56,8 +66,8 @@ export async function SiteHeader({ dark = false }: { dark?: boolean }) {
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </summary>
-            <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-zinc-200 bg-white p-2 text-zinc-700 shadow-xl">
-              {nav.map(([href, label]) => (
+            <div className="absolute right-0 top-full mt-2 max-h-[80svh] w-56 overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-2 text-zinc-700 shadow-xl">
+              {mobileNav.map(([href, label]) => (
                 <Link key={href} href={href} className="block rounded-xl px-3 py-2.5 hover:bg-zinc-100">
                   {label}
                 </Link>
