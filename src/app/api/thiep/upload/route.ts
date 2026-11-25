@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { clientIp, rateLimit } from "@/lib/rateLimit";
-import { saveUpload } from "@/lib/storage";
+import { saveUploadResponse } from "@/lib/storage";
 import { ALLOWED } from "@/lib/uploads";
 
 const SIGNATURES: Record<string, (b: Buffer) => boolean> = {
@@ -23,5 +23,6 @@ export async function POST(req: Request) {
   if (file.size > rule.max) return NextResponse.json({ error: "Ảnh tối đa 5MB" }, { status: 413 });
   const buf = Buffer.from(await file.arrayBuffer());
   if (!check(buf)) return NextResponse.json({ error: "File không phải ảnh hợp lệ" }, { status: 415 });
-  return NextResponse.json({ url: await saveUpload(buf, rule.ext, file.type) });
+  const r = await saveUploadResponse(buf, rule.ext, file.type);
+  return "url" in r ? NextResponse.json({ url: r.url }) : NextResponse.json({ error: r.error }, { status: r.status });
 }
