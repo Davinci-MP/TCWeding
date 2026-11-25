@@ -5,8 +5,9 @@ import { FavoritesBar } from "@/components/studio/FavoritesBar";
 import { contactLinks, getStudio } from "@/lib/studio";
 import { Icon } from "@/templates/icons";
 
-// Nội dung do admin sửa trên web (trang chủ, mẫu thiệp, giá, album…): luôn đọc mới, không đóng băng lúc build.
-export const dynamic = "force-dynamic";
+// Trang công khai được lưu sẵn (cache) để mở nhanh, tự làm mới sau tối đa 5 phút.
+// Khi admin lưu nội dung, các action gọi revalidatePath nên trang cập nhật ngay.
+export const revalidate = 300;
 
 export default async function HomeLayout({ children }: { children: React.ReactNode }) {
   const { contact, footerText } = await getStudio();
