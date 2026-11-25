@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import { createPrisma } from "../src/lib/prisma";
 import bcrypt from "bcryptjs";
 import { DEMO_PHOTOS, demoInvitationData, type DemoPhotoKey } from "../src/lib/invitation";
 
-const db = new PrismaClient();
+const db = createPrisma();
 
 async function main() {
   const prod = process.env.NODE_ENV === "production";

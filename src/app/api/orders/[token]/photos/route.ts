@@ -1,12 +1,10 @@
-import { randomBytes } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isOpen, MAX_ORDER_PHOTOS } from "@/lib/orders";
 import { rateLimit } from "@/lib/rateLimit";
-import { ALLOWED, UPLOAD_DIR } from "@/lib/uploads";
+import { saveUpload } from "@/lib/storage";
+import { ALLOWED } from "@/lib/uploads";
 
 const SIGNATURES: Record<string, (b: Buffer) => boolean> = {
   "image/jpeg": (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
@@ -32,10 +30,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   const buf = Buffer.from(await file.arrayBuffer());
   if (!check(buf)) return NextResponse.json({ error: "File không phải ảnh hợp lệ" }, { status: 415 });
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
-  const name = `${randomBytes(12).toString("hex")}.${rule.ext}`;
-  await writeFile(path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, name), buf);
-  await db.orderPhoto.create({ data: { orderId: order.id, url: `/api/files/${name}` } });
+  const url = await saveUpload(buf, rule.ext, file.type);
+  await db.orderPhoto.create({ data: { orderId: order.id, url } });
   revalidatePath(`/don/${token}`);
   return NextResponse.json({ ok: true });
 }

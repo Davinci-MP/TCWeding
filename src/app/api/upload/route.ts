@@ -1,9 +1,7 @@
-import { randomBytes } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { ALLOWED, UPLOAD_DIR } from "@/lib/uploads";
+import { saveUpload } from "@/lib/storage";
+import { ALLOWED } from "@/lib/uploads";
 
 export async function POST(req: Request) {
   const user = await getCurrentUser();
@@ -18,8 +16,6 @@ export async function POST(req: Request) {
   if (file.size > rule.max)
     return NextResponse.json({ error: `File quá lớn (tối đa ${rule.max / 1024 / 1024}MB)` }, { status: 413 });
 
-  await mkdir(UPLOAD_DIR, { recursive: true });
-  const name = `${randomBytes(12).toString("hex")}.${rule.ext}`;
-  await writeFile(path.join(UPLOAD_DIR, name), Buffer.from(await file.arrayBuffer()));
-  return NextResponse.json({ url: `/api/files/${name}` });
+  const url = await saveUpload(Buffer.from(await file.arrayBuffer()), rule.ext, file.type);
+  return NextResponse.json({ url });
 }

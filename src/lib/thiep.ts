@@ -46,7 +46,7 @@ export type ThiepDraft = {
   musicYoutube: string;
   slideshow: boolean;
   slideshowId: string;
-  /** Ảnh đã tải lên (/api/files/...). */
+  /** Ảnh đã tải lên (/api/files/... hoặc Vercel Blob). */
   photos: string[];
   photoLinks: string;
   contactName: string;
@@ -140,8 +140,9 @@ export function normalizeDraft(raw: unknown): ThiepDraft {
 }
 
 export const MAX_THIEP_PHOTOS = 30;
-/** Chỉ nhận file đã tải lên hệ thống. */
-export const safeFile = (u: string) => (/^\/api\/files\/[a-z0-9]{16,40}\.(jpg|png|webp)$/.test(u) ? u : "");
+/** Chỉ nhận file đã tải lên hệ thống: ổ đĩa (/api/files/…) hoặc Vercel Blob (thư mục uploads/). */
+export const safeFile = (u: string) =>
+  /^\/api\/files\/[a-z0-9]{16,40}\.(jpg|png|webp)$/.test(u) || /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\/uploads\/[a-z0-9]{16,40}\.(jpg|png|webp)$/.test(u) ? u : "";
 
 /** Ngày cưới chính: ngày của lễ có chữ "thành hôn"/"tiệc", không có thì lễ đầu tiên có ngày. */
 export function mainDate(d: ThiepDraft) {
