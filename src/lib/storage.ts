@@ -23,16 +23,43 @@ const localName = (url: string) => {
 /** URL hợp lệ của một file đã tải lên hệ thống (ổ đĩa hoặc Blob). */
 export const isUploadUrl = (url: string) => !!localName(url) || BLOB_URL_RE.test(url);
 
+/** Lỗi cấu hình nơi lưu file: thông báo rõ cho admin thay vì lỗi 500 chung chung. */
+export class StorageError extends Error {}
+
 /** Lưu file, trả về URL để hiển thị. */
 export async function saveUpload(data: Buffer, ext: string, contentType: string): Promise<string> {
   const name = `${randomBytes(12).toString("hex")}.${ext}`;
   if (usingBlob()) {
-    const blob = await put(`uploads/${name}`, data, { access: "public", contentType, addRandomSuffix: false, cacheControlMaxAge: 31536000 });
-    return blob.url;
+    try {
+      const blob = await put(`uploads/${name}`, data, { access: "public", contentType, addRandomSuffix: false, cacheControlMaxAge: 31536000 });
+      return blob.url;
+    } catch (e) {
+      const msg = (e as Error).message || "";
+      console.error("[storage] Vercel Blob put failed:", msg);
+      if (/private/i.test(msg))
+        throw new StorageError("Kho Vercel Blob đang để chế độ Private. Hãy tạo Blob store chế độ Public, nối với project rồi Redeploy.");
+      if (/token|unauthor|forbidden|access denied/i.test(msg))
+        throw new StorageError("Khoá Vercel Blob không hợp lệ. Nối lại Blob store với project (Storage) rồi Redeploy.");
+      throw new StorageError(`Vercel Blob báo lỗi: ${msg.slice(0, 160)}`);
+    }
   }
+  // Vercel không có ổ đĩa ghi được: thiếu Blob thì báo rõ thay vì lỗi ghi file
+  if (process.env.VERCEL)
+    throw new StorageError("Chưa nối Vercel Blob: vào Vercel › Storage › Blob, nối với project (Production) rồi Redeploy để có BLOB_READ_WRITE_TOKEN.");
   await mkdir(UPLOAD_DIR, { recursive: true });
   await writeFile(path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, name), data);
   return `/api/files/${name}`;
+}
+
+/** Gọi saveUpload trong API: lỗi cấu hình trả về JSON có lời nhắn dễ hiểu. */
+export async function saveUploadResponse(data: Buffer, ext: string, contentType: string): Promise<{ url: string } | { error: string; status: number }> {
+  try {
+    return { url: await saveUpload(data, ext, contentType) };
+  } catch (e) {
+    if (e instanceof StorageError) return { error: e.message, status: 503 };
+    console.error("[storage] upload failed:", e);
+    return { error: "Không lưu được file, vui lòng thử lại.", status: 500 };
+  }
 }
 
 /** Xoá file; bỏ qua lỗi (file đã mất, URL ngoài hệ thống). */
