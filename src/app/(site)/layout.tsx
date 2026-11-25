@@ -1,13 +1,17 @@
-import { SiteHeader } from "@/components/SiteHeader";
+import Link from "next/link";
+import { Logo } from "@/components/SiteHeader";
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <SiteHeader />
-      <main>{children}</main>
-      <footer className="mt-20 border-t border-zinc-200 py-8 text-center text-sm text-zinc-500">
-        © {new Date().getFullYear()} TCWedding · tcwedding.vn
-      </footer>
+      <header className="border-b border-zinc-200 bg-white">
+        <div className="mx-auto flex h-16 max-w-6xl items-center px-4">
+          <Link href="/" aria-label="Trang chủ">
+            <Logo />
+          </Link>
+        </div>
+      </header>
+      <main className="min-h-[calc(100vh-4rem)] bg-zinc-50">{children}</main>
     </>
   );
 }

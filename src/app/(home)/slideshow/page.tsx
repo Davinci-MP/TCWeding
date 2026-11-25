@@ -44,7 +44,7 @@ export default async function SlideshowPage() {
           <Link href="/man-hinh-led" className="btn btn-outline min-h-11">
             Tạo màn hình LED
           </Link>
-          <Link href="/templates" className="btn btn-primary min-h-11">
+          <Link href="/thiep" className="btn btn-primary min-h-11">
             Xem mẫu thiệp mời online
           </Link>
         </div>

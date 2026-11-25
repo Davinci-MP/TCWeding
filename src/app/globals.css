@@ -7,9 +7,12 @@
   --font-display: "Cormorant Garamond", Georgia, serif;
 }
 
-html,
-body {
+/* body chỉ đặt chiều cao tối thiểu: height: 100% làm header sticky bị trôi khi trang dài hơn một màn hình */
+html {
   height: 100%;
+}
+body {
+  min-height: 100%;
 }
 
 body {
@@ -284,4 +287,9 @@ html {
 }
 .card {
   @apply rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm;
+}
+
+/* /thiep: khi xem thiệp toàn màn hình thì ẩn header, footer và thanh nổi của website */
+html[data-fullview] [data-site-chrome] {
+  display: none !important;
 }

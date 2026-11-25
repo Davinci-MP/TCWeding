@@ -46,7 +46,7 @@ export async function updateTemplateConfigAction(fd: FormData) {
   };
   await db.templateConfig.upsert({ where: { id }, create: { id, ...data }, update: data });
   revalidatePath("/admin/templates");
-  revalidatePath("/templates");
+  revalidatePath("/thiep");
 }
 
 export async function savePlansAction(fd: FormData) {
@@ -73,7 +73,7 @@ export async function savePlansAction(fd: FormData) {
     };
   });
   await savePlans(plans);
-  revalidatePath("/");
+  revalidatePath("/thiep-moi");
   revalidatePath("/admin/pricing");
   redirect("/admin/pricing?saved=1");
 }

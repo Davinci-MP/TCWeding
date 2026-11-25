@@ -8,7 +8,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
-import { getCurrentUser, requireAdmin } from "@/lib/auth";
+import { requireAdmin } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { BANKS, defaultInvitationData, parseInvitationData, uid } from "@/lib/invitation";
 import { orderNotice } from "@/lib/notify";
@@ -124,21 +124,6 @@ export async function deleteOrderPhotoAction(fd: FormData) {
   refresh(o);
 }
 
-/** Sau bàn giao, khách chuyển thiệp về tài khoản của mình để xem danh sách khách (chỉ một lần). */
-export async function claimInvitationAction(fd: FormData) {
-  const o = await byToken(fd);
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
-  if (!o?.invitationId || o.status !== "DONE") return;
-  const invitationId = o.invitationId;
-  await db.$transaction(async (tx) => {
-    const r = await tx.order.updateMany({ where: { id: o.id, claimedAt: null }, data: { claimedAt: new Date() } });
-    if (r.count) await tx.invitation.update({ where: { id: invitationId }, data: { userId: user.id } });
-  });
-  refresh(o);
-  redirect("/dashboard");
-}
-
 /* ------------------------------ Admin ------------------------------ */
 
 async function adminOrder(fd: FormData) {
@@ -183,13 +168,16 @@ export async function buildInvitationAction(fd: FormData) {
   const { admin, order: o } = await adminOrder(fd);
   if (!o || o.status !== "WORKING") return;
   if (o.invitationId) redirect(`/dashboard/${o.invitationId}/edit`);
-  const data = defaultInvitationData();
   const urls = o.photos.map((p) => p.url);
-  data.groom.name = o.groom;
-  data.bride.name = o.bride;
-  data.weddingDate = `${o.weddingDate}T11:00`;
-  data.events[0].date = data.weddingDate;
-  data.coverPhoto = urls[0] ?? "";
+  // Đơn từ /thiep có sẵn thông tin khách điền (gia đình, lịch cưới, mừng cưới, nhạc): dùng luôn
+  const data = o.draft ? parseInvitationData(o.draft) : defaultInvitationData();
+  if (!o.draft) {
+    data.groom.name = o.groom;
+    data.bride.name = o.bride;
+    data.weddingDate = `${o.weddingDate}T11:00`;
+    data.events[0].date = data.weddingDate;
+  }
+  data.coverPhoto ||= urls[0] ?? "";
   data.gallery = urls;
   const inv = await db.invitation.create({
     data: {

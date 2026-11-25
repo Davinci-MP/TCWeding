@@ -1,6 +1,6 @@
-# TCWedding: thiệp mời cưới online
+# TCWedding: chụp ảnh cưới, album & thiệp mời online
 
-Website tạo và gửi thiệp cưới online (tcwedding.vn). Khách tự làm thiệp từ 30 mẫu hoặc đặt TCWedding làm hộ, rồi gửi bằng link `/w/<đường-dẫn>`. TCWedding chỉ làm thiệp mời online, không chụp ảnh cưới và không dàn trang album.
+Website của studio TCWedding (tcwedding.vn). Trang chủ `/` là trang studio: bộ sưu tập ảnh cưới (khách thả tim ảnh thích), bảng giá gói chụp, album mẫu lật trang và form đặt lịch tư vấn. Thiệp cưới online ở `/thiep`: khách **không cần tài khoản**, chọn mẫu, xem thiệp chạy thật, thả tim, điền thông tin và gửi cho studio làm; thiệp hoàn thiện gửi bằng link `/w/<đường-dẫn>`. Ngoài ra có Slideshow tiệc cưới, Ghép album và trang Về tôi.
 
 **Đọc phần nào?**
 
@@ -39,7 +39,7 @@ npm run dev       # mở http://localhost:3000
 ```
 
 - Admin: email ở `ADMIN_EMAIL` và mật khẩu bạn vừa chọn.
-- Người dùng mẫu: `demo@thiepcuoi.local` / `demo123` (chỉ tạo trên máy, không tạo ở production).
+- Trang quản trị: gõ `/admin` (không có nút đăng nhập trên website).
 - Thiệp mẫu: http://localhost:3000/w/quan-ha?to=Anh%20Nam
 
 ## 2. Đưa lên VPS
@@ -93,54 +93,68 @@ Giá dịch vụ, tài khoản ngân hàng và mã bot Telegram **không** nằm
 
 ## 3. Thiết lập lần đầu
 
-Đăng nhập ở `/login` bằng tài khoản admin, web sẽ mở `/admin`.
+Admin vào bằng cách gõ thẳng `/admin` (web chuyển sang `/login`). Trên website **không có** nút đăng nhập hay đăng ký: khách không cần tài khoản.
 
-1. **Bảng giá** (`/admin/pricing`): sửa giá và nội dung gói hiển thị ở trang chủ. Giá mặc định chỉ là mẫu.
-2. **Mẫu thiệp** (`/admin/templates`): bật/tắt mẫu, đánh dấu Premium, đổi thứ tự.
-3. **Thư viện nhạc** (`/admin/music`): thêm bài nhạc có quyền sử dụng, nếu muốn. Web đã có sẵn nhạc dựng.
-4. **Đơn đặt thiệp** (`/admin/orders`), nếu nhận làm thiệp hộ:
-   - Nhập giá, tiền cọc (để trống nếu không cọc), tài khoản ngân hàng, ghi chú cho khách.
-   - Tick "Nhận đơn đặt làm thiệp" rồi lưu. Dịch vụ mặc định tắt; khi bật, mục "Đặt làm thiệp" mới hiện trên menu.
-5. **Thông báo Telegram** (cùng trang), nếu muốn báo về điện thoại:
-   - Trong Telegram, nhắn `@BotFather` lệnh `/newbot`, đặt tên và lấy mã bot.
-   - Dán mã vào "Thông báo Telegram", bấm "Lưu bot".
-   - Bấm "Mở @tên_bot", nhấn Start trong Telegram, quay lại bấm "Tôi đã bấm Start". Bạn nhận được tin thử là xong.
-   - VPS phải gọi ra được `https://api.telegram.org`. Chỉ nối được một người nhận.
+1. **Nội dung trang chủ** (`/admin/studio`), **Về tôi** (`/admin/about`): chữ, ảnh, liên hệ, mạng xã hội, quy trình, hỏi đáp, SEO.
+2. **Gói chụp** (`/admin/studio-pricing`): giá thật cho 3 gói. Giá mặc định là "Liên hệ".
+3. **Bộ sưu tập** (`/admin/albums`) và **Ghép album** (`/admin/ghep-album`): tải ảnh thật lên.
+4. **Mẫu thiệp** (`/admin/templates`): bật/tắt mẫu, đổi thứ tự; xem mẫu nào được khách thả tim nhiều.
+5. **Đơn làm thiệp & video** (`/admin/orders`) › Cài đặt dịch vụ: phí làm thiệp, ghi chú cho khách. Muốn thu cọc thì điền tiền cọc + ngân hàng và tick "Thu tiền cọc".
+6. **Cài đặt** (`/admin/settings`): đổi mật khẩu admin, nối **Telegram** để đơn mới / yêu cầu tư vấn báo về điện thoại:
+   - Trong Telegram, nhắn `@BotFather` lệnh `/newbot`, lấy mã bot, dán vào "Thông báo Telegram", bấm "Lưu bot".
+   - Bấm "Mở @tên_bot", nhấn Start, quay lại bấm "Tôi đã bấm Start". Nhận được tin thử là xong. VPS phải gọi ra được `https://api.telegram.org`.
+7. **Thư viện nhạc** (`/admin/music`): thêm bài có quyền sử dụng; khách chọn được trong form làm thiệp.
 
-**Kiểm tra nhanh:** tạo một thiệp, tải ảnh, xuất bản, mở link trên điện thoại. Nếu nhận đơn: đặt một đơn thử, xem Telegram có báo không, rồi huỷ và xoá đơn.
+**Kiểm tra nhanh:** vào `/thiep`, thả tim một mẫu, chọn mẫu, bấm "Điền thử thông tin mẫu", tải 1–2 ảnh, nhập số điện thoại, bấm "Gửi cho studio"; xem đơn ở `/admin/orders` và tin Telegram; rồi huỷ và xoá đơn.
 
 ## 4. Hướng dẫn sử dụng
 
-### Khách tự làm thiệp
+### Thiệp cưới online: khách không cần tài khoản
 
-1. Đăng ký tại `/register`, vào `/dashboard`, chọn mẫu.
-2. Điền nội dung, xem trước ngay bên cạnh, bấm lưu (hoặc `Ctrl+S`).
-3. Đặt đường dẫn, xuất bản và gửi link. Thêm `?to=Tên khách` để mời đích danh, ví dụ `/w/quan-ha?to=Anh%20Nam`.
-4. Trang khách mời cho xem ai tham dự, lời chúc, ẩn lời chúc và xuất CSV mở bằng Excel.
+Một trang `/thiep`, điều hướng bằng `#` giống quocanhwedding.com/thiep:
 
-Gói Cơ bản tạo 1 thiệp với mẫu thường. Gói Premium dùng mọi mẫu và tạo nhiều thiệp. **Chưa có thanh toán tự động cho gói**: admin nhận tiền rồi nâng cấp ở `/admin/users`.
+| Địa chỉ | Khách thấy |
+|---|---|
+| `/thiep` | Thư viện mẫu (mã TC-01, TC-02…), lọc theo loại hoặc **Đã thích**. Bấm mẫu mở hộp: *Chọn mẫu này & điền thông tin*, *Xem thiệp chạy thật*, *Thả tim mẫu này*, ‹ › |
+| `/thiep#tc-02` | Thiệp chạy thật của mẫu TC-02 (dữ liệu mẫu), thanh trên cùng: ♡, *Chọn mẫu này* |
+| `/thiep#chon-tc-02` | Form 9 bước, chọn sẵn mẫu TC-02: mẫu · cô dâu chú rể (thứ bậc) · gia đình · lịch cưới (ngày âm **tự tính**) · hộp mừng cưới (ảnh QR) · nhạc nền · video slideshow · ảnh cưới (tối đa 30) · liên hệ |
+| `/thiep#xem` | Xem trước thiệp với thông tin khách đã điền (chưa có ảnh thì dùng ảnh minh hoạ) |
 
-### Khách đặt TCWedding làm thiệp
+- Bản nháp lưu trên máy khách, điền dở quay lại vẫn còn. "Gửi cho studio" tạo **đơn mới** (không trả tiền trước) và đưa khách tới trang đơn riêng `/don/...`.
+- **Thả tim mẫu**: lưu trên server theo cookie ẩn danh `tcw_vid` (1 năm). Lần sau khách quay lại vẫn thấy mẫu đã thích; admin thấy số ❤ từng mẫu ở `/admin/templates` và các mẫu khách đã thích trong chi tiết đơn.
+- Trang chủ có mục **Thiệp cưới online** (8 mẫu, cùng hộp chọn mẫu) và **Slideshow tiệc cưới** (`/#slideshow`): 30 mẫu video theo kịch bản / chuyển cảnh / tông màu, xem toàn màn hình, "Chọn mẫu này" tick sẵn bước 7 trong form.
+- Link cũ tự chuyển: `/thiep-moi`, `/templates`, `/templates/<id>`, `/dat-lam-thiep`, `/register` → `/thiep`; `/album-mau` → `/ghep-album`.
 
-| Bước | Khách | Admin, tại `/admin/orders` |
+### Đơn làm thiệp (admin, tại `/admin/orders`)
+
+| Bước | Khách (trang `/don/...`) | Admin |
 |---|---|---|
-| 1 | Điền đơn ở `/dat-lam-thiep`, lưu link đơn riêng `/don/...` | Nhận thông báo đơn mới |
-| 2 | Chuyển cọc bằng QR, bấm "Tôi đã chuyển khoản" | **Xem tài khoản ngân hàng**, thấy tiền rồi mới bấm "Xác nhận đã nhận cọc" |
-| 3 | Gửi ảnh (tối đa 30), nhắn tin ở trang đơn | Bấm "Tạo thiệp từ đơn", hoàn thiện nội dung, bấm "Gửi khách duyệt" |
-| 4 | Xem thiệp nháp, duyệt; hoặc nhắn tin để yêu cầu sửa | Nếu cần sửa thì sửa rồi gửi duyệt lại |
-| 5 | Chuyển phần còn lại, báo đã chuyển | Kiểm tra tiền, xác nhận, bấm "Xuất bản và bàn giao" |
-| 6 | Gửi thiệp cho khách mời; có thể chuyển thiệp về tài khoản của mình | |
+| 1 | Gửi form ở `/thiep` | Nhận thông báo; xem thông tin khách điền, mẫu khách đã thả tim |
+| 2 | Chuyển cọc bằng QR nếu studio bật thu cọc | Xác nhận đã nhận cọc, hoặc bấm "Bắt đầu làm" nếu không cọc |
+| 3 | Gửi thêm ảnh, nhắn tin | "Tạo thiệp từ đơn": trình soạn thiệp **điền sẵn** gia đình, lịch cưới, mừng cưới, nhạc, ảnh; hoàn thiện rồi "Gửi khách duyệt" |
+| 4 | Xem thiệp nháp, duyệt hoặc nhắn yêu cầu sửa | Sửa rồi gửi duyệt lại |
+| 5 | Chuyển phần còn lại | Xác nhận, "Xuất bản và bàn giao" |
+| 6 | Gửi link thiệp cho khách mời; mở lại trang đơn để xem **ai xác nhận tham dự và lời chúc** | |
 
-Đơn không cọc thì ở bước 2 admin bấm "Bắt đầu làm". Ảnh khách gửi thêm sau bước 3 được đưa vào thiệp bằng nút "Thêm ảnh chưa dùng vào album".
+- Web không tự đối soát ngân hàng. Ai có link đơn đều xem được đơn; khách mất link thì admin sao chép lại ở trang chi tiết đơn.
 
-- Web không tự đối soát ngân hàng.
-- Ai có link đơn đều xem được đơn. Khách mất link thì admin sao chép lại ở trang chi tiết đơn.
-- Cột "Cần xử lý" và số trên menu cho biết đơn nào đang chờ. Tin Telegram lỗi không được gửi lại, nên vẫn cần xem trang này.
+### Studio: bộ sưu tập, ghép album, bảng giá, về tôi, đặt lịch
+
+| Trang khách xem | Admin quản lý |
+|---|---|
+| `/bo-suu-tap`, `/bo-suu-tap/<album>`: album ảnh cưới, khách **thả tim** từng ảnh | `/admin/albums` |
+| `/ghep-album`: album mẫu **lật trang**, lọc phong cách / khổ, giá & mô tả dịch vụ, nút "Đặt ghép album" | `/admin/ghep-album`; giá & mô tả ở `/admin/studio` |
+| `/#bang-gia`: 3 gói chụp, "Chọn gói này" chọn sẵn gói trong form | `/admin/studio-pricing` |
+| `/ve-toi`: giới thiệu nhiếp ảnh gia, con số, lĩnh vực, portfolio, đánh giá, liên hệ | `/admin/about` |
+| `/#lien-he`: form đặt lịch tư vấn **kèm ảnh đã thả tim** | `/admin/bookings` |
+
+- Ảnh thả tim trong bộ sưu tập lưu trên trình duyệt khách (tối đa 60), gửi đi cùng yêu cầu tư vấn.
+- Khi phát triển (`npm run setup`), seed tạo 6 album và 3 album mẫu bằng ảnh Unsplash. Production không tạo, trừ khi `SEED_DEMO=true`.
 
 ### Công cụ miễn phí
 
 - `/man-hinh-led`: tạo video chạy màn hình LED tiệc cưới.
-- `/slideshow`: tạo video trình chiếu ảnh.
+- `/slideshow`: tự làm video trình chiếu ảnh.
 
 Cả hai dựng video ngay trong trình duyệt, ảnh không tải lên máy chủ. Giữ tab mở trong lúc xuất.
 
@@ -148,15 +162,19 @@ Cả hai dựng video ngay trong trình duyệt, ảnh không tải lên máy ch
 
 | Trang | Việc làm được |
 |---|---|
-| `/admin` | Xem số liệu |
-| `/admin/users` | Đổi gói, cấp quyền admin, xoá người dùng |
-| `/admin/invitations` | Gỡ/xuất bản, sửa, xoá thiệp |
-| `/admin/orders` | Đơn đặt thiệp, cài đặt dịch vụ, Telegram |
-| `/admin/templates` | Bật/tắt, Premium, thứ tự mẫu |
-| `/admin/pricing` | Nội dung bảng giá |
+| `/admin` | Số liệu studio và thiệp |
+| `/admin/orders` | Đơn làm thiệp & video, cài đặt phí / cọc / ngân hàng |
+| `/admin/bookings` | Yêu cầu đặt lịch tư vấn |
+| `/admin/templates` | Bật/tắt, thứ tự mẫu; số ❤, số đơn từng mẫu |
+| `/admin/invitations` | Thiệp đã làm: gỡ/xuất bản, sửa, xoá |
+| `/admin/studio` · `/admin/about` | Nội dung trang chủ, SEO, chân trang, ghép album · trang Về tôi |
+| `/admin/albums` · `/admin/ghep-album` | Bộ sưu tập ảnh · album mẫu lật trang |
+| `/admin/studio-pricing` | Bảng giá gói chụp |
 | `/admin/music` | Thư viện nhạc |
+| `/admin/users` | Tài khoản quản trị: cấp/hạ quyền, đặt mật khẩu mới, xoá |
+| `/admin/settings` | Đổi mật khẩu, thông báo Telegram |
 
-Web **chưa có đổi mật khẩu hay quên mật khẩu**, kể cả cho admin. Nếu mất mật khẩu admin: đặt `ADMIN_EMAIL` (email chưa đăng ký) và `ADMIN_PASSWORD` mới trong `.env`, chạy lại `NODE_ENV=production npm run db:seed` để tạo admin mới, rồi hạ quyền tài khoản cũ ở `/admin/users`. Chạy seed lại không đổi mật khẩu của tài khoản đã có.
+Chỉ tài khoản quyền admin đăng nhập được. Nếu mất mật khẩu admin: đặt `ADMIN_EMAIL` (email chưa có) và `ADMIN_PASSWORD` mới trong `.env`, chạy `NODE_ENV=production npm run db:seed` để tạo admin mới, rồi hạ quyền tài khoản cũ ở `/admin/users`. Chạy seed lại không đổi mật khẩu của tài khoản đã có.
 
 ## 5. Vận hành
 
@@ -217,7 +235,9 @@ Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, Prisma 6 + SQLit
 prisma/                  schema và seed
 src/app/(home)/          trang chủ, LED, slideshow, đặt thiệp, trang đơn
 src/app/(site)/          kho mẫu, đăng nhập, đăng ký
-src/app/dashboard/       khu vực người dùng
+src/app/dashboard/       trình soạn thiệp (chỉ admin)
+src/app/(home)/thiep/    chọn mẫu, thiệp chạy thật, form làm thiệp (#hash)
+src/components/thiep/    thư viện mẫu, hộp chọn mẫu, form, slideshow, thả tim
 src/app/admin/           quản trị
 src/app/w/[slug]/        thiệp công khai
 src/app/actions/         server actions
@@ -230,6 +250,6 @@ uploads/                 file tải lên (không có trong Git)
 
 **Thêm mẫu thiệp:** thêm một mục vào `BASE` trong `src/templates/registry.ts`. Muốn phần đầu thiệp khác hẳn thì thêm component trong `heroes*.tsx` và khai báo ở `HeroVariant`. Font mới khai báo trong `fontUrl()` và phải hỗ trợ tiếng Việt.
 
-**Đổi giới hạn gói Cơ bản:** `FREE_INVITATION_LIMIT` trong `src/lib/templates.ts`.
+**Mã mẫu TC-xx** tính theo thứ tự trong `TEMPLATES`: chỉ thêm mẫu mới vào cuối để mã cũ (và link khách đã lưu) không đổi.
 
 Không commit `.env`, `prisma/*.db`, `uploads/`.

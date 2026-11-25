@@ -42,7 +42,7 @@ export default function LedPage() {
           <Link href="/slideshow" className="btn btn-outline min-h-11">
             Làm slideshow ảnh cưới
           </Link>
-          <Link href="/templates" className="btn btn-primary min-h-11">
+          <Link href="/thiep" className="btn btn-primary min-h-11">
             Xem mẫu thiệp mời online
           </Link>
         </div>

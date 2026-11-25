@@ -5,7 +5,9 @@ import { ConfirmButton } from "@/components/ConfirmButton";
 import { CopyLink } from "@/components/order/CopyLink";
 import { Messages } from "@/components/order/Messages";
 import { db } from "@/lib/db";
+import { parseInvitationData } from "@/lib/invitation";
 import { isOpen, money, ORDER_STATUS, viDate, type OrderStatus } from "@/lib/orders";
+import { templateCode, templateHash } from "@/lib/thiep";
 import { getTemplateDef } from "@/templates/registry";
 
 export const metadata = { title: "Chi tiết đơn" };
@@ -16,6 +18,10 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
     include: { photos: { orderBy: { createdAt: "asc" } }, messages: { orderBy: { createdAt: "asc" } }, invitation: { select: { slug: true, data: true } } },
   });
   if (!o) notFound();
+  const draft = o.draft ? parseInvitationData(o.draft) : null;
+  const likedTemplates = o.visitorId
+    ? (await db.templateFavorite.findMany({ where: { visitorId: o.visitorId }, orderBy: { createdAt: "asc" }, select: { templateId: true } })).map((f) => f.templateId)
+    : [];
   const st = o.status as OrderStatus;
   const inv = o.invitation;
   const remaining = o.price - (o.depositPaidAt ? o.deposit : 0);
@@ -126,9 +132,47 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
             </a>
           </p>
           <p>
-            Ngày cưới {viDate(o.weddingDate)} · mẫu {getTemplateDef(o.templateId).name}
+            Ngày cưới {viDate(o.weddingDate)} · mẫu{" "}
+            <a href={`/thiep#${templateHash(o.templateId)}`} target="_blank" className="text-brand underline">
+              {templateCode(o.templateId)} {getTemplateDef(o.templateId).name}
+            </a>
           </p>
           <p className="whitespace-pre-wrap break-words">{o.details || "Không có mô tả."}</p>
+          {draft && (
+            <details className="rounded-lg bg-zinc-50 p-3">
+              <summary className="cursor-pointer font-medium">Thông tin thiệp khách điền (gia đình, lịch cưới, mừng cưới)</summary>
+              <dl className="mt-3 space-y-2">
+                {[
+                  ["Nhà trai", [draft.groom.father, draft.groom.mother, draft.groom.address].filter(Boolean).join(" · ")],
+                  ["Nhà gái", [draft.bride.father, draft.bride.mother, draft.bride.address].filter(Boolean).join(" · ")],
+                  ...draft.events.map((e) => [e.title || "Sự kiện", [e.date.replace("T", " "), e.lunarDate, e.venue, e.address].filter(Boolean).join(" · ")]),
+                  ...draft.gifts.map((g) => [g.label, [g.accountName, g.bankName, g.accountNumber, g.qrImage ? "có ảnh QR" : ""].filter(Boolean).join(" · ")]),
+                ]
+                  .filter(([, v]) => v)
+                  .map(([k, v], i) => (
+                    <div key={i}>
+                      <dt className="text-xs text-zinc-500">{k}</dt>
+                      <dd>{v}</dd>
+                    </div>
+                  ))}
+              </dl>
+              <p className="mt-2 text-xs text-zinc-500">Bấm “Tạo thiệp từ đơn” để dùng sẵn các thông tin này trong trình soạn thiệp.</p>
+            </details>
+          )}
+          {likedTemplates.length > 0 && (
+            <div>
+              <p className="text-xs text-zinc-500">Mẫu khách đã thả tim ({likedTemplates.length})</p>
+              <ul className="mt-1 flex flex-wrap gap-1.5">
+                {likedTemplates.map((t) => (
+                  <li key={t}>
+                    <a href={`/thiep#${templateHash(t)}`} target="_blank" className={`inline-block rounded-full px-2.5 py-1 text-xs ${t === o.templateId ? "bg-brand text-white" : "bg-zinc-100 hover:bg-zinc-200"}`}>
+                      ❤ {templateCode(t)} {getTemplateDef(t).name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <form action={saveAdminNoteAction} className="space-y-2 border-t border-zinc-100 pt-3">
             {id}
             <label className="block">
