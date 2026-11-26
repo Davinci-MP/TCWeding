@@ -6,7 +6,8 @@ import { Packages } from "@/components/studio/Packages";
 import { HomeInvitations } from "@/components/thiep/HomeInvitations";
 import { SlideshowGallery } from "@/components/thiep/SlideshowGallery";
 import type { TplLite } from "@/components/thiep/TemplateCard";
-import { fontLabel } from "@/lib/thiep";
+import { toTplLite } from "@/lib/thiep";
+import { heroTitleClass, sectionTitleClass } from "@/lib/typo";
 import { listTemplates } from "@/lib/templates";
 import { bookingServices, getPackages, getStudio, listPublishedAlbums, listSampleAlbums, pickPortraitPhoto, sampleStyleLabel, sizeLabel } from "@/lib/studio";
 import { Icon } from "@/templates/icons";
@@ -46,7 +47,7 @@ export default async function StudioHome() {
   const steps = studio.steps.filter((s) => s.title);
   const faqs = studio.faqs.filter((f) => f.q && f.a);
   const grid = albums.slice(0, 5);
-  const featuredTemplates: TplLite[] = templates.slice(0, 8).map((t) => ({ id: t.id, name: t.name, description: t.description, category: t.category, premium: t.isPremium, fonts: fontLabel(t) }));
+  const featuredTemplates: TplLite[] = templates.slice(0, 8).map(toTplLite);
   const [lead, ...rest] = studio.heroTitle.split(" ");
 
   return (
@@ -64,7 +65,7 @@ export default async function StudioHome() {
             <p className="tpl-rise text-[11px] font-semibold uppercase tracking-[0.45em] text-[#d8cdbf]">
               TCWedding{studio.contact.area ? ` · ${studio.contact.area}` : " · Chụp ảnh cưới"}
             </p>
-            <h1 className="font-serif-display tpl-rise mt-5 text-balance text-[2.9rem] leading-[0.98] sm:text-7xl lg:text-[5.4rem]" style={{ animationDelay: "120ms" }}>
+            <h1 className={`font-serif-display tpl-rise mt-5 text-balance leading-[0.98] ${heroTitleClass(studio.heroTitle, studio.typo.heroSize)}`} style={{ animationDelay: "120ms" }}>
               {lead} <em className="text-[#efe7dc]">{rest.join(" ")}</em>
             </h1>
             {studio.heroLead && (
@@ -110,7 +111,7 @@ export default async function StudioHome() {
           )}
           <div className={introImage ? "" : "max-w-3xl"}>
             <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-[#7b2d26]">Về chúng tôi</p>
-            <h2 className="font-serif-display mt-5 text-balance text-4xl leading-[1.05] text-[#1d1a17] sm:text-5xl lg:text-[3.6rem]">{studio.introTitle}</h2>
+            <h2 className={`font-serif-display mt-5 text-balance leading-[1.05] text-[#1d1a17] ${sectionTitleClass(studio.introTitle, studio.typo.titleSize)}`}>{studio.introTitle}</h2>
             <div className="mt-6 space-y-4 text-lg leading-relaxed text-zinc-600">
               {studio.introBody.split(/\n{2,}/).map((para, i) => (
                 <p key={i} className="whitespace-pre-line">

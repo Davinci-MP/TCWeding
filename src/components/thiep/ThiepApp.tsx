@@ -60,9 +60,21 @@ export function ThiepApp({ templates, ...formProps }: { templates: TplLite[] } &
 function Gallery({ templates }: { templates: TplLite[] }) {
   const favs = useTemplateFavorites();
   const [filter, setFilter] = useState("");
+  const [color, setColor] = useState("");
+  const [design, setDesign] = useState("");
   const [open, setOpen] = useState<number | null>(null);
   const categories = useMemo(() => [...new Set(templates.map((t) => t.category))], [templates]);
-  const list = useMemo(() => (filter === "fav" ? templates.filter((t) => favs.includes(t.id)) : filter ? templates.filter((t) => t.category === filter) : templates), [filter, templates, favs]);
+  const colors = useMemo(() => [...new Set(templates.map((t) => t.color))].sort((a, b) => (a === "Màu gốc" ? -1 : b === "Màu gốc" ? 1 : a.localeCompare(b, "vi"))), [templates]);
+  const designs = useMemo(() => [...new Set(templates.map((t) => t.design))], [templates]);
+  const list = useMemo(
+    () =>
+      templates.filter(
+        (t) =>
+          (filter === "fav" ? favs.includes(t.id) : !filter || t.category === filter) && (!color || t.color === color) && (!design || t.design === design),
+      ),
+    [filter, color, design, templates, favs],
+  );
+  const select = "min-h-11 rounded-full border border-white/20 bg-[#1d1a17] px-4 text-sm text-white/85 outline-none focus:border-white/60";
   const onClose = useCallback(() => setOpen(null), []);
   const chip = (active: boolean) =>
     `inline-flex min-h-11 items-center gap-1.5 rounded-full px-5 text-sm font-medium transition ${active ? "bg-[#efe7dc] text-[#1d1a17]" : "border border-white/20 text-white/75 hover:border-white/60 hover:text-white"}`;
@@ -96,6 +108,38 @@ function Gallery({ templates }: { templates: TplLite[] }) {
               </button>
             ))}
           </nav>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <select value={design} onChange={(e) => setDesign(e.target.value)} className={select} aria-label="Lọc theo thiết kế">
+              <option value="">Mọi thiết kế ({designs.length})</option>
+              {designs.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+            <select value={color} onChange={(e) => setColor(e.target.value)} className={select} aria-label="Lọc theo màu sắc">
+              <option value="">Mọi màu sắc ({colors.length})</option>
+              {colors.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            {(color || design || filter) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setColor("");
+                  setDesign("");
+                  setFilter("");
+                }}
+                className="min-h-11 px-3 text-sm text-white/60 underline-offset-4 hover:text-white hover:underline"
+              >
+                Bỏ lọc
+              </button>
+            )}
+            <span className="text-sm text-white/50">{list.length} mẫu</span>
+          </div>
         </div>
       </section>
       <section className="bg-[#f6f2ec] px-4 py-12 lg:py-16">

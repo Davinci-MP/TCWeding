@@ -28,10 +28,64 @@ function Scene({ s, i, names, big }: { s: SlideStyle; i: number; names: string; 
       </div>
     );
   }
+  const photo = SLIDE_DEMO_PHOTOS[(i - 1) % SLIDE_DEMO_PHOTOS.length];
+  const caption = (
+    <span className="absolute bottom-[8%] left-0 right-0 text-center uppercase tracking-[0.3em] drop-shadow" style={{ fontFamily: p.heading, color: p.text, fontSize: big ? "clamp(10px,1.1vw,16px)" : 8 }}>
+      Happy wedding / {names}
+    </span>
+  );
+  /* eslint-disable @next/next/no-img-element */
+  if (s.motion.id === "polaroid") {
+    // Ảnh trong khung trắng nghiêng nhẹ trên nền màu, mỗi cảnh nghiêng một kiểu
+    const tilt = i % 2 ? -4 : 3;
+    return (
+      <div key={i} className="absolute inset-0 flex items-center justify-center overflow-hidden" style={{ background: p.bg }}>
+        <div className="bg-white p-[1.6%] pb-[5%] shadow-2xl" style={{ height: "78%", aspectRatio: "4 / 4.6", animation: `tcw-ss-drop ${SCENE_MS}ms cubic-bezier(.2,.8,.2,1) both`, ["--tilt" as string]: `${tilt}deg` }}>
+          <img src={photo} alt="" className="h-full w-full object-cover" />
+        </div>
+        {caption}
+      </div>
+    );
+  }
+  if (s.motion.id === "split") {
+    // Hai ảnh cạnh nhau trượt vào từ hai phía
+    const second = SLIDE_DEMO_PHOTOS[i % SLIDE_DEMO_PHOTOS.length];
+    return (
+      <div key={i} className="absolute inset-0 grid grid-cols-2 gap-[1.2%] overflow-hidden p-[1.2%]" style={{ background: p.bg }}>
+        <img src={photo} alt="" className="h-full w-full object-cover" style={{ animation: `tcw-ss-left ${SCENE_MS}ms ease both` }} />
+        <img src={second} alt="" className="h-full w-full object-cover" style={{ animation: `tcw-ss-right ${SCENE_MS}ms ease both` }} />
+        <span className="absolute inset-x-0 bottom-[6%] text-center" style={{ fontFamily: p.script, color: "#fff", fontSize: big ? "clamp(24px,3.4vw,52px)" : 16, textShadow: "0 2px 12px rgba(0,0,0,.45)" }}>
+          {names}
+        </span>
+      </div>
+    );
+  }
+  if (s.motion.id === "film") {
+    // Khung phim nhựa có lỗ răng cưa, ảnh lướt ngang như cuộn phim
+    const holes = Array.from({ length: 14 });
+    const row = (pos: "top" | "bottom") => (
+      <div className={`absolute inset-x-0 ${pos === "top" ? "top-[3%]" : "bottom-[3%]"} flex justify-around`} aria-hidden>
+        {holes.map((_, k) => (
+          <span key={k} className="h-[1.6vh] max-h-3 w-[3%] rounded-[2px]" style={{ background: p.bg }} />
+        ))}
+      </div>
+    );
+    return (
+      <div key={i} className="absolute inset-0 overflow-hidden" style={{ background: p.bg }}>
+        <div className="absolute inset-x-0 top-[8%] bottom-[8%] bg-[#141210]">
+          {row("top")}
+          {row("bottom")}
+          <div className="absolute inset-x-[3%] top-[14%] bottom-[14%] overflow-hidden">
+            <img src={photo} alt="" className="h-full w-full object-cover" style={{ animation: `tcw-ss-slide ${SCENE_MS + 600}ms ease both`, filter: "sepia(.18) contrast(1.05)" }} />
+          </div>
+        </div>
+        {caption}
+      </div>
+    );
+  }
   return (
     <div key={i} className="absolute inset-0 overflow-hidden" style={{ background: p.bg }}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={SLIDE_DEMO_PHOTOS[(i - 1) % SLIDE_DEMO_PHOTOS.length]} alt="" className="h-full w-full object-cover" style={{ animation: `${anim} ${SCENE_MS + 600}ms ease both` }} />
+      <img src={photo} alt="" className="h-full w-full object-cover" style={{ animation: `${s.motion.id === "kenburns" ? "tcw-ss-kenburns" : anim} ${SCENE_MS + 600}ms ${s.motion.id === "kenburns" ? "linear" : "ease"} both` }} />
       {s.motion.id === "cinema" && (
         <>
           <span className="absolute inset-x-0 top-0 h-[9%] bg-black" aria-hidden />
@@ -43,6 +97,7 @@ function Scene({ s, i, names, big }: { s: SlideStyle; i: number; names: string; 
       </span>
     </div>
   );
+  /* eslint-enable @next/next/no-img-element */
 }
 
 function useTicker(on: boolean, ms: number) {
@@ -102,10 +157,11 @@ function PreviewCard({ s, names, onPlay, onPick }: { s: SlideStyle; names: strin
 export function SlideshowGallery({ names = "Minh Quân & Thanh Hà" }: { names?: string }) {
   const [script, setScript] = useState("");
   const [motion, setMotion] = useState("");
-  const [more, setMore] = useState(false);
+  const [count, setCount] = useState(8);
   const [playing, setPlaying] = useState<SlideStyle | null>(null);
+  useEffect(() => setCount(8), [script, motion]);
   const list = useMemo(() => SLIDE_STYLES.filter((s) => (!script || s.script.id === script) && (!motion || s.motion.id === motion)), [script, motion]);
-  const shown = more ? list : list.slice(0, 8);
+  const shown = list.slice(0, count);
   const hero = list[0] ?? SLIDE_STYLES[0];
   const [heroI, setHeroI] = useTicker(!playing, SCENE_MS);
 
@@ -121,6 +177,10 @@ export function SlideshowGallery({ names = "Minh Quân & Thanh Hà" }: { names?:
         @keyframes tcw-ss-fade { from { opacity: 0 } to { opacity: 1 } }
         @keyframes tcw-ss-slide { from { opacity: .3; transform: translateX(8%) scale(1.05) } to { opacity: 1; transform: translateX(0) scale(1.05) } }
         @keyframes tcw-ss-cinema { from { opacity: 0; transform: scale(1.18) } to { opacity: 1; transform: scale(1.04) } }
+        @keyframes tcw-ss-kenburns { from { opacity: 0; transform: scale(1) translate(0,0) } 15% { opacity: 1 } to { opacity: 1; transform: scale(1.14) translate(-2%,-1.5%) } }
+        @keyframes tcw-ss-drop { from { opacity: 0; transform: translateY(-14%) rotate(calc(var(--tilt) * -2)) scale(1.06) } to { opacity: 1; transform: translateY(0) rotate(var(--tilt)) scale(1) } }
+        @keyframes tcw-ss-left { from { opacity: 0; transform: translateX(-12%) } to { opacity: 1; transform: translateX(0) } }
+        @keyframes tcw-ss-right { from { opacity: 0; transform: translateX(12%) } 20% { opacity: 0 } to { opacity: 1; transform: translateX(0) } }
         @media (prefers-reduced-motion: reduce) { [style*="tcw-ss-"] { animation: none !important } }
       `}</style>
       <div className="grid items-center gap-10 lg:grid-cols-[1.25fr_1fr]">
@@ -190,10 +250,10 @@ export function SlideshowGallery({ names = "Minh Quân & Thanh Hà" }: { names?:
           </li>
         ))}
       </ul>
-      {!more && list.length > 8 && (
+      {list.length > count && (
         <div className="mt-8 text-center">
-          <button type="button" onClick={() => setMore(true)} className="min-h-11 rounded-full border border-white/25 px-6 text-white hover:border-white">
-            Xem thêm {list.length - 8} mẫu ↓
+          <button type="button" onClick={() => setCount((c) => c + 16)} className="min-h-11 rounded-full border border-white/25 px-6 text-white hover:border-white">
+            Xem thêm {Math.min(16, list.length - count)} mẫu ↓ ({list.length - count} mẫu nữa)
           </button>
         </div>
       )}

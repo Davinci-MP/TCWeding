@@ -355,7 +355,7 @@ const BY_TEMPLATE: Record<string, string> = {
   "linen-offset": "gymnopedie",
 };
 
-export const templateTrackId = (templateId: string) => BY_TEMPLATE[templateId] ?? "canon";
+export const templateTrackId = (templateId: string) => BY_TEMPLATE[templateId] ?? BY_TEMPLATE[templateId.split("--")[0]] ?? "canon";
 
 export type MusicSource = { track: string } | { url: string; start: number };
 

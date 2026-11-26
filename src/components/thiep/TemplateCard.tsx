@@ -5,7 +5,17 @@ import { templateCode } from "@/lib/thiep";
 import { toggleTemplateFavorite, useTemplateFavorites } from "./templateFavorites";
 
 /** Thông tin mẫu gửi xuống client (không kèm cấu hình server). */
-export type TplLite = { id: string; name: string; description: string; category: string; premium: boolean; fonts: string };
+export type TplLite = {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  premium: boolean;
+  fonts: string;
+  /** Thiết kế gốc (bố cục) và tên phối màu — để lọc trong thư viện mẫu. */
+  design: string;
+  color: string;
+};
 
 export function HeartIcon({ on, size = 18 }: { on: boolean; size?: number }) {
   return (

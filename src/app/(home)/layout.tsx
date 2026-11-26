@@ -2,7 +2,8 @@ import Link from "next/link";
 import { Logo, SiteHeader } from "@/components/SiteHeader";
 import { socialLinks } from "@/components/studio/Contact";
 import { FavoritesBar } from "@/components/studio/FavoritesBar";
-import { contactLinks, getStudio } from "@/lib/studio";
+import { fontFamily, googleFontsUrl } from "@/lib/fonts";
+import { contactLinks, getStudio, TYPO_DEFAULTS } from "@/lib/studio";
 import { Icon } from "@/templates/icons";
 
 // Trang công khai được lưu sẵn (cache) để mở nhanh, tự làm mới sau tối đa 5 phút.
@@ -10,13 +11,18 @@ import { Icon } from "@/templates/icons";
 export const revalidate = 300;
 
 export default async function HomeLayout({ children }: { children: React.ReactNode }) {
-  const { contact, footerText } = await getStudio();
+  const { contact, footerText, typo } = await getStudio();
+  // Kiểu chữ chọn trong Quản trị › Nội dung trang chủ. Font mặc định đã được tải ở layout gốc.
+  const extraFonts = [typo.headingFont, typo.bodyFont].filter((f) => f !== TYPO_DEFAULTS.headingFont && f !== TYPO_DEFAULTS.bodyFont);
+  const fontsHref = googleFontsUrl(extraFonts);
+  const typoStyle = { "--site-heading": fontFamily(typo.headingFont), "--site-body": fontFamily(typo.bodyFont), fontFamily: "var(--site-body)" } as React.CSSProperties;
   const l = contactLinks(contact);
   const social = socialLinks(contact);
   const col = "space-y-2 text-sm";
   const head = "text-[11px] uppercase tracking-[0.3em] text-[#d8cdbf]";
   return (
-    <>
+    <div style={typoStyle} data-body-size={typo.bodySize === "md" ? undefined : typo.bodySize}>
+      {fontsHref && <link rel="stylesheet" href={fontsHref} precedence="default" />}
       <SiteHeader dark />
       <main className="overflow-x-clip">{children}</main>
       <FavoritesBar />
@@ -103,6 +109,6 @@ export default async function HomeLayout({ children }: { children: React.ReactNo
         </div>
         <p className="mx-auto mt-12 max-w-6xl border-t border-white/10 pt-6 text-xs text-white/40">© {new Date().getFullYear()} TCWedding · tcwedding.vn</p>
       </footer>
-    </>
+    </div>
   );
 }
