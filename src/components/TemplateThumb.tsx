@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { demoInvitationData } from "@/lib/invitation";
+import { applyCover, type TemplateCover } from "@/lib/templateCover";
+import { useTemplateCovers } from "@/lib/useTemplateCovers";
 import { getTemplateDef } from "@/templates/registry";
 import { InvitationView } from "@/templates/InvitationView";
 
@@ -17,12 +19,24 @@ function shrinkPhotos<T>(data: T): T {
  * Chỉ dựng khi sắp cuộn tới (không render ở server): tránh trình duyệt tải trước ảnh và font
  * của mọi mẫu ngay khi mở trang. Trước đó hiện khung màu của mẫu.
  */
-export function TemplateThumb({ templateId, height = 460 }: { templateId: string; height?: number }) {
+export function TemplateThumb({
+  templateId,
+  height = 460,
+  cover: override,
+}: {
+  templateId: string;
+  height?: number;
+  /** Ảnh bìa xem trước (admin đang chỉnh); undefined = ảnh bìa đã lưu của mẫu, null = ảnh demo mặc định. */
+  cover?: TemplateCover | null;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.7);
   const [visible, setVisible] = useState(false);
   const tpl = getTemplateDef(templateId);
-  const data = useMemo(() => shrinkPhotos(demoInvitationData(tpl.demoCover)), [tpl.demoCover]);
+  const covers = useTemplateCovers();
+  const cover = override !== undefined ? override : covers?.[templateId];
+  const ready = override !== undefined || covers !== null;
+  const data = useMemo(() => applyCover(shrinkPhotos(demoInvitationData(tpl.demoCover)), cover), [tpl.demoCover, cover]);
 
   useEffect(() => {
     const el = ref.current;
@@ -47,7 +61,7 @@ export function TemplateThumb({ templateId, height = 460 }: { templateId: string
 
   return (
     <div ref={ref} className="pointer-events-none relative w-full overflow-hidden" style={{ height, background: tpl.colors.heroBg }} aria-hidden>
-      {visible && (
+      {visible && ready && (
         <div
           style={{ width: INNER_WIDTH, transform: `scale(${scale})`, transformOrigin: "top left", "--hero-h": "680px" } as React.CSSProperties}
           className="absolute left-0 top-0"

@@ -10,10 +10,10 @@ export type CoverHistoryItem = TemplateCover & { at: string };
 
 export const COVER_HISTORY_MAX = 10;
 
-/** Chỉ nhận ảnh https hoặc ảnh tải lên của site (/uploads/…). */
+/** Chỉ nhận ảnh https hoặc ảnh tải lên của site (/uploads/…, /api/files/…). */
 export function cleanCoverUrl(raw: unknown): string {
   const s = typeof raw === "string" ? raw.trim().slice(0, 1000) : "";
-  return /^https:\/\/[^\s"'<>]+$/.test(s) || /^\/uploads\/[\w./-]+$/.test(s) ? s : "";
+  return /^https:\/\/[^\s"'<>]+$/.test(s) || /^\/(uploads|api\/files)\/[\w./-]+$/.test(s) ? s : "";
 }
 
 export function parseCoverFrame(raw: string): ImgFrame | null {

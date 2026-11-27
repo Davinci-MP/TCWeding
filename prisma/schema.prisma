@@ -147,6 +147,8 @@ model TemplateShowcase {
   templateId         String
   /// Thiệp gốc (chỉ để admin truy vết, không bao giờ trả ra trang công khai).
   sourceInvitationId String   @default("")
+  /// Album studio đã xuất bản lấy ảnh cho bản giới thiệu ("" = ảnh demo).
+  albumId            String   @default("")
   /// JSON InvitationData đã làm sạch.
   data               String
   status             String   @default("DRAFT") // DRAFT | PUBLISHED

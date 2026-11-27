@@ -39,11 +39,11 @@ export function SiteHeader({ dark = false }: { dark?: boolean }) {
   const link = `whitespace-nowrap rounded-full px-3 py-2 transition ${dark ? "text-white/75 hover:text-white" : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100"}`;
   return (
     <header data-site-chrome className={`sticky top-0 z-30 backdrop-blur ${dark ? "border-b border-white/10 bg-[#1d1a17]/80 text-white" : "border-b border-zinc-200 bg-white/90"}`}>
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" aria-label="Trang chủ">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4">
+        <Link href="/" aria-label="Trang chủ" className="min-w-0 shrink">
           <Logo dark={dark} />
         </Link>
-        <nav className="flex items-center gap-1 text-sm sm:gap-2" aria-label="Menu chính">
+        <nav className="flex shrink-0 items-center gap-1 text-sm sm:gap-2" aria-label="Menu chính">
           <div className="hidden items-center gap-0.5 xl:flex">
             {MAIN_NAV.map(([href, label]) => (
               <Link key={href} href={href} className={link}>
@@ -74,9 +74,9 @@ export function SiteHeader({ dark = false }: { dark?: boolean }) {
           </details>
           <Link
             href="/thiep#chon"
-            className={`ml-1 whitespace-nowrap rounded-full px-4 py-2 font-semibold transition ${dark ? "bg-[#d8cdbf] text-[#1d1a17] hover:bg-[#ede6dc]" : "bg-brand text-white hover:bg-brand-dark"}`}
+            className={`ml-1 whitespace-nowrap rounded-full px-3 py-2 font-semibold min-[400px]:px-4 transition ${dark ? "bg-[#d8cdbf] text-[#1d1a17] hover:bg-[#ede6dc]" : "bg-brand text-white hover:bg-brand-dark"}`}
           >
-            Đặt thiệp & video
+            Đặt thiệp<span className="hidden min-[400px]:inline"> & video</span>
           </Link>
         </nav>
       </div>

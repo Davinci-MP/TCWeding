@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "./db";
 import { demoInvitationData, parseInvitationData, type InvitationData } from "./invitation";
-import { applyCover, parseCoverFrame, type TemplateCoverMap } from "./templateCover";
+import { applyCover, parseCoverFrame, parseCoverHistory, type TemplateCoverMap } from "./templateCover";
 import { getTemplateDef } from "@/templates/registry";
 
 /**
@@ -53,4 +53,36 @@ export async function publicShowcaseData(templateId: string): Promise<Invitation
     if (sc && sc.status === "PUBLISHED" && sc.templateId === templateId) return applyCover(parseInvitationData(sc.data), cover);
   }
   return cover ? applyCover(demoInvitationData(getTemplateDef(templateId).demoCover), cover) : null;
+}
+
+/** Ảnh bìa đang dùng + lịch sử của một mẫu (trang admin). */
+export async function getCoverState(templateId: string) {
+  const cfg = await db.templateConfig.findUnique({ where: { id: templateId } });
+  return {
+    current: cfg?.coverUrl ? { url: cfg.coverUrl, frame: parseCoverFrame(cfg.coverFrame) } : null,
+    history: parseCoverHistory(cfg?.coverHistory ?? "[]"),
+    showcaseId: cfg?.showcaseId ?? "",
+  };
+}
+
+/** Ảnh được phép công khai để làm ảnh bìa / ảnh bản giới thiệu: ảnh của album studio đã xuất bản. */
+export async function publicPhotoCandidates(): Promise<{ url: string; label: string }[]> {
+  const albums = await db.album.findMany({
+    where: { status: "PUBLISHED" },
+    orderBy: [{ featured: "desc" }, { sortOrder: "asc" }, { createdAt: "desc" }],
+    include: { photos: { orderBy: { sortOrder: "asc" }, select: { url: true } } },
+  });
+  const seen = new Set<string>();
+  return albums.flatMap((a) =>
+    a.photos.filter((p) => !seen.has(p.url) && seen.add(p.url)).map((p) => ({ url: p.url, label: a.title })),
+  );
+}
+
+/** Mẫu đứng sau mẫu đích trong kho mẫu (để xem trước lưới). */
+export async function galleryNeighbors(templateId: string, n = 7): Promise<string[]> {
+  const { listTemplates } = await import("./templates");
+  const ids = (await listTemplates()).map((t) => t.id);
+  const i = ids.indexOf(templateId);
+  const rest = i < 0 ? ids : [...ids.slice(i + 1), ...ids.slice(0, i)];
+  return rest.filter((id) => id !== templateId).slice(0, n);
 }
