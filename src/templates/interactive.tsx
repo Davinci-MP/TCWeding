@@ -29,13 +29,14 @@ export function Countdown({ target, light }: { target: string; light?: boolean }
     { v: Math.floor((diff / 1000) % 60), l: "Giây" },
   ];
   return (
-    <div className="flex items-stretch justify-center" role="timer" aria-label="Thời gian đến ngày cưới">
+    // 4 ô chia đều bề ngang (min-w-0) và cỡ số co theo khổ thiệp: font rộng (vd Cobalt Type) không lố khỏi màn 320px
+    <div className="mx-auto flex w-full max-w-3xl items-stretch justify-center" role="timer" aria-label="Thời gian đến ngày cưới">
       {parts.map((p, i) => (
-        <div key={p.l} className={`px-4 text-center @3xl:px-8 ${i ? `border-l ${light ? "border-current/25" : "border-[var(--primary)]/25"}` : ""}`}>
-          <div className="tpl-heading text-4xl tabular-nums @3xl:text-6xl" suppressHydrationWarning>
+        <div key={p.l} className={`min-w-0 flex-1 px-1 text-center @md:px-3 @3xl:px-4 ${i ? `border-l ${light ? "border-current/25" : "border-[var(--primary)]/25"}` : ""}`}>
+          <div className="tpl-heading text-[clamp(1.6rem,9cqi,2.25rem)] leading-tight tabular-nums @3xl:text-6xl" suppressHydrationWarning>
             {now === null ? "--" : String(p.v).padStart(2, "0")}
           </div>
-          <div className={`mt-1 text-[11px] uppercase tracking-[0.3em] ${light ? "opacity-70" : "text-[var(--muted)]"}`}>{p.l}</div>
+          <div className={`mt-1 text-[11px] uppercase tracking-[0.2em] @md:tracking-[0.3em] ${light ? "opacity-70" : "text-[var(--muted)]"}`}>{p.l}</div>
         </div>
       ))}
     </div>
@@ -60,13 +61,18 @@ export function TplButton({
   );
 }
 
-export function TplLink({ href, icon, children }: { href: string; icon: IconName; children: ReactNode }) {
+/** Nút liên kết theo mẫu. light: đặt trên nền ảnh / nền tối (chữ trắng) để không chìm khi màu chủ đạo tối. */
+export function TplLink({ href, icon, children, light }: { href: string; icon: IconName; children: ReactNode; light?: boolean }) {
   return (
     <a
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--primary)]/40 px-5 py-2 text-sm text-[var(--primary)] transition hover:bg-[var(--primary)] hover:text-[var(--on-primary)] focus-visible:outline-2 focus-visible:outline-[var(--primary)]"
+      className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-5 py-2 text-sm transition focus-visible:outline-2 ${
+        light
+          ? "border-white/55 text-white hover:bg-white hover:text-[#15110f] focus-visible:outline-white"
+          : "border-[var(--primary)]/40 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--on-primary)] focus-visible:outline-[var(--primary)]"
+      }`}
     >
       <Icon name={icon} size={16} />
       {children}

@@ -35,7 +35,8 @@ export type HeroVariant =
   | "vinyl"
   | "ink"
   | "moon"
-  | "offset";
+  | "offset"
+  | "pearl";
 export type Ornament = "line" | "songhy" | "none" | "leaf" | "star" | "heart" | "lotus" | "wave" | "deco" | "blossom" | "laurel" | "sprig" | "enso";
 
 /** Hệ bố cục cho các mục bên trong thiệp — làm các mẫu khác nhau ở cả phần thân. */
@@ -804,7 +805,39 @@ const VARIANTS: TemplateDef[] = ORIGINALS.flatMap((t, i) => {
   }));
 });
 
-export const TEMPLATES: TemplateDef[] = [...ORIGINALS, ...VARIANTS];
+/**
+ * Thiết kế thêm sau đợt biến thể màu: luôn nối vào CUỐI (sau VARIANTS) để mã TC-xx của 107 mẫu cũ không đổi.
+ * Mẫu đầu tiên ở đây là TC-108.
+ */
+const LATE: TemplateDef[] = [
+  {
+    id: "pearl-fold",
+    name: "Xà Cừ Gấp Nếp",
+    description: "Nền ánh xà cừ, hai nếp giấy chéo và khung ảnh bo lệch — nhẹ nhàng, hiện đại.",
+    category: "Hiện đại",
+    premium: false,
+    hero: "pearl",
+    ornament: "line",
+    fonts: { heading: "'Noto Serif Display', serif", body: "'Be Vietnam Pro', sans-serif", script: "'Ephesis', cursive" },
+    colors: {
+      bg: "#f8f4f1",
+      surface: "#fffdfb",
+      text: "#3a3340",
+      muted: "#7d7385",
+      primary: "#8d6f86",
+      accent: "#d7ebe5",
+      onPrimary: "#ffffff",
+      heroBg: "#f4eeec",
+      heroText: "#3a3340",
+    },
+    effect: "none",
+    frame: "rounded",
+    demoCover: "coupleVeilKiss",
+    layout: "editorial",
+  },
+];
+
+export const TEMPLATES: TemplateDef[] = [...ORIGINALS, ...VARIANTS, ...LATE];
 /** Thiết kế gốc của một mẫu (chính nó nếu không phải biến thể màu). */
 export const designOf = (t: Pick<TemplateDef, "id" | "baseId">) => t.baseId ?? t.id;
 /** Đầu thiệp tối hay sáng (dùng để gợi ý chữ trên ảnh thu nhỏ). */

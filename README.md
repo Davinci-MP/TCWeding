@@ -256,6 +256,13 @@ Cả hai dựng video ngay trong trình duyệt, ảnh không tải lên máy ch
 
 Chỉ tài khoản quyền admin đăng nhập được. Nếu mất mật khẩu admin: đặt `ADMIN_EMAIL` (email chưa có) và `ADMIN_PASSWORD` mới trong `.env`, chạy `NODE_ENV=production npm run db:seed` để tạo admin mới, rồi hạ quyền tài khoản cũ ở `/admin/users`. Chạy seed lại không đổi mật khẩu của tài khoản đã có.
 
+### Kiểm tra kho mẫu (QA)
+
+- Trang `/dev/mau/<id mẫu>?data=long|empty` hiển thị trọn thiệp với dữ liệu thử (tên / địa chỉ dài có dấu, OCB + STK số 0 đầu, thiếu ảnh / bản đồ) và tự đo tràn khung. Chỉ chạy ở `npm run dev` hoặc khi server bật `TCW_QA=1`; website thật trả 404.
+- Đo tràn khung toàn bộ mẫu ở 320 / 390 / 768 / 1440 px: `node scripts/qa-templates.mjs --base http://localhost:3000` (cần Chrome, Node ≥ 22). Chụp ảnh: thêm `--shots --designs`; chụp riêng một mục: `--shots --designs --section mung-cuoi --widths 390`. Kết quả ở `.tmp/qa`.
+- Tương phản màu (WCAG) của mọi mẫu và biến thể: `npx tsx scripts/qa-contrast.mts` (`--raw` để xem bảng màu gốc). Khi vẽ thiệp, màu chủ đạo và chữ trên nút tự được chỉnh cho đủ tương phản (`accessiblePrimary` trong `src/templates/palettes.ts`).
+- Mẫu mới chỉ thêm vào `LATE` trong `src/templates/registry.ts` (sau biến thể màu) để mã TC-xx của mẫu cũ không đổi. Mẫu 108: **Xà Cừ Gấp Nếp** (`pearl-fold`, `src/templates/heroes-pearl.tsx`).
+
 ## 5. Vận hành
 
 ### Cập nhật phiên bản

@@ -5,6 +5,7 @@ import type { InvitationData } from "@/lib/invitation";
 import type { TemplateDef } from "./registry";
 import { Icon } from "./icons";
 import { F, formatDate, Img, LotusShape, OrnamentMark } from "./parts";
+import { PearlHero } from "./heroes-pearl";
 import { BlossomHero, CinemaHero, MagazineHero, WatercolorHero } from "./heroes-new";
 import { BentoHero, BoardingHero, CrestHero, EnvelopeHero, GeoHero, HerbariumHero, InkHero, MarbleHero, MoonHero, OffsetHero, ScrapbookHero, TriptychHero, TypeHero, VelvetHero, VinylHero } from "./heroes-more";
 
@@ -78,6 +79,7 @@ export function Hero(props: Props) {
     ink: InkHero,
     moon: MoonHero,
     offset: OffsetHero,
+    pearl: PearlHero,
   };
   const C = map[props.tpl.hero] ?? ArchWindowHero;
   return <C {...props} />;
@@ -94,7 +96,8 @@ function ArchWindowHero({ tpl, data, guestName }: Props) {
         <div className="absolute -inset-3 rounded-t-full border border-[var(--primary)]/50" aria-hidden />
         <KenBurns src={data.coverPhoto} className="aspect-[3/4] rounded-t-full shadow-[0_40px_80px_-40px_rgba(60,40,20,.5)]" position={data.photoPos.cover} />
       </div>
-      <h1 className="relative -mt-14 @3xl:-mt-20">
+      {/* tên chồng lên mép ảnh: quầng màu nền giữ chữ đọc rõ khi tên dài đè lên phần ảnh tối */}
+      <h1 className="relative -mt-14 [text-shadow:0_0_2px_var(--hero-bg),0_0_8px_var(--hero-bg),0_0_18px_var(--hero-bg),0_0_28px_var(--hero-bg)] @3xl:-mt-20">
         <span className="tpl-heading tpl-rise block text-6xl italic leading-none @3xl:text-8xl" style={d(300)}>
           <F f="groom.name">{g}</F>
         </span>
@@ -170,9 +173,10 @@ function EditorialHero({ data, guestName }: Props) {
       <KenBurns src={data.coverPhoto} className="absolute inset-0 grayscale" position={data.photoPos.cover} />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" aria-hidden />
       <div className="relative flex min-h-[var(--hero-h,100svh)] flex-col justify-between p-6 @3xl:p-12">
-        <div className="tpl-rise flex items-center justify-between border-b border-white/30 pb-4 text-[11px] uppercase tracking-[0.4em]">
-          <span><F f="headline">{data.headline}</F></span>
-          <span>{date?.short ?? ""}</span>
+        <div className="tpl-rise flex items-start justify-between gap-4 border-b border-white/30 pb-4 text-[11px] uppercase tracking-[0.4em]">
+          <span className="min-w-0"><F f="headline">{data.headline}</F></span>
+          {/* ngày không bị bẻ dòng khi dòng tiêu đề dài */}
+          <span className="shrink-0 whitespace-nowrap tracking-[0.25em]">{date?.short ?? ""}</span>
         </div>
         <div>
           <h1 className="tpl-heading text-[15cqw] font-semibold uppercase leading-[0.85] tracking-tight @3xl:text-[7.5rem]">
@@ -404,10 +408,11 @@ function WaveHero({ data, guestName }: Props) {
   return (
     <header className="relative min-h-[var(--hero-h,100svh)] overflow-hidden text-center text-white">
       <KenBurns src={data.coverPhoto} className="absolute inset-0" position={data.photoPos.cover} />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0d3a4d]/50 via-transparent to-[#0d3a4d]/60" aria-hidden />
+      {/* phủ cả giữa ảnh: tên chữ trắng không chìm vào nền trời sáng */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0d3a4d]/55 via-[#0d3a4d]/30 to-[#0d3a4d]/60" aria-hidden />
       <div className="relative flex min-h-[var(--hero-h,100svh)] flex-col items-center justify-center px-6 pb-32">
         <p className="tpl-rise text-[11px] uppercase tracking-[0.5em]"><F f="headline">{data.headline}</F></p>
-        <h1 className="tpl-script tpl-rise mt-6 text-7xl leading-tight drop-shadow-lg @3xl:text-8xl" style={d(300)}>
+        <h1 className="tpl-script tpl-rise mt-6 text-7xl leading-tight drop-shadow-lg [text-shadow:0_2px_18px_rgb(6_30_40/0.55)] @3xl:text-8xl" style={d(300)}>
           <F f="groom.name">{g}</F>
           <br />
           <span className="text-4xl">&</span> <F f="bride.name">{b}</F>

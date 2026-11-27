@@ -73,3 +73,61 @@ export function familyOf(c: { heroBg: string; bg: string }): PaletteFamily {
   if (luminance(c.heroBg) > 0.35) return "light";
   return luminance(c.bg) > 0.35 ? "darkHero" : "night";
 }
+
+/* ---------------- Độ tương phản (WCAG 2.1) ---------------- */
+
+/** Tỉ lệ tương phản giữa hai màu hex (1 … 21). */
+export function contrastRatio(a: string, b: string) {
+  const [x, y] = [luminance(a), luminance(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+}
+
+function hexToHsl(hex: string): [number, number, number] {
+  const n = parseInt(hex.replace("#", ""), 16);
+  const [r, g, b] = [n >> 16, (n >> 8) & 255, n & 255].map((v) => v / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  const h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  return [h / 6, s, l];
+}
+
+function hslToHex(h: number, s: number, l: number) {
+  const f = (n: number) => {
+    const k = (n + h * 12) % 12;
+    const a = s * Math.min(l, 1 - l);
+    return Math.round((l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))) * 255);
+  };
+  return `#${[f(0), f(8), f(4)].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+}
+
+const isHex = (c: string) => /^#[0-9a-f]{6}$/i.test(c.trim());
+
+/**
+ * Màu chủ đạo dễ đọc: giữ sắc màu, chỉnh độ sáng từng bước nhỏ tới khi chữ trên nút (onPrimary) đạt ≥ 4.5:1 và màu chủ đạo
+ * trên nền thiệp đạt ≥ 3:1 (tiêu đề nhỏ, viền nút). Chữ trên nút chọn trắng hoặc màu chữ tối, cái nào rõ hơn.
+ * Dùng khi vẽ thiệp (InvitationView) nên mọi mẫu và biến thể màu cùng được sửa, bảng màu gốc không đổi.
+ */
+export function accessiblePrimary(primary: string, bg: string, onPrimaryHint: string, darkText: string) {
+  if (!isHex(primary) || !isHex(bg)) return { primary, onPrimary: onPrimaryHint };
+  const dark = isHex(darkText) && luminance(darkText) < 0.2 ? darkText : "#1f1a17";
+  const pickOn = (p: string) => (contrastRatio("#ffffff", p) >= contrastRatio(dark, p) ? "#ffffff" : dark);
+  let p = primary;
+  let on = isHex(onPrimaryHint) ? onPrimaryHint : pickOn(p);
+  if (contrastRatio(on, p) < 4.5) on = pickOn(p);
+  const ok = () => contrastRatio(on, p) >= 4.5 && contrastRatio(p, bg) >= 3;
+  if (ok()) return { primary: p, onPrimary: on };
+  // nền sáng → làm đậm màu chủ đạo; nền tối → làm sáng
+  const towardDark = luminance(bg) > 0.4;
+  const [h, s, l0] = hexToHsl(p);
+  for (let i = 1, l = l0; i <= 30; i++) {
+    l = Math.max(0, Math.min(1, l + (towardDark ? -0.015 : 0.015)));
+    p = hslToHex(h, s, l);
+    on = contrastRatio(on, p) >= 4.5 ? on : pickOn(p);
+    if (ok()) break;
+  }
+  return { primary: p, onPrimary: on };
+}
