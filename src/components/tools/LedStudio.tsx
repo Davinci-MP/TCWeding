@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { DEMO_COUPLE } from "@/lib/invitation";
 import { downloadBlob, ensureFonts, pickVideoFormat, recordCanvas, slugifyVi } from "@/lib/videoRecorder";
 import { drawLed, LED_SIZES, LED_THEMES, type LedData, type LedRatio, type LedThemeId } from "./ledScenes";
 
 const DURATIONS = [15, 30, 60];
 
 export function LedStudio() {
-  const [data, setData] = useState<LedData>({ eyebrow: "Lễ Thành Hôn", groom: "Minh Khang", bride: "Thu Trang", date: "2026-12-20", venue: "Sảnh Ngọc Trai · Nhà hàng tiệc cưới" });
+  const [data, setData] = useState<LedData>({ eyebrow: "Lễ Thành Hôn", groom: DEMO_COUPLE.groom, bride: DEMO_COUPLE.bride, date: "2026-12-20", venue: "Sảnh Ngọc Trai · Nhà hàng tiệc cưới" });
   const [theme, setTheme] = useState<LedThemeId>("ruou-vang");
   const [ratio, setRatio] = useState<LedRatio>("16:9");
   const [seconds, setSeconds] = useState(15);

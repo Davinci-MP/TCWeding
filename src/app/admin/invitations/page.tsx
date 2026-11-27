@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { setInvitationStatusAction } from "@/app/actions/admin";
 import { deleteInvitationAction } from "@/app/actions/invitations";
+import { createShowcaseAction } from "@/app/actions/showcase";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { db } from "@/lib/db";
 import { getTemplateDef } from "@/templates/registry";
@@ -62,6 +63,12 @@ export default async function AdminInvitations({ searchParams }: { searchParams:
                   <Link href={`/dashboard/${i.id}/edit`} className="mr-3 text-xs text-brand hover:underline">
                     Sửa
                   </Link>
+                  <form action={createShowcaseAction} className="mr-3 inline">
+                    <input type="hidden" name="invitationId" value={i.id} />
+                    <button className="text-xs text-brand hover:underline" title="Tạo bản giới thiệu độc lập (chỉ lấy thiết kế, dùng tên + ảnh demo)">
+                      Tạo bản giới thiệu cho mẫu
+                    </button>
+                  </form>
                   <form action={deleteInvitationAction} className="inline">
                     <input type="hidden" name="id" value={i.id} />
                     <ConfirmButton message="Xoá thiệp này?" className="text-xs text-red-600 hover:underline">

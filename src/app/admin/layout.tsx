@@ -10,6 +10,7 @@ const NAV = [
   ["/admin/bookings", "📅 Lịch tư vấn"],
   ["/admin/templates", "🎨 Mẫu thiệp & lượt thích"],
   ["/admin/invitations", "💌 Thiệp đã làm"],
+  ["/admin/showcase", "🖼️ Bản giới thiệu & ảnh bìa"],
   ["/admin/studio", "🏠 Nội dung trang chủ"],
   ["/admin/about", "🙋 Về tôi"],
   ["/admin/albums", "📷 Bộ sưu tập"],

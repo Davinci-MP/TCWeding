@@ -506,3 +506,17 @@ html[data-fullview] [data-site-chrome] {
     }
   }
 }
+
+/* Form đặt thiệp · ô ngày / giờ native: cao bằng ô khác, chữ căn trái, biểu tượng lịch / đồng hồ đủ lớn để bấm */
+.tcw-native-dt {
+  min-height: 3.125rem;
+  line-height: 1.5rem;
+}
+.tcw-native-dt::-webkit-date-and-time-value {
+  text-align: left;
+}
+.tcw-native-dt::-webkit-calendar-picker-indicator {
+  padding: 0.375rem;
+  margin-right: -0.375rem;
+  cursor: pointer;
+}

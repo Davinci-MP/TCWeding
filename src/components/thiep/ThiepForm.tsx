@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { DEMO_COUPLE } from "@/lib/invitation";
 import { useRouter } from "next/navigation";
 import { submitThiepAction } from "@/app/actions/thiep";
 import { TemplateThumb } from "@/components/TemplateThumb";
@@ -21,8 +22,9 @@ export type ThiepFormProps = {
 };
 
 const money = (n: number) => `${n.toLocaleString("vi-VN")}đ`;
-const field = "mt-1.5 block w-full rounded-xl border border-[#1d1a17]/15 bg-white px-4 py-3 text-base text-[#1d1a17] outline-none transition focus:border-[#7b2d26] focus:ring-4 focus:ring-[#7b2d26]/10";
-const label = "block text-sm font-medium text-[#1d1a17]";
+// min-w-0 + appearance-none: ô date / time native (iOS, Android) không rộng hơn cột chứa nó
+const field = "mt-1.5 block w-full min-w-0 appearance-none rounded-xl border border-[#1d1a17]/15 bg-white px-4 py-3 text-base text-[#1d1a17] outline-none transition focus:border-[#7b2d26] focus:ring-4 focus:ring-[#7b2d26]/10";
+const label = "block min-w-0 text-sm font-medium text-[#1d1a17]";
 
 function Step({ n, title, hint, children, optional }: { n: number; title: string; hint?: React.ReactNode; children: React.ReactNode; optional?: boolean }) {
   return (
@@ -38,11 +40,11 @@ function Step({ n, title, hint, children, optional }: { n: number; title: string
   );
 }
 
-function Input({ label: l, value, onChange, ...rest }: { label: string; value: string; onChange: (v: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
+function Input({ label: l, value, onChange, className = "", ...rest }: { label: string; value: string; onChange: (v: string) => void } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange">) {
   return (
     <label className={label}>
       {l}
-      <input {...rest} value={value} onChange={(e) => onChange(e.target.value)} className={field} />
+      <input {...rest} value={value} onChange={(e) => onChange(e.target.value)} className={`${field} ${className}`} />
     </label>
   );
 }
@@ -228,9 +230,9 @@ export function ThiepForm({ templates, initialTemplate = "", library, price, stu
 
         <Step n={2} title="Cô dâu & chú rể">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Input label="Tên chú rể" value={d.groom.name} onChange={(v) => person("groom", "name", v)} maxLength={60} placeholder="Minh Khang" />
+            <Input label="Tên chú rể" value={d.groom.name} onChange={(v) => person("groom", "name", v)} maxLength={60} placeholder={DEMO_COUPLE.groom} />
             <Input label="Thứ bậc chú rể" value={d.groom.rank} onChange={(v) => person("groom", "rank", v)} maxLength={40} placeholder="Trưởng nam" />
-            <Input label="Tên cô dâu" value={d.bride.name} onChange={(v) => person("bride", "name", v)} maxLength={60} placeholder="Bảo Ngọc" />
+            <Input label="Tên cô dâu" value={d.bride.name} onChange={(v) => person("bride", "name", v)} maxLength={60} placeholder={DEMO_COUPLE.bride} />
             <Input label="Thứ bậc cô dâu" value={d.bride.rank} onChange={(v) => person("bride", "rank", v)} maxLength={40} placeholder="Út nữ" />
           </div>
         </Step>
@@ -260,9 +262,10 @@ export function ThiepForm({ templates, initialTemplate = "", library, price, stu
                 </div>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <Input label="Tên sự kiện" value={e.title} onChange={(v) => event(i, { title: v })} maxLength={60} placeholder="Lễ Thành Hôn" />
-                  <div className="grid grid-cols-[1.4fr_1fr] gap-3">
-                    <Input label="Ngày dương" type="date" value={e.date} onChange={(v) => event(i, { date: v })} />
-                    <Input label="Giờ" type="time" value={e.time} onChange={(v) => event(i, { time: v })} />
+                  {/* Ngày + giờ: hai cột khi đủ chỗ (mỗi ô ≥ 9.5rem), không đủ thì tự xuống hàng; mép phải thẳng các ô khác */}
+                  <div className="grid min-w-0 gap-3 [grid-template-columns:repeat(auto-fit,minmax(min(100%,9.5rem),1fr))]">
+                    <Input label="Ngày dương" type="date" value={e.date} onChange={(v) => event(i, { date: v })} className="tcw-native-dt" />
+                    <Input label="Giờ" type="time" value={e.time} onChange={(v) => event(i, { time: v })} className="tcw-native-dt" />
                   </div>
                   <Input label="Ngày âm (tự tính, có thể sửa)" value={e.lunar} onChange={(v) => event(i, { lunar: v })} maxLength={80} />
                   <Input label="Tên địa điểm" value={e.venue} onChange={(v) => event(i, { venue: v })} maxLength={120} placeholder="Tư gia nhà trai" />

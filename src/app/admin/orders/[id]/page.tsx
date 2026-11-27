@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { buildInvitationAction, confirmPaymentAction, deleteOrderAction, saveAdminNoteAction, setOrderStatusAction, shopMessageAction, syncPhotosAction } from "@/app/actions/orders";
+import { createShowcaseAction } from "@/app/actions/showcase";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { CopyLink } from "@/components/order/CopyLink";
 import { Messages } from "@/components/order/Messages";
@@ -15,7 +16,7 @@ export const metadata = { title: "Chi tiết đơn" };
 export default async function AdminOrder({ params }: { params: Promise<{ id: string }> }) {
   const o = await db.order.findUnique({
     where: { id: (await params).id },
-    include: { photos: { orderBy: { createdAt: "asc" } }, messages: { orderBy: { createdAt: "asc" } }, invitation: { select: { slug: true, data: true } } },
+    include: { photos: { orderBy: { createdAt: "asc" } }, messages: { orderBy: { createdAt: "asc" } }, invitation: { select: { id: true, slug: true, data: true } } },
   });
   if (!o) notFound();
   const draft = o.draft ? parseInvitationData(o.draft) : null;
@@ -88,6 +89,14 @@ export default async function AdminOrder({ params }: { params: Promise<{ id: str
             <Link href={`/w/${inv.slug}`} target="_blank" className="btn btn-outline">
               Xem thiệp
             </Link>
+          )}
+          {inv && (
+            <form action={createShowcaseAction}>
+              <input type="hidden" name="invitationId" value={inv.id} />
+              <button className="btn btn-outline" title="Tạo bản giới thiệu độc lập cho kho mẫu: chỉ lấy thiết kế, tên + ảnh demo, không có dữ liệu riêng của khách">
+                Tạo bản giới thiệu cho mẫu
+              </button>
+            </form>
           )}
           {extra > 0 && isOpen(st) && (
             <form action={syncPhotosAction}>

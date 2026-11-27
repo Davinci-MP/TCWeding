@@ -1,7 +1,7 @@
 // Luồng khách chọn mẫu & điền thông tin làm thiệp ở /thiep (không cần tài khoản).
 // Dùng được cả client lẫn server.
 
-import { DEMO_PHOTOS, defaultInvitationData, uid, unsplash, type InvitationData } from "@/lib/invitation";
+import { DEMO_COUPLE, DEMO_PHOTOS, defaultInvitationData, uid, unsplash, type InvitationData } from "@/lib/invitation";
 import { lunarText } from "@/lib/lunar";
 import { FONTS } from "@/lib/fonts";
 import { ALL_PALETTES } from "@/templates/palettes";
@@ -99,8 +99,8 @@ export function sampleDraft(templateId: string): ThiepDraft {
   const ev = (title: string, date: string, time: string, venue: string, address: string): DraftEvent => ({ ...emptyEvent(title), date, time, lunar: lunarText(date), venue, address });
   return {
     ...d,
-    groom: { name: "Minh Khang", rank: "Trưởng nam", father: "Ông Trần Văn Hùng", mother: "Bà Nguyễn Thị Lan", address: "Phường Hưng Bình, TP Vinh, Nghệ An" },
-    bride: { name: "Bảo Ngọc", rank: "Út nữ", father: "Ông Lê Quang Minh", mother: "Bà Phạm Thị Hoa", address: "Thị trấn Nghi Xuân, Hà Tĩnh" },
+    groom: { name: DEMO_COUPLE.groom, rank: "Trưởng nam", father: "Ông Trần Văn Hùng", mother: "Bà Nguyễn Thị Lan", address: "Phường Hưng Bình, TP Vinh, Nghệ An" },
+    bride: { name: DEMO_COUPLE.bride, rank: "Út nữ", father: "Ông Lê Quang Minh", mother: "Bà Phạm Thị Hoa", address: "Thị trấn Nghi Xuân, Hà Tĩnh" },
     events: [
       ev("Lễ Vu Quy", "2027-01-09", "08:30", "Tư gia nhà gái", "Thị trấn Nghi Xuân, Hà Tĩnh"),
       ev("Lễ Thành Hôn", "2027-01-10", "09:00", "Tư gia nhà trai", "Phường Hưng Bình, TP Vinh, Nghệ An"),

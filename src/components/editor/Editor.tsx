@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   mapEmbedUrl,
+  DEMO_COUPLE,
   giftQrUrl,
   EFFECT_LABELS,
   NAME_SCALE_RANGE,
@@ -221,7 +222,7 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
           label={fieldLabel(tfSel, data)}
           value={fieldStyles?.[tfSel]}
           base={measured}
-          sample={measured?.text || "Minh Khang & Bảo Ngọc — Trân trọng kính mời"}
+          sample={measured?.text || `${DEMO_COUPLE.pair} — Trân trọng kính mời`}
           onChange={(p) => setFieldTypo(tfSel, p)}
           onStep={(delta, from) =>
             patch((d) => {
@@ -574,7 +575,7 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                 </Field>
                 <Field label="Kiểu chữ" hint="Để “Theo mẫu” để giữ font gốc. Tên dài tự thu nhỏ cho vừa màn hình điện thoại.">
                   <div className="space-y-3">
-                    <FontPicker label="Font tiêu đề" value={data.fontHeading} onChange={(v) => set("fontHeading", v)} defaultLabel={`Theo mẫu (${fontName(tplDef.fonts.heading)})`} defaultFont={fontName(tplDef.fonts.heading)} kinds={["serif", "sans", "script"]} sample={`${data.groom.name || "Minh Khang"} & ${data.bride.name || "Bảo Ngọc"}`} />
+                    <FontPicker label="Font tiêu đề" value={data.fontHeading} onChange={(v) => set("fontHeading", v)} defaultLabel={`Theo mẫu (${fontName(tplDef.fonts.heading)})`} defaultFont={fontName(tplDef.fonts.heading)} kinds={["serif", "sans", "script"]} sample={`${data.groom.name || DEMO_COUPLE.groom} & ${data.bride.name || DEMO_COUPLE.bride}`} />
                     <FontPicker label="Font chữ viết tay (tên, lời chúc)" value={data.fontScript} onChange={(v) => set("fontScript", v)} defaultLabel={`Theo mẫu (${fontName(tplDef.fonts.script)})`} defaultFont={fontName(tplDef.fonts.script)} kinds={["script", "serif"]} sample="Save the date · Trân trọng kính mời" />
                     <FontPicker label="Font nội dung" value={data.fontBody} onChange={(v) => set("fontBody", v)} defaultLabel={`Theo mẫu (${fontName(tplDef.fonts.body)})`} defaultFont={fontName(tplDef.fonts.body)} kinds={["sans", "serif"]} sample="Trân trọng kính mời bạn đến dự tiệc cưới của chúng tôi." />
                     <ScaleSlider label="Cỡ chữ tên cô dâu chú rể" value={data.nameScale} min={NAME_SCALE_RANGE.min} max={NAME_SCALE_RANGE.max} onChange={(v) => set("nameScale", v)} />

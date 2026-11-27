@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { demoInvitationData } from "@/lib/invitation";
+import { demoInvitationData, parseInvitationData, type InvitationData } from "@/lib/invitation";
 import { draftToInvitationData, templateCode, templateHash, templateIdFrom, type ThiepDraft } from "@/lib/thiep";
 import { getTemplateDef } from "@/templates/registry";
 import { InvitationView } from "@/templates/InvitationView";
@@ -176,7 +176,21 @@ function LiveDemo({ id }: { id: string }) {
   const favs = useTemplateFavorites();
   const liked = favs.includes(id);
   const tpl = getTemplateDef(id);
-  const data = useMemo(() => demoInvitationData(tpl.demoCover), [tpl.demoCover]);
+  const fallback = useMemo(() => demoInvitationData(tpl.demoCover), [tpl.demoCover]);
+  // bản giới thiệu đã duyệt của mẫu (dữ liệu sạch từ server) + ảnh bìa riêng; chưa có → bản demo mặc định
+  const [showcase, setShowcase] = useState<{ id: string; data: InvitationData | null } | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/showcase/${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null)
+      .then((d) => alive && setShowcase({ id, data: d && typeof d === "object" ? parseInvitationData(JSON.stringify(d)) : null }));
+    return () => {
+      alive = false;
+    };
+  }, [id]);
+  const loaded = showcase?.id === id;
+  const data = (loaded && showcase.data) || fallback;
   return (
     <>
       <FloatingBar>
@@ -191,7 +205,7 @@ function LiveDemo({ id }: { id: string }) {
           Chọn mẫu này
         </a>
       </FloatingBar>
-      <InvitationView key={id} templateId={id} data={data} slug="demo" mode="demo" guestName="Anh Nam & Gia đình" />
+      {loaded ? <InvitationView key={id} templateId={id} data={data} slug="demo" mode="demo" guestName="Anh Nam & Gia đình" /> : <div className="min-h-svh" style={{ background: tpl.colors.heroBg }} />}
     </>
   );
 }
