@@ -199,6 +199,7 @@ Một trang `/thiep`, điều hướng bằng `#` giống quocanhwedding.com/thi
 
 - **Website:** tiêu đề tự chọn cỡ theo độ dài câu (câu dài không còn chiếm cả màn hình), từ quá dài tự xuống dòng. Chỉnh font và cỡ chữ ở Nội dung trang chủ › Kiểu chữ toàn website.
 - **Thiệp:** tên cô dâu chú rể ở đầu thiệp tự thu nhỏ cho vừa màn hình điện thoại (`src/templates/fit.ts`). Trong trình soạn thiệp (tab Giao diện › Kiểu chữ) chọn font tiêu đề / viết tay / nội dung (danh sách font tiếng Việt ở `src/lib/fonts.ts`), cỡ chữ tên và cỡ chữ nội dung.
+- **Kiểu chữ riêng từng ô:** trong trình soạn thiệp, bấm vào chữ trên bản xem trước (hoặc nút **Aa** cạnh ô nhập) để chỉnh font và cỡ chữ (10–96 px) chỉ cho ô đó, ví dụ tên cô dâu, lời mời, địa điểm từng sự kiện. Nút **Dùng mặc định của mẫu** bỏ thiết lập riêng của ô. Dữ liệu lưu trong `fieldStyles` theo ID ổn định của ô (`src/lib/fieldTypo.ts`); trong mẫu, phần tử hiển thị ô mang `data-tf` (component `F` ở `src/templates/parts.tsx`). Ô chưa chỉnh dùng kiểu chữ chung ở trên; server chỉ nhận font trong danh sách và cỡ chữ trong giới hạn. Trên màn hình hẹp hơn 360px chữ tự co theo bề ngang.
 
 ### Studio: bộ sưu tập, ghép album, bảng giá, về tôi, đặt lịch
 

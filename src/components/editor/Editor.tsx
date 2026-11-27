@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BANKS,
   EFFECT_LABELS,
@@ -24,6 +24,8 @@ import { MusicField } from "./MusicField";
 import { FontPicker } from "@/components/admin/FontPicker";
 import { fontName } from "@/lib/fonts";
 import { PHOTO_SPECS, PhotoField } from "./PhotoField";
+import { FieldTypoBar, FieldTypoContext, useMeasuredField } from "./FieldTypo";
+import { clampFieldSize, fieldLabel, setFieldStyle, type FieldStyle } from "@/lib/fieldTypo";
 import type { LibraryTrack } from "@/lib/settings";
 
 type TemplateOption = { id: string; name: string; category: string; isPremium: boolean };
@@ -81,6 +83,9 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [savedSlug, setSavedSlug] = useState(initial.slug);
+  // Ô đang chọn để chỉnh font/cỡ chữ riêng (ID ổn định, xem src/lib/fieldTypo.ts)
+  const [tfSel, setTfSel] = useState("");
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const patch = useCallback((fn: (d: InvitationData) => InvitationData) => {
     setData((d) => fn(d));
@@ -144,7 +149,19 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
 
   const tplDef = getTemplateDef(templateId);
 
+  const fieldStyles = data.fieldStyles;
+  const setFieldTypo = (id: string, p: FieldStyle | null) => patch((d) => ({ ...d, fieldStyles: setFieldStyle(d.fieldStyles ?? {}, id, p) }));
+  const selectField = useCallback((id: string, from: "form" | "preview") => {
+    setTfSel(id);
+    if (from !== "form") return;
+    // chọn từ ô nhập: cuộn bản xem trước tới chỗ ô đó trên thiệp
+    requestAnimationFrame(() => previewRef.current?.querySelector<HTMLElement>(`[data-tf="${id}"]`)?.scrollIntoView({ block: "center", behavior: "smooth" }));
+  }, []);
+  const tfCtx = useMemo(() => ({ selected: tfSel, styled: (id: string) => Boolean(fieldStyles?.[id]), select: selectField }), [tfSel, fieldStyles, selectField]);
+  const measured = useMeasuredField(previewRef, tfSel, [templateId, data, showPreview]);
+
   return (
+    <FieldTypoContext.Provider value={tfCtx}>
     <div className="flex h-[calc(100vh-4rem)] flex-col">
       {/* Thanh công cụ */}
       <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200 bg-white px-4 py-2">
@@ -175,6 +192,23 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
         </div>
       </div>
 
+      {tfSel && (
+        <FieldTypoBar
+          label={fieldLabel(tfSel, data)}
+          value={fieldStyles?.[tfSel]}
+          base={measured}
+          sample={measured?.text || "Minh Khang & Bảo Ngọc — Trân trọng kính mời"}
+          onChange={(p) => setFieldTypo(tfSel, p)}
+          onStep={(delta, from) =>
+            patch((d) => {
+              const cur = d.fieldStyles?.[tfSel]?.size ?? from;
+              return { ...d, fieldStyles: setFieldStyle(d.fieldStyles ?? {}, tfSel, { size: clampFieldSize(cur + delta) }) };
+            })
+          }
+          onClose={() => setTfSel("")}
+        />
+      )}
+
       <div className="flex min-h-0 flex-1">
         {/* Cột trái: form */}
         <div className={`flex min-h-0 w-full flex-col border-r border-zinc-200 bg-white lg:w-[480px] ${showPreview ? "hidden lg:flex" : "flex"}`}>
@@ -195,21 +229,22 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                 <fieldset key={who} className="space-y-3 rounded-xl border border-zinc-200 p-4">
                   <legend className="px-2 font-semibold">{who === "groom" ? "Chú rể" : "Cô dâu"}</legend>
                   <div className="grid grid-cols-2 gap-3">
-                    <TextInput label="Tên gọi" value={data[who].name} onChange={(v) => setPerson(who, "name", v)} />
-                    <TextInput label="Họ tên đầy đủ" value={data[who].fullName} onChange={(v) => setPerson(who, "fullName", v)} />
-                    <TextInput label="Bố" value={data[who].father} placeholder="Ông …" onChange={(v) => setPerson(who, "father", v)} />
-                    <TextInput label="Mẹ" value={data[who].mother} placeholder="Bà …" onChange={(v) => setPerson(who, "mother", v)} />
+                    <TextInput tf={`${who}.name`} label="Tên gọi" value={data[who].name} onChange={(v) => setPerson(who, "name", v)} />
+                    <TextInput tf={`${who}.fullName`} label="Họ tên đầy đủ" value={data[who].fullName} onChange={(v) => setPerson(who, "fullName", v)} />
+                    <TextInput tf={`${who}.parents`} label="Bố" value={data[who].father} placeholder="Ông …" onChange={(v) => setPerson(who, "father", v)} />
+                    <TextInput tf={`${who}.parents`} label="Mẹ" value={data[who].mother} placeholder="Bà …" onChange={(v) => setPerson(who, "mother", v)} />
                   </div>
-                  <TextInput label="Địa chỉ gia đình" value={data[who].address} onChange={(v) => setPerson(who, "address", v)} />
-                  <TextArea label="Giới thiệu ngắn" value={data[who].bio} onChange={(v) => setPerson(who, "bio", v)} rows={2} />
+                  <TextInput tf={`${who}.address`} label="Địa chỉ gia đình" value={data[who].address} onChange={(v) => setPerson(who, "address", v)} />
+                  <TextArea tf={`${who}.bio`} label="Giới thiệu ngắn" value={data[who].bio} onChange={(v) => setPerson(who, "bio", v)} rows={2} />
                   <ImageField label="Ảnh" value={data[who].photo} onChange={(v) => setPerson(who, "photo", v)} />
                 </fieldset>
               ))}
 
             {tab === "invite" && (
               <>
-                <TextInput label="Dòng tiêu đề" value={data.headline} onChange={(v) => set("headline", v)} placeholder="Save the Date" />
+                <TextInput tf="headline" label="Dòng tiêu đề" value={data.headline} onChange={(v) => set("headline", v)} placeholder="Save the Date" />
                 <TextInput
+                  tf="weddingDate"
                   label="Ngày giờ cưới chính"
                   type="datetime-local"
                   value={data.weddingDate}
@@ -224,9 +259,9 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                   onPositionChange={(v) => set("photoPos", { ...data.photoPos, cover: v })}
                   spec={PHOTO_SPECS.cover}
                 />
-                <TextArea label="Lời mời" value={data.invitationText} onChange={(v) => set("invitationText", v)} rows={4} />
-                <TextArea label="Câu trích dẫn" value={data.quote.text} onChange={(v) => set("quote", { ...data.quote, text: v })} rows={2} />
-                <TextInput label="Tác giả trích dẫn" value={data.quote.author} onChange={(v) => set("quote", { ...data.quote, author: v })} />
+                <TextArea tf="invitationText" label="Lời mời" value={data.invitationText} onChange={(v) => set("invitationText", v)} rows={4} />
+                <TextArea tf="quote.text" label="Câu trích dẫn" value={data.quote.text} onChange={(v) => set("quote", { ...data.quote, text: v })} rows={2} />
+                <TextInput tf="quote.author" label="Tác giả trích dẫn" value={data.quote.author} onChange={(v) => set("quote", { ...data.quote, author: v })} />
                 <PhotoField
                   label="Ảnh tràn màn hình (giữa thiệp)"
                   value={data.featurePhoto}
@@ -235,7 +270,7 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                   onPositionChange={(v) => set("photoPos", { ...data.photoPos, feature: v })}
                   spec={PHOTO_SPECS.feature}
                 />
-                <TextArea label="Lời cảm ơn cuối thiệp" value={data.closingText} onChange={(v) => set("closingText", v)} />
+                <TextArea tf="closingText" label="Lời cảm ơn cuối thiệp" value={data.closingText} onChange={(v) => set("closingText", v)} />
                 <PhotoField
                   label="Ảnh nền lời cảm ơn"
                   value={data.thankYouPhoto}
@@ -257,11 +292,11 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                     onUp={i > 0 ? () => moveIn("events", i, -1) : undefined}
                     onDown={i < data.events.length - 1 ? () => moveIn("events", i, 1) : undefined}
                   >
-                    <TextInput label="Tên sự kiện" value={ev.title} placeholder="Lễ Vu Quy / Lễ Thành Hôn / Tiệc Cưới" onChange={(v) => updateList("events", i, { title: v })} />
+                    <TextInput tf={`event.${ev.id}.title`} label="Tên sự kiện" value={ev.title} placeholder="Lễ Vu Quy / Lễ Thành Hôn / Tiệc Cưới" onChange={(v) => updateList("events", i, { title: v })} />
                     <TextInput label="Thời gian" type="datetime-local" value={ev.date} onChange={(v) => updateList("events", i, { date: v })} />
-                    <TextInput label="Ngày âm lịch" value={ev.lunarDate} placeholder="Nhằm ngày … tháng … năm …" onChange={(v) => updateList("events", i, { lunarDate: v })} />
-                    <TextInput label="Địa điểm" value={ev.venue} placeholder="Nhà hàng / Tư gia" onChange={(v) => updateList("events", i, { venue: v })} />
-                    <TextInput label="Địa chỉ" value={ev.address} onChange={(v) => updateList("events", i, { address: v })} hint="Bản đồ Google tự hiển thị theo địa chỉ" />
+                    <TextInput tf={`event.${ev.id}.lunarDate`} label="Ngày âm lịch" value={ev.lunarDate} placeholder="Nhằm ngày … tháng … năm …" onChange={(v) => updateList("events", i, { lunarDate: v })} />
+                    <TextInput tf={`event.${ev.id}.venue`} label="Địa điểm" value={ev.venue} placeholder="Nhà hàng / Tư gia" onChange={(v) => updateList("events", i, { venue: v })} />
+                    <TextInput tf={`event.${ev.id}.address`} label="Địa chỉ" value={ev.address} onChange={(v) => updateList("events", i, { address: v })} hint="Bản đồ Google tự hiển thị theo địa chỉ" />
                     <TextInput label="Link Google Maps (tuỳ chọn)" value={ev.mapUrl} onChange={(v) => updateList("events", i, { mapUrl: v })} />
                   </ListItem>
                 ))}
@@ -287,10 +322,10 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                     onDown={i < data.story.length - 1 ? () => moveIn("story", i, 1) : undefined}
                   >
                     <div className="grid grid-cols-2 gap-3">
-                      <TextInput label="Thời gian" value={st.date} placeholder="Tháng 9, 2019" onChange={(v) => updateList("story", i, { date: v })} />
-                      <TextInput label="Tiêu đề" value={st.title} onChange={(v) => updateList("story", i, { title: v })} />
+                      <TextInput tf={`story.${st.id}.date`} label="Thời gian" value={st.date} placeholder="Tháng 9, 2019" onChange={(v) => updateList("story", i, { date: v })} />
+                      <TextInput tf={`story.${st.id}.title`} label="Tiêu đề" value={st.title} onChange={(v) => updateList("story", i, { title: v })} />
                     </div>
-                    <TextArea label="Nội dung" value={st.content} onChange={(v) => updateList("story", i, { content: v })} />
+                    <TextArea tf={`story.${st.id}.content`} label="Nội dung" value={st.content} onChange={(v) => updateList("story", i, { content: v })} />
                     <ImageField label="Ảnh" value={st.photo} onChange={(v) => updateList("story", i, { photo: v })} />
                   </ListItem>
                 ))}
@@ -348,10 +383,10 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                     onDown={i < data.schedule.length - 1 ? () => moveIn("schedule", i, 1) : undefined}
                   >
                     <div className="grid grid-cols-[6rem_1fr] gap-3">
-                      <TextInput label="Giờ" value={it.time} placeholder="11:00" onChange={(v) => updateList("schedule", i, { time: v })} />
-                      <TextInput label="Hoạt động" value={it.title} placeholder="Làm lễ" onChange={(v) => updateList("schedule", i, { title: v })} />
+                      <TextInput tf={`schedule.${it.id}.time`} label="Giờ" value={it.time} placeholder="11:00" onChange={(v) => updateList("schedule", i, { time: v })} />
+                      <TextInput tf={`schedule.${it.id}.title`} label="Hoạt động" value={it.title} placeholder="Làm lễ" onChange={(v) => updateList("schedule", i, { title: v })} />
                     </div>
-                    <TextInput label="Mô tả ngắn" value={it.description} onChange={(v) => updateList("schedule", i, { description: v })} />
+                    <TextInput tf={`schedule.${it.id}.description`} label="Mô tả ngắn" value={it.description} onChange={(v) => updateList("schedule", i, { description: v })} />
                   </ListItem>
                 ))}
                 <button className="btn btn-outline w-full" onClick={() => set("schedule", [...data.schedule, { id: uid(), time: "", title: "", description: "" }])}>
@@ -397,8 +432,8 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                 <h3 className="font-semibold">Hỏi đáp cho khách</h3>
                 {data.faqs.map((f, i) => (
                   <ListItem key={f.id} title={f.q || `Câu hỏi ${i + 1}`} onRemove={() => removeFrom("faqs", i)}>
-                    <TextInput label="Câu hỏi" value={f.q} onChange={(v) => updateList("faqs", i, { q: v })} />
-                    <TextArea label="Trả lời" value={f.a} onChange={(v) => updateList("faqs", i, { a: v })} rows={2} />
+                    <TextInput tf={`faq.${f.id}.q`} label="Câu hỏi" value={f.q} onChange={(v) => updateList("faqs", i, { q: v })} />
+                    <TextArea tf={`faq.${f.id}.a`} label="Trả lời" value={f.a} onChange={(v) => updateList("faqs", i, { a: v })} rows={2} />
                   </ListItem>
                 ))}
                 <button className="btn btn-outline w-full" onClick={() => set("faqs", [...data.faqs, { id: uid(), q: "", a: "" }])}>
@@ -545,14 +580,24 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
         {/* Cột phải: xem trước */}
         <div className={`min-h-0 flex-1 items-start justify-center overflow-hidden bg-zinc-100 p-4 lg:flex ${showPreview ? "flex" : "hidden"}`}>
           <div className="flex h-full w-full max-w-[430px] flex-col">
-            <p className="mb-2 text-center text-xs text-zinc-500">Xem trước · {tplDef.name}</p>
-            <div className="relative min-h-0 flex-1 overflow-y-auto rounded-[2rem] border-8 border-zinc-900 bg-white shadow-2xl [transform:translateZ(0)]">
+            <p className="mb-2 text-center text-xs text-zinc-500">Xem trước · {tplDef.name} · bấm vào chữ để chỉnh font, cỡ chữ</p>
+            <div
+              ref={previewRef}
+              onClickCapture={(e) => {
+                // bấm vào chữ trên thiệp để chọn ô đó
+                const el = (e.target as HTMLElement).closest<HTMLElement>("[data-tf]");
+                if (el?.dataset.tf) selectField(el.dataset.tf, "preview");
+              }}
+              className="tf-pick relative min-h-0 flex-1 overflow-y-auto rounded-[2rem] border-8 border-zinc-900 bg-white shadow-2xl [transform:translateZ(0)]"
+            >
+              {tfSel && <style>{`.tf-pick [data-tf="${tfSel}"]{outline:2px dashed #e11d48;outline-offset:3px;border-radius:2px}`}</style>}
               <InvitationView templateId={templateId} data={data} slug={slug} mode="preview" guestName="Khách mời" />
             </div>
           </div>
         </div>
       </div>
     </div>
+    </FieldTypoContext.Provider>
   );
 }
 

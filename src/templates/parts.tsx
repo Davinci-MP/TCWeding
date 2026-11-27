@@ -4,6 +4,11 @@ import { createContext, useContext, useState, type CSSProperties, type ReactNode
 import type { FrameShape, LayoutFamily, Ornament, TemplateDef } from "./registry";
 import { Reveal } from "./motion";
 
+/** Đánh dấu một ô nội dung để áp kiểu chữ riêng của ô (font/cỡ chữ, xem src/lib/fieldTypo.ts). */
+export function F({ f, children }: { f: string; children: ReactNode }) {
+  return <span data-tf={f}>{children}</span>;
+}
+
 const WEEKDAYS = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
 const MONTHS_EN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 

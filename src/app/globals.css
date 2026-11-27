@@ -313,4 +313,15 @@ html[data-fullview] [data-site-chrome] {
 /* Cỡ chữ nội dung thiệp (trình soạn thảo › Kiểu chữ): zoom từng khối chữ, bề ngang tự co vừa khung */
 .tpl-root[data-text-scale] section :is(p, li, blockquote, dd, dt, label, td, figcaption):not(:is(p, li, blockquote, dd, dt, label, td, figcaption) *) {
   zoom: var(--text-scale, 1);
+  /* ô có cỡ chữ riêng (fieldTypoCss) chia lại cho hệ số này để giữ đúng cỡ đã chọn */
+  --tf-zoom: var(--text-scale, 1);
+}
+
+/* Trình soạn thiệp: rê chuột lên chữ trên bản xem trước để thấy ô có thể chỉnh font/cỡ chữ */
+@media (hover: hover) {
+  .tf-pick [data-tf]:hover {
+    outline: 1px dashed rgb(225 29 72 / 0.55);
+    outline-offset: 3px;
+    cursor: pointer;
+  }
 }

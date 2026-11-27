@@ -1,5 +1,7 @@
 // Kiểu dữ liệu nội dung thiệp + giá trị mặc định. Dùng được cả client lẫn server.
 
+import { cleanFieldStyles, type FieldStyles } from "./fieldTypo";
+
 export type Person = {
   name: string; // tên gọi ngắn hiển thị lớn, vd "Minh Anh"
   fullName: string;
@@ -89,6 +91,8 @@ export type InvitationData = {
   nameScale: number;
   /** Cỡ chữ phần nội dung (lời mời, gia đình, sự kiện…), 1 = theo mẫu. */
   textScale: number;
+  /** Kiểu chữ riêng từng ô (ID ô → font/cỡ chữ), ưu tiên hơn kiểu chữ chung ở trên. Xem src/lib/fieldTypo.ts. */
+  fieldStyles: FieldStyles;
 };
 
 export const NAME_SCALE_RANGE = { min: 0.6, max: 1.4 } as const;
@@ -193,6 +197,7 @@ export function defaultInvitationData(): InvitationData {
     fontScript: "",
     nameScale: 1,
     textScale: 1,
+    fieldStyles: {},
     closingText: "Cảm ơn bạn rất nhiều vì đã gửi những lời chúc mừng tốt đẹp nhất đến đám cưới của chúng tôi!",
   };
 }
@@ -226,6 +231,7 @@ export function parseInvitationData(json: string | null | undefined): Invitation
       fontScript: typeof raw.fontScript === "string" ? raw.fontScript : "",
       nameScale: clampNum(raw.nameScale ?? 1, NAME_SCALE_RANGE.min, NAME_SCALE_RANGE.max),
       textScale: clampNum(raw.textScale ?? 1, TEXT_SCALE_RANGE.min, TEXT_SCALE_RANGE.max),
+      fieldStyles: cleanFieldStyles(raw.fieldStyles),
     };
   } catch {
     return base;

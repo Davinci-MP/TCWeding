@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactNode } from "react";
+import { useFieldTypo } from "./FieldTypo";
 
 const EXT: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif", "audio/mpeg": "mp3", "audio/mp4": "m4a", "audio/x-m4a": "m4a" };
 
@@ -32,10 +33,13 @@ export async function uploadFile(file: File): Promise<string> {
   return json.url as string;
 }
 
-export function Field({ label, children, hint }: { label: string; children: ReactNode; hint?: string }) {
+export function Field({ label, children, hint, extra }: { label: string; children: ReactNode; hint?: string; extra?: ReactNode }) {
   return (
     <div>
-      <label className="label">{label}</label>
+      <label className="label">
+        {label}
+        {extra}
+      </label>
       {children}
       {hint && <p className="mt-1 text-xs text-zinc-400">{hint}</p>}
     </div>
@@ -49,6 +53,7 @@ export function TextInput({
   placeholder,
   type = "text",
   hint,
+  tf,
 }: {
   label: string;
   value: string;
@@ -56,10 +61,13 @@ export function TextInput({
   placeholder?: string;
   type?: string;
   hint?: string;
+  /** ID ô trên thiệp (src/lib/fieldTypo.ts) để chỉnh font/cỡ chữ riêng. */
+  tf?: string;
 }) {
+  const t = useFieldTypo(tf);
   return (
-    <Field label={label} hint={hint}>
-      <input type={type} className="input" value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+    <Field label={label} hint={hint} extra={t.badge}>
+      <input type={type} className="input" value={value} placeholder={placeholder} onFocus={t.onFocus} onChange={(e) => onChange(e.target.value)} />
     </Field>
   );
 }
@@ -69,15 +77,18 @@ export function TextArea({
   value,
   onChange,
   rows = 3,
+  tf,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   rows?: number;
+  tf?: string;
 }) {
+  const t = useFieldTypo(tf);
   return (
-    <Field label={label}>
-      <textarea className="input" rows={rows} value={value} onChange={(e) => onChange(e.target.value)} />
+    <Field label={label} extra={t.badge}>
+      <textarea className="input" rows={rows} value={value} onFocus={t.onFocus} onChange={(e) => onChange(e.target.value)} />
     </Field>
   );
 }

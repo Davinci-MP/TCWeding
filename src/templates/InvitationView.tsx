@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { fontFamily } from "@/lib/fonts";
+import { fieldFontsUrl, fieldTypoCss } from "@/lib/fieldTypo";
 import { initials, type InvitationData } from "@/lib/invitation";
 import { fontUrl, getTemplateDef } from "./registry";
 import { Hero } from "./heroes";
@@ -37,7 +38,11 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
     [base, data.fontHeading, data.fontBody, data.fontScript],
   );
   const rootRef = useRef<HTMLDivElement>(null);
-  useFitHeroNames(rootRef, data.nameScale || 1, mode === "thumb", [templateId, data.groom.name, data.bride.name, tpl.fonts.heading, tpl.fonts.script]);
+  // Kiểu chữ riêng từng ô: cùng một CSS cho bản xem trước và trang công khai
+  const fieldStyles = data.fieldStyles;
+  const fieldCss = useMemo(() => (fieldStyles ? fieldTypoCss(fieldStyles) : ""), [fieldStyles]);
+  const fieldFonts = useMemo(() => (fieldStyles ? fieldFontsUrl(fieldStyles) : ""), [fieldStyles]);
+  useFitHeroNames(rootRef, data.nameScale || 1, mode === "thumb", [templateId, data.groom.name, data.bride.name, tpl.fonts.heading, tpl.fonts.script, fieldCss]);
   const c = tpl.colors;
   const primary = data.primaryColor || c.primary;
   const [opened, setOpened] = useState(!isImmersive(mode));
@@ -73,6 +78,8 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
       <ModeContext.Provider value="thumb">
         <div ref={rootRef} style={style} className="tpl-root @container bg-[var(--bg)] text-[var(--text)]">
           <link rel="stylesheet" href={fontUrl(tpl)} precedence="default" />
+          {fieldFonts && <link rel="stylesheet" href={fieldFonts} precedence="default" />}
+          {fieldCss && <style>{fieldCss}</style>}
           <Hero tpl={tpl} data={data} />
         </div>
       </ModeContext.Provider>
@@ -95,6 +102,8 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
     <TplContext.Provider value={tpl}>
       <div ref={rootRef} style={style} data-text-scale={textScaled} data-gate={opened ? "open" : "closed"} className="tpl-root @container min-h-full overflow-x-clip bg-[var(--bg)] text-[var(--text)] antialiased">
         <link rel="stylesheet" href={fontUrl(tpl)} precedence="default" />
+        {fieldFonts && <link rel="stylesheet" href={fieldFonts} precedence="default" />}
+        {fieldCss && <style>{fieldCss}</style>}
 
         <GateFold
           monogram={initials(data.groom.name, data.bride.name)}

@@ -8,7 +8,7 @@ import type { TemplateDef } from "./registry";
 import { Icon } from "./icons";
 import { TplLink } from "./interactive";
 import { isImmersive, Parallax, Reveal, useMode } from "./motion";
-import { formatDate, Frame, Img, Section, SectionTitle } from "./parts";
+import { F, formatDate, Frame, Img, Section, SectionTitle } from "./parts";
 
 type P = { tpl: TemplateDef; data: InvitationData };
 
@@ -63,10 +63,10 @@ export function EditorialCouple({ tpl, data }: P) {
             <Reveal delay={150} className={`@3xl:col-span-5 ${i ? "@3xl:order-1 @3xl:text-right" : ""}`}>
               <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-[var(--primary)]">{role}</p>
               <h3 className={`tpl-heading mt-3 text-5xl leading-[0.95] @3xl:text-6xl ${tpl.headingUppercase ? "uppercase" : ""}`}>
-                {p.fullName || p.name}
+                <F f={p === data.groom ? "groom.fullName" : "bride.fullName"}>{p.fullName || p.name}</F>
               </h3>
               <div className={`mt-5 h-px w-20 bg-current/30 ${i ? "@3xl:ml-auto" : ""}`} />
-              {p.bio && <p className="mt-5 leading-relaxed text-[var(--muted)]">{p.bio}</p>}
+              {p.bio && <p className="mt-5 leading-relaxed text-[var(--muted)]"><F f={p === data.groom ? "groom.bio" : "bride.bio"}>{p.bio}</F></p>}
             </Reveal>
           </div>
         ))}
@@ -95,10 +95,10 @@ export function EditorialEvents({ tpl, data }: P) {
                 )}
               </div>
               <div>
-                <h3 className={`tpl-heading text-3xl ${tpl.headingUppercase ? "uppercase tracking-wide" : ""}`}>{ev.title}</h3>
-                {ev.venue && <p className="mt-2 font-semibold">{ev.venue}</p>}
-                {ev.address && <p className="text-sm text-[var(--muted)]">{ev.address}</p>}
-                {ev.lunarDate && <p className="mt-1 text-sm italic text-[var(--muted)]">{ev.lunarDate}</p>}
+                <h3 className={`tpl-heading text-3xl ${tpl.headingUppercase ? "uppercase tracking-wide" : ""}`}><F f={`event.${ev.id}.title`}>{ev.title}</F></h3>
+                {ev.venue && <p className="mt-2 font-semibold"><F f={`event.${ev.id}.venue`}>{ev.venue}</F></p>}
+                {ev.address && <p className="text-sm text-[var(--muted)]"><F f={`event.${ev.id}.address`}>{ev.address}</F></p>}
+                {ev.lunarDate && <p className="mt-1 text-sm italic text-[var(--muted)]"><F f={`event.${ev.id}.lunarDate`}>{ev.lunarDate}</F></p>}
               </div>
               <EventLinks ev={ev} data={data} />
             </Reveal>
@@ -119,12 +119,12 @@ export function EditorialStory({ tpl, data }: P) {
           <Reveal key={st.id} className="grid gap-6 border-t border-current/15 pt-8 @3xl:grid-cols-12 @3xl:gap-10">
             <div className="@3xl:col-span-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-[var(--primary)]">Chương {i + 1}</p>
-              <h3 className={`tpl-heading mt-3 text-4xl leading-tight ${tpl.headingUppercase ? "uppercase" : ""}`}>{st.title}</h3>
-              <p className="mt-2 text-sm uppercase tracking-[0.25em] text-[var(--muted)]">{st.date}</p>
+              <h3 className={`tpl-heading mt-3 text-4xl leading-tight ${tpl.headingUppercase ? "uppercase" : ""}`}><F f={`story.${st.id}.title`}>{st.title}</F></h3>
+              <p className="mt-2 text-sm uppercase tracking-[0.25em] text-[var(--muted)]"><F f={`story.${st.id}.date`}>{st.date}</F></p>
             </div>
             <div className="@3xl:col-span-8">
               <Img src={st.photo} alt={st.title} className="aspect-[16/9] w-full" />
-              <p className="mt-5 max-w-xl leading-loose text-[var(--muted)]">{st.content}</p>
+              <p className="mt-5 max-w-xl leading-loose text-[var(--muted)]"><F f={`story.${st.id}.content`}>{st.content}</F></p>
             </div>
           </Reveal>
         ))}
@@ -159,7 +159,7 @@ export function RomanticCouple({ tpl, data }: P) {
           <Reveal key={role} delay={i * 150}>
             <p className="text-[11px] uppercase tracking-[0.4em] text-[var(--muted)]">{role}</p>
             <h3 className="tpl-script mt-1 text-5xl text-[var(--primary)]">{p.name}</h3>
-            {p.bio && <p className="mx-auto mt-3 max-w-xs leading-relaxed text-[var(--muted)]">{p.bio}</p>}
+            {p.bio && <p className="mx-auto mt-3 max-w-xs leading-relaxed text-[var(--muted)]"><F f={p === data.groom ? "groom.bio" : "bride.bio"}>{p.bio}</F></p>}
           </Reveal>
         ))}
       </div>
@@ -183,7 +183,7 @@ export function RomanticEvents({ tpl, data }: P) {
                 <span className="absolute -top-7 left-1/2 flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-[var(--primary)] text-[var(--on-primary)] shadow-lg">
                   <Icon name="heart" size={22} />
                 </span>
-                <h3 className="tpl-script text-4xl text-[var(--primary)]">{ev.title}</h3>
+                <h3 className="tpl-script text-4xl text-[var(--primary)]"><F f={`event.${ev.id}.title`}>{ev.title}</F></h3>
                 {dt && (
                   <div className="mx-auto mt-5 inline-flex items-center gap-4 rounded-full bg-[var(--accent)]/70 px-6 py-3">
                     <span className="tpl-heading text-3xl tabular-nums">{dt.time}</span>
@@ -195,9 +195,9 @@ export function RomanticEvents({ tpl, data }: P) {
                     </span>
                   </div>
                 )}
-                {ev.lunarDate && <p className="mt-3 text-sm italic text-[var(--muted)]">{ev.lunarDate}</p>}
-                {ev.venue && <p className="tpl-heading mt-5 text-xl">{ev.venue}</p>}
-                {ev.address && <p className="mt-1 text-sm text-[var(--muted)]">{ev.address}</p>}
+                {ev.lunarDate && <p className="mt-3 text-sm italic text-[var(--muted)]"><F f={`event.${ev.id}.lunarDate`}>{ev.lunarDate}</F></p>}
+                {ev.venue && <p className="tpl-heading mt-5 text-xl"><F f={`event.${ev.id}.venue`}>{ev.venue}</F></p>}
+                {ev.address && <p className="mt-1 text-sm text-[var(--muted)]"><F f={`event.${ev.id}.address`}>{ev.address}</F></p>}
                 <div className="mt-6 flex justify-center">
                   <EventLinks ev={ev} data={data} />
                 </div>
@@ -231,9 +231,9 @@ export function RomanticStory({ tpl, data }: P) {
               <Img src={st.photo} alt={st.title} className="h-full w-full" />
             </div>
             <div className="relative mt-4 rounded-3xl bg-[var(--bg)] px-6 py-5">
-              <span className="inline-block rounded-full bg-[var(--primary)] px-4 py-1 text-xs text-[var(--on-primary)]">{st.date}</span>
-              <h3 className="tpl-script mt-3 text-4xl text-[var(--primary)]">{st.title}</h3>
-              <p className="mt-2 leading-relaxed text-[var(--muted)]">{st.content}</p>
+              <span className="inline-block rounded-full bg-[var(--primary)] px-4 py-1 text-xs text-[var(--on-primary)]"><F f={`story.${st.id}.date`}>{st.date}</F></span>
+              <h3 className="tpl-script mt-3 text-4xl text-[var(--primary)]"><F f={`story.${st.id}.title`}>{st.title}</F></h3>
+              <p className="mt-2 leading-relaxed text-[var(--muted)]"><F f={`story.${st.id}.content`}>{st.content}</F></p>
             </div>
           </Reveal>
         ))}
@@ -254,16 +254,16 @@ export function HeritageCouple({ tpl, data }: P) {
             <article className="h-full border-[3px] border-double border-[var(--primary)]/50 p-6 text-center">
               <Frame shape={tpl.frame} src={p.photo} alt={`${role} ${p.name}`} caption={p.name} className="mx-auto w-[70%] max-w-[260px]" />
               <p className="mt-8 text-[11px] uppercase tracking-[0.45em] text-[var(--primary)]">{role}</p>
-              <h3 className="tpl-heading mt-2 text-3xl uppercase tracking-[0.12em]">{p.fullName || p.name}</h3>
+              <h3 className="tpl-heading mt-2 text-3xl uppercase tracking-[0.12em]"><F f={p === data.groom ? "groom.fullName" : "bride.fullName"}>{p.fullName || p.name}</F></h3>
               {(p.father || p.mother) && (
                 <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">
-                  {son} của {[p.father, p.mother].filter(Boolean).join(" & ")}
+                  <F f={p === data.groom ? "groom.parents" : "bride.parents"}>{son} của {[p.father, p.mother].filter(Boolean).join(" & ")}</F>
                 </p>
               )}
               {p.address && (
                 <p className="mt-1 flex items-center justify-center gap-1 text-sm text-[var(--muted)]">
                   <Icon name="pin" size={14} />
-                  {p.address}
+                  <F f={p === data.groom ? "groom.address" : "bride.address"}>{p.address}</F>
                 </p>
               )}
             </article>
@@ -305,11 +305,11 @@ export function HeritageEvents({ tpl, data }: P) {
                 <span className="absolute left-[11rem] -top-3 hidden h-6 w-6 -translate-x-1/2 rounded-full bg-[var(--bg)] @2xl:block" aria-hidden />
                 <span className="absolute -bottom-3 left-[11rem] hidden h-6 w-6 -translate-x-1/2 rounded-full bg-[var(--bg)] @2xl:block" aria-hidden />
                 <div className="px-7 py-7 text-center @2xl:text-left">
-                  <p className="text-[11px] uppercase tracking-[0.45em] text-[var(--primary)]">{ev.title}</p>
+                  <p className="text-[11px] uppercase tracking-[0.45em] text-[var(--primary)]"><F f={`event.${ev.id}.title`}>{ev.title}</F></p>
                   {dt && <p className="tpl-heading mt-2 text-3xl">Vào lúc {dt.time}</p>}
-                  {ev.lunarDate && <p className="mt-1 text-sm italic text-[var(--muted)]">{ev.lunarDate}</p>}
-                  {ev.venue && <p className="mt-4 font-semibold">{ev.venue}</p>}
-                  {ev.address && <p className="text-sm text-[var(--muted)]">{ev.address}</p>}
+                  {ev.lunarDate && <p className="mt-1 text-sm italic text-[var(--muted)]"><F f={`event.${ev.id}.lunarDate`}>{ev.lunarDate}</F></p>}
+                  {ev.venue && <p className="mt-4 font-semibold"><F f={`event.${ev.id}.venue`}>{ev.venue}</F></p>}
+                  {ev.address && <p className="text-sm text-[var(--muted)]"><F f={`event.${ev.id}.address`}>{ev.address}</F></p>}
                   <div className="mt-5 flex justify-center @2xl:justify-start">
                     <EventLinks ev={ev} data={data} />
                   </div>
@@ -334,9 +334,9 @@ export function HeritageStory({ tpl, data }: P) {
             <div className="border-[3px] border-double border-[var(--primary)]/50 p-2">
               <Img src={st.photo} alt={st.title} className="aspect-[4/5] w-full" />
             </div>
-            <p className="mt-5 text-[11px] uppercase tracking-[0.4em] text-[var(--primary)]">{st.date}</p>
-            <h3 className="tpl-heading mt-2 text-2xl uppercase tracking-[0.1em]">{st.title}</h3>
-            <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]">{st.content}</p>
+            <p className="mt-5 text-[11px] uppercase tracking-[0.4em] text-[var(--primary)]"><F f={`story.${st.id}.date`}>{st.date}</F></p>
+            <h3 className="tpl-heading mt-2 text-2xl uppercase tracking-[0.1em]"><F f={`story.${st.id}.title`}>{st.title}</F></h3>
+            <p className="mt-3 text-sm leading-relaxed text-[var(--muted)]"><F f={`story.${st.id}.content`}>{st.content}</F></p>
           </Reveal>
         ))}
       </div>

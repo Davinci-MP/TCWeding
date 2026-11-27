@@ -6,7 +6,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { initials, type InvitationData } from "@/lib/invitation";
 import type { TemplateDef } from "./registry";
 import { Icon } from "./icons";
-import { formatDate, Img } from "./parts";
+import { F, formatDate, Img } from "./parts";
 import { Barcode, Cue, Guest, KenBurns, names } from "./heroes-new";
 
 type Props = { tpl: TemplateDef; data: InvitationData; guestName?: string };
@@ -55,13 +55,13 @@ export function MarbleHero({ data, guestName }: Props) {
         <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="aspect-[3/4] rounded-[50%] shadow-[0_30px_60px_-30px_rgba(0,0,0,.45)]" />
       </div>
       <p className="tpl-rise mt-12 text-[10px] uppercase tracking-[0.6em] text-[var(--primary)]" style={d(600)}>
-        {data.headline}
+        <F f="headline">{data.headline}</F>
       </p>
       <h1 className="tpl-heading tpl-rise mt-4 text-4xl uppercase tracking-[0.18em] @3xl:text-6xl" style={d(750)}>
-        {g} <span className="tpl-script normal-case tracking-normal text-[var(--primary)]">và</span> {b}
+        <F f="groom.name">{g}</F> <span className="tpl-script normal-case tracking-normal text-[var(--primary)]">và</span> <F f="bride.name">{b}</F>
       </h1>
       {date && (
-        <p className="tpl-rise mt-5 text-sm tracking-[0.4em]" style={d(900)}>
+        <p data-tf="weddingDate" className="tpl-rise mt-5 text-sm tracking-[0.4em]" style={d(900)}>
           {date.short}
         </p>
       )}
@@ -89,15 +89,15 @@ export function VelvetHero({ data, guestName }: Props) {
       <div className="absolute inset-0 bg-gradient-to-t from-[#14080c] via-[#14080c]/40 to-transparent" aria-hidden />
       <div className="relative px-6 pb-16 pt-40">
         <p className="tpl-rise text-[10px] uppercase tracking-[0.6em] text-[var(--primary)]" style={d(1800)}>
-          {data.headline}
+          <F f="headline">{data.headline}</F>
         </p>
         <h1 className="tpl-heading tpl-rise mt-5 text-5xl leading-[1] @3xl:text-8xl" style={d(2000)}>
-          <span className="block">{g}</span>
+          <span className="block"><F f="groom.name">{g}</F></span>
           <span className="tpl-script block text-4xl text-[var(--primary)] @3xl:text-6xl">&</span>
-          <span className="block">{b}</span>
+          <span className="block"><F f="bride.name">{b}</F></span>
         </h1>
         {date && (
-          <p className="tpl-rise mt-6 text-sm uppercase tracking-[0.45em]" style={d(2200)}>
+          <p data-tf="weddingDate" className="tpl-rise mt-6 text-sm uppercase tracking-[0.45em]" style={d(2200)}>
             {date.weekday} · {date.day}.{date.month}.{date.year}
           </p>
         )}
@@ -168,12 +168,12 @@ export function CrestHero({ data, guestName }: Props) {
           </div>
         </div>
         <h1 className="tpl-heading tpl-rise mt-8 text-3xl uppercase tracking-[0.3em] @3xl:text-5xl" style={d(400)}>
-          {g}
+          <F f="groom.name">{g}</F>
           <span className="my-3 block text-xs tracking-[0.6em] text-[#cdb37a]">cùng</span>
-          {b}
+          <F f="bride.name">{b}</F>
         </h1>
         {date && (
-          <p className="tpl-rise mt-8 text-sm tracking-[0.5em] text-[#cdb37a]" style={d(700)}>
+          <p data-tf="weddingDate" className="tpl-rise mt-8 text-sm tracking-[0.5em] text-[#cdb37a]" style={d(700)}>
             {roman(Number(date.day))} · {roman(Number(date.month))} · {roman(Number(date.year))}
           </p>
         )}
@@ -193,7 +193,7 @@ export function GeoHero({ data, guestName }: Props) {
   const hex = "50,2 95,26 95,74 50,98 5,74 5,26";
   return (
     <header className={`relative flex ${H} flex-col items-center justify-center overflow-hidden bg-[var(--hero-bg)] px-6 py-16 text-center text-[var(--hero-text)]`}>
-      <p className="tpl-script tpl-rise text-4xl text-[var(--primary)]">{data.headline}</p>
+      <p className="tpl-script tpl-rise text-4xl text-[var(--primary)]"><F f="headline">{data.headline}</F></p>
       <div className="relative mt-6 w-[72%] max-w-[360px]">
         <svg viewBox="-4 -4 108 108" className="absolute -inset-[9%] h-[118%] w-[118%] text-[var(--primary)]" fill="none" aria-hidden>
           <polygon points={hex} stroke="currentColor" strokeWidth=".5" className="tpl-draw" style={{ ["--len" as string]: 300 }} />
@@ -205,12 +205,12 @@ export function GeoHero({ data, guestName }: Props) {
         </div>
       </div>
       <h1 className="tpl-heading tpl-rise mt-12 text-5xl leading-tight @3xl:text-7xl" style={d(800)}>
-        <span className="block">{g}</span>
+        <span className="block"><F f="groom.name">{g}</F></span>
         <span className="mx-auto my-3 block h-2.5 w-2.5 rotate-45 border border-[var(--primary)]" aria-hidden />
-        <span className="block">{b}</span>
+        <span className="block"><F f="bride.name">{b}</F></span>
       </h1>
       {date && (
-        <p className="tpl-rise mt-4 text-sm uppercase tracking-[0.4em] text-[var(--muted)]" style={d(1000)}>
+        <p data-tf="weddingDate" className="tpl-rise mt-4 text-sm uppercase tracking-[0.4em] text-[var(--muted)]" style={d(1000)}>
           {date.weekday} · {date.short}
         </p>
       )}
@@ -231,8 +231,8 @@ export function TriptychHero({ data, guestName }: Props) {
     return (
     <header className={`relative flex ${H} flex-col justify-between overflow-hidden bg-[var(--hero-bg)] px-5 pb-10 pt-8 text-[var(--hero-text)] @3xl:px-12`}>
       <div className="tpl-rise flex items-center justify-between text-xs font-medium">
-        <span>{data.headline}</span>
-        <span className="tabular-nums">{date?.short}</span>
+        <span><F f="headline">{data.headline}</F></span>
+        <span data-tf="weddingDate" className="tabular-nums">{date?.short}</span>
       </div>
       <div className="my-auto grid grid-cols-3 gap-2 py-8 [--g:0.5rem] @3xl:gap-4 @3xl:[--g:1rem]">
         {[0, 1, 2].map((i) => (
@@ -254,8 +254,8 @@ export function TriptychHero({ data, guestName }: Props) {
       </div>
       <div>
         <h1 className="tpl-heading tpl-rise text-[15cqw] font-extrabold leading-[0.85] tracking-tight @3xl:text-[9rem]" style={d(800)}>
-          {g}
-          <span className="tpl-script block text-right text-[0.5em] font-normal italic text-[var(--primary)]">& {b}</span>
+          <F f="groom.name">{g}</F>
+          <span className="tpl-script block text-right text-[0.5em] font-normal italic text-[var(--primary)]">& <F f="bride.name">{b}</F></span>
         </h1>
         <div className="mt-6 flex items-end justify-between gap-4">
           <Guest guestName={guestName} className="!mt-0" />
@@ -282,15 +282,15 @@ export function BentoHero({ data, guestName }: Props) {
           <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="h-full min-h-[44svh] w-full" />
         </div>
         <div className={`${t} col-span-2 flex flex-col justify-between bg-[var(--primary)] text-[var(--on-primary)]`} style={d(150)}>
-          <p className="text-xs font-semibold">{data.headline}</p>
+          <p className="text-xs font-semibold"><F f="headline">{data.headline}</F></p>
           <h1 className="tpl-heading mt-6 text-5xl font-bold leading-[0.9] tracking-tight @3xl:text-6xl">
-            {g}
-            <br />& {b}
+            <F f="groom.name">{g}</F>
+            <br />& <F f="bride.name">{b}</F>
           </h1>
         </div>
         <div className={`${t} bg-[var(--surface)]`} style={d(300)}>
           <p className="text-xs text-[var(--muted)]">{date?.weekday ?? "Ngày cưới"}</p>
-          <p className="tpl-heading mt-2 text-4xl font-bold tabular-nums">
+          <p data-tf="weddingDate" className="tpl-heading mt-2 text-4xl font-bold tabular-nums">
             {date ? `${date.day}.${date.month}` : "--.--"}
           </p>
           <p className="text-sm text-[var(--muted)]">{date?.year}</p>
@@ -332,18 +332,18 @@ export function TypeHero({ data, guestName }: Props) {
   return (
     <header className={`relative flex ${H} flex-col justify-between overflow-hidden bg-[var(--hero-bg)] px-5 py-8 text-[var(--hero-text)] @3xl:px-12`}>
       <div className="tpl-rise flex justify-between text-[11px] font-semibold uppercase tracking-[0.25em]">
-        <span>{data.headline}</span>
-        <span>{date ? `${date.day}/${date.month}/${date.year}` : ""}</span>
+        <span><F f="headline">{data.headline}</F></span>
+        <span data-tf="weddingDate">{date ? `${date.day}/${date.month}/${date.year}` : ""}</span>
       </div>
       <h1 className="tpl-heading my-auto break-words py-10 font-black uppercase leading-[1.08] tracking-tighter">
         <span className="tpl-rise block text-[23cqw] @3xl:text-[15rem]" style={{ ...fill, ...d(150) }}>
-          {g}
+          <F f="groom.name">{g}</F>
         </span>
         <span className="tpl-rise block text-right text-[9cqw] font-normal normal-case tracking-normal @3xl:text-7xl" style={d(350)}>
           <span className="tpl-script">và</span>
         </span>
         <span className="tpl-rise block text-right text-[23cqw] @3xl:text-[15rem]" style={{ ...fill, ...d(500) }}>
-          {b}
+          <F f="bride.name">{b}</F>
         </span>
       </h1>
       <div className="flex items-end justify-between gap-4">
@@ -372,7 +372,7 @@ export function BoardingHero({ data, guestName }: Props) {
   const ev = data.events.find((e) => e.venue);
   return (
     <header className={`relative flex ${H} flex-col items-center justify-center overflow-hidden bg-[var(--hero-bg)] px-4 py-12 text-[var(--hero-text)]`}>
-      <p className="tpl-rise text-xs font-semibold uppercase tracking-[0.35em] text-[var(--primary)]">{data.headline}</p>
+      <p className="tpl-rise text-xs font-semibold uppercase tracking-[0.35em] text-[var(--primary)]"><F f="headline">{data.headline}</F></p>
       <div className="tpl-rise mt-6 w-full max-w-md overflow-hidden rounded-[1.75rem] bg-[var(--surface)] shadow-[0_40px_80px_-40px_rgba(0,0,0,.45)]" style={d(200)}>
         <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="aspect-[16/10] w-full" />
         <div className="p-6">
@@ -383,7 +383,7 @@ export function BoardingHero({ data, guestName }: Props) {
           <div className="mt-4 flex items-center justify-between gap-3">
             <div>
               <p className="tpl-heading text-5xl font-bold leading-none">{code(g)}</p>
-              <p className="mt-1 text-sm">{g}</p>
+              <p className="mt-1 text-sm"><F f="groom.name">{g}</F></p>
             </div>
             <div className="flex flex-1 items-center gap-2 text-[var(--primary)]" aria-hidden>
               <span className="h-px flex-1 border-t-2 border-dashed border-current/50" />
@@ -394,7 +394,7 @@ export function BoardingHero({ data, guestName }: Props) {
             </div>
             <div className="text-right">
               <p className="tpl-heading text-5xl font-bold leading-none">{code(b)}</p>
-              <p className="mt-1 text-sm">{b}</p>
+              <p className="mt-1 text-sm"><F f="bride.name">{b}</F></p>
             </div>
           </div>
           <dl className="mt-6 grid grid-cols-3 gap-3 text-sm">
@@ -455,7 +455,7 @@ export function ScrapbookHero({ data, guestName }: Props) {
           "radial-gradient(circle at 20% 10%, rgba(255,255,255,.35), transparent 40%), repeating-radial-gradient(circle at 30% 40%, rgba(90,60,30,.05) 0 1px, transparent 1px 4px), var(--hero-bg)",
       }}
     >
-      <p className="tpl-script tpl-rise text-3xl text-[var(--primary)]">{data.headline}!</p>
+      <p className="tpl-script tpl-rise text-3xl text-[var(--primary)]"><F f="headline">{data.headline}</F>!</p>
       <div className="relative mx-auto mt-8 h-[min(120cqw,560px)] w-full max-w-[460px]">
         <div className="tpl-rise absolute left-[8%] top-0 w-[70%] -rotate-3 bg-white p-3 pb-10 shadow-[0_20px_40px_-20px_rgba(0,0,0,.45)]" style={d(150)}>
           <TapeStrip className="-top-3 left-1/2 -translate-x-1/2 rotate-[-3deg]" />
@@ -477,10 +477,10 @@ export function ScrapbookHero({ data, guestName }: Props) {
         </svg>
       </div>
       <h1 className="tpl-heading tpl-rise relative mt-8 text-5xl leading-tight @3xl:text-6xl" style={d(1000)}>
-        {g} <span className="text-[var(--primary)]">♥</span> {b}
+        <F f="groom.name">{g}</F> <span className="text-[var(--primary)]">♥</span> <F f="bride.name">{b}</F>
       </h1>
       {date && (
-        <p className="tpl-rise mt-2 text-xl" style={d(1100)}>
+        <p data-tf="weddingDate" className="tpl-rise mt-2 text-xl" style={d(1100)}>
           {date.weekday}, {date.day}/{date.month}/{date.year} — nhớ đến nha!
         </p>
       )}
@@ -509,7 +509,7 @@ export function EnvelopeHero({ data, guestName }: Props) {
           {/* lá thư */}
           <div className="tpl-letter absolute inset-x-[6%] bottom-[6%] z-10 h-[150%] rounded-sm bg-[var(--surface)] p-4 shadow-lg">
             <Img src={data.coverPhoto} alt="Ảnh cưới của cô dâu và chú rể" eager position={data.photoPos.cover} className="aspect-[4/3] w-full" />
-            <p className="mt-3 text-[10px] uppercase tracking-[0.45em] text-[var(--muted)]">{data.headline}</p>
+            <p className="mt-3 text-[10px] uppercase tracking-[0.45em] text-[var(--muted)]"><F f="headline">{data.headline}</F></p>
           </div>
           {/* túi phong bì */}
           <div className="absolute inset-0 z-20 rounded-md bg-[var(--primary)]" style={{ clipPath: "polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%)" }} aria-hidden>
@@ -525,10 +525,10 @@ export function EnvelopeHero({ data, guestName }: Props) {
         </div>
       </div>
       <h1 className="tpl-script tpl-rise relative mt-10 text-6xl leading-tight text-[var(--primary)]" style={d(2400)}>
-        {g} & {b}
+        <F f="groom.name">{g}</F> & <F f="bride.name">{b}</F>
       </h1>
       {date && (
-        <p className="tpl-heading tpl-rise relative mt-3 text-xl italic" style={d(2600)}>
+        <p data-tf="weddingDate" className="tpl-heading tpl-rise relative mt-3 text-xl italic" style={d(2600)}>
           {date.weekday}, ngày {date.day} tháng {date.month} năm {date.year}
         </p>
       )}
@@ -573,7 +573,7 @@ export function HerbariumHero({ data, guestName }: Props) {
           <span className={`${corner} -bottom-2 -right-2`} style={{ clipPath: "polygon(100% 0,100% 100%,0 100%)" }} aria-hidden />
         </div>
         <h1 className="tpl-heading tpl-rise mt-10 text-center text-5xl italic leading-tight" style={d(500)}>
-          {g} <span className="tpl-script not-italic text-[var(--primary)]">&</span> {b}
+          <F f="groom.name">{g}</F> <span className="tpl-script not-italic text-[var(--primary)]">&</span> <F f="bride.name">{b}</F>
         </h1>
         <dl className="tpl-rise mx-auto mt-8 max-w-xs border border-[var(--hero-text)]/40 bg-[var(--surface)]/70 text-sm" style={d(800)}>
           {[
@@ -604,7 +604,7 @@ export function VinylHero({ data, guestName }: Props) {
   return (
     <header className={`relative ${H} overflow-hidden bg-[var(--hero-bg)] px-5 pb-12 pt-12 text-[var(--hero-text)]`}>
       <div className="mx-auto max-w-lg">
-        <p className="tpl-rise text-[11px] font-semibold uppercase tracking-[0.4em] text-[var(--primary)]">{data.headline}</p>
+        <p className="tpl-rise text-[11px] font-semibold uppercase tracking-[0.4em] text-[var(--primary)]"><F f="headline">{data.headline}</F></p>
         <div className="relative mt-6 w-[62%]">
           {/* đĩa */}
           <div className="tpl-vinyl-out absolute inset-y-0 left-[50%] aspect-square">
@@ -630,12 +630,12 @@ export function VinylHero({ data, guestName }: Props) {
           </div>
         </div>
         <h1 className="tpl-heading tpl-rise mt-10 text-6xl leading-[0.9] @3xl:text-7xl" style={d(600)}>
-          {g}
+          <F f="groom.name">{g}</F>
           <br />
-          <span className="text-[var(--primary)]">&</span> {b}
+          <span className="text-[var(--primary)]">&</span> <F f="bride.name">{b}</F>
         </h1>
         {date && (
-          <p className="tpl-rise mt-3 text-sm uppercase tracking-[0.3em] opacity-80" style={d(750)}>
+          <p data-tf="weddingDate" className="tpl-rise mt-3 text-sm uppercase tracking-[0.3em] opacity-80" style={d(750)}>
             Phát hành {date.day}.{date.month}.{date.year}
           </p>
         )}
@@ -673,7 +673,7 @@ export function InkHero({ data, guestName }: Props) {
         <path d="M0 190 80 165 160 185 240 160 320 182 400 170V200H0z" fill="#1d1d1b" opacity=".16" />
       </svg>
       {date && (
-        <p className="tpl-rise absolute right-5 top-10 text-[10px] uppercase tracking-[0.5em] text-[var(--muted)] @3xl:right-12" style={{ writingMode: "vertical-rl" }}>
+        <p data-tf="weddingDate" className="tpl-rise absolute right-5 top-10 text-[10px] uppercase tracking-[0.5em] text-[var(--muted)] @3xl:right-12" style={{ writingMode: "vertical-rl" }}>
           {date.weekday} · {date.day}.{date.month}.{date.year}
         </p>
       )}
@@ -688,12 +688,12 @@ export function InkHero({ data, guestName }: Props) {
         </span>
       </div>
       <h1 className="tpl-heading tpl-rise relative mt-10 text-5xl font-light @3xl:text-6xl" style={d(600)}>
-        <span className="block">{g}</span>
+        <span className="block"><F f="groom.name">{g}</F></span>
         <span className="mx-auto my-3 block h-8 w-px bg-[var(--primary)]" aria-hidden />
-        <span className="block">{b}</span>
+        <span className="block"><F f="bride.name">{b}</F></span>
       </h1>
       <p className="tpl-script tpl-rise relative mt-3 text-2xl text-[var(--muted)]" style={d(800)}>
-        {data.headline}
+        <F f="headline">{data.headline}</F>
       </p>
       <Guest guestName={guestName} className="relative" />
       <div className="relative mt-10">
@@ -725,13 +725,13 @@ export function MoonHero({ data, guestName }: Props) {
         <path d="M30 28c30 0 40-8 70-8s40 8 70 8" stroke="currentColor" opacity=".6" />
       </svg>
       <p className="tpl-rise mt-6 text-[10px] uppercase tracking-[0.6em] opacity-75" style={d(1400)}>
-        {data.headline}
+        <F f="headline">{data.headline}</F>
       </p>
       <h1 className="tpl-heading tpl-rise mt-3 text-5xl @3xl:text-7xl" style={d(1600)}>
-        {g} <span className="tpl-script text-[var(--accent)]">&</span> {b}
+        <F f="groom.name">{g}</F> <span className="tpl-script text-[var(--accent)]">&</span> <F f="bride.name">{b}</F>
       </h1>
       {(lunar || date) && (
-        <p className="tpl-rise mt-4 text-sm tracking-[0.25em] opacity-85" style={d(1800)}>
+        <p data-tf="weddingDate" className="tpl-rise mt-4 text-sm tracking-[0.25em] opacity-85" style={d(1800)}>
           {lunar || `${date!.weekday} · ${date!.short}`}
         </p>
       )}
@@ -762,15 +762,15 @@ export function OffsetHero({ data, guestName }: Props) {
         className="tpl-heading tpl-rise absolute bottom-[8%] left-4 text-[13cqw] font-light leading-[0.9] @3xl:left-12 @3xl:text-8xl"
         style={{ writingMode: "vertical-rl", transform: "rotate(180deg)", ...d(300) }}
       >
-        {g} <span className="tpl-script text-[var(--primary)]">&</span> {b}
+        <F f="groom.name">{g}</F> <span className="tpl-script text-[var(--primary)]">&</span> <F f="bride.name">{b}</F>
       </h1>
       <div className="absolute bottom-[7%] right-5 max-w-[56%] text-right @3xl:right-12">
         <span className="tpl-rise ml-auto block h-16 w-px bg-current/40" style={d(600)} aria-hidden />
         <p className="tpl-rise mt-4 text-[10px] uppercase tracking-[0.5em] text-[var(--muted)]" style={d(700)}>
-          {data.headline}
+          <F f="headline">{data.headline}</F>
         </p>
         {date && (
-          <p className="tpl-heading tpl-rise mt-2 text-3xl font-light tabular-nums" style={d(850)}>
+          <p data-tf="weddingDate" className="tpl-heading tpl-rise mt-2 text-3xl font-light tabular-nums" style={d(850)}>
             {date.day}.{date.month}.{date.year}
           </p>
         )}

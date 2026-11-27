@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentUser, getOwnedInvitation } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { cleanFieldStyles } from "@/lib/fieldTypo";
 import { SLUG_RE } from "@/lib/invitation";
 import { getTemplateWithConfig } from "@/lib/templates";
 
@@ -22,6 +23,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   const { templateId, slug, status, data } = parsed.data;
 
+  // Kiểu chữ từng ô: chỉ nhận font trong danh sách cho phép và cỡ chữ trong giới hạn
+  if ("fieldStyles" in data) data.fieldStyles = cleanFieldStyles(data.fieldStyles);
   const json = JSON.stringify(data);
   if (json.length > 200_000) return NextResponse.json({ error: "Dữ liệu thiệp quá lớn" }, { status: 413 });
 

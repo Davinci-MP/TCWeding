@@ -4,7 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import type { InvitationData } from "@/lib/invitation";
 import type { TemplateDef } from "./registry";
 import { Icon } from "./icons";
-import { formatDate, Img, LotusShape, OrnamentMark } from "./parts";
+import { F, formatDate, Img, LotusShape, OrnamentMark } from "./parts";
 import { BlossomHero, CinemaHero, MagazineHero, WatercolorHero } from "./heroes-new";
 import { BentoHero, BoardingHero, CrestHero, EnvelopeHero, GeoHero, HerbariumHero, InkHero, MarbleHero, MoonHero, OffsetHero, ScrapbookHero, TriptychHero, TypeHero, VelvetHero, VinylHero } from "./heroes-more";
 
@@ -89,26 +89,26 @@ function ArchWindowHero({ tpl, data, guestName }: Props) {
   const [g, b] = names(data);
   return (
     <header className="relative overflow-hidden bg-[var(--hero-bg)] px-5 pb-16 pt-12 text-center text-[var(--hero-text)]">
-      <p className="tpl-rise text-[11px] uppercase tracking-[0.5em] text-[var(--primary)]">{data.headline}</p>
+      <p className="tpl-rise text-[11px] uppercase tracking-[0.5em] text-[var(--primary)]"><F f="headline">{data.headline}</F></p>
       <div className="relative mx-auto mt-8 w-[78%] max-w-[420px]">
         <div className="absolute -inset-3 rounded-t-full border border-[var(--primary)]/50" aria-hidden />
         <KenBurns src={data.coverPhoto} className="aspect-[3/4] rounded-t-full shadow-[0_40px_80px_-40px_rgba(60,40,20,.5)]" position={data.photoPos.cover} />
       </div>
       <h1 className="relative -mt-14 @3xl:-mt-20">
         <span className="tpl-heading tpl-rise block text-6xl italic leading-none @3xl:text-8xl" style={d(300)}>
-          {g}
+          <F f="groom.name">{g}</F>
         </span>
         <span className="tpl-script tpl-rise block text-5xl text-[var(--primary)] @3xl:text-6xl" style={d(550)}>
           &
         </span>
         <span className="tpl-heading tpl-rise block text-6xl italic leading-none @3xl:text-8xl" style={d(800)}>
-          {b}
+          <F f="bride.name">{b}</F>
         </span>
       </h1>
       <div className="tpl-rise mt-8" style={d(1000)}>
         <OrnamentMark type={tpl.ornament} />
         {date && (
-          <p className="tpl-heading mt-4 text-xl tracking-[0.25em]">
+          <p data-tf="weddingDate" className="tpl-heading mt-4 text-xl tracking-[0.25em]">
             {date.weekday.toUpperCase()} · {date.short}
           </p>
         )}
@@ -141,12 +141,12 @@ function SongHyHero({ data, guestName }: Props) {
           Lễ Thành Hôn
         </p>
         <h1 className="tpl-heading tpl-rise mt-4 text-5xl leading-tight text-[var(--accent)] @3xl:text-7xl" style={d(400)}>
-          {g}
+          <F f="groom.name">{g}</F>
           <span className="tpl-script mx-3 align-middle text-4xl">&</span>
-          {b}
+          <F f="bride.name">{b}</F>
         </h1>
         {date && (
-          <div className="tpl-rise mx-auto mt-8 grid max-w-xs grid-cols-3 items-center border-y border-[var(--accent)]/60 py-3" style={d(700)}>
+          <div data-tf="weddingDate" className="tpl-rise mx-auto mt-8 grid max-w-xs grid-cols-3 items-center border-y border-[var(--accent)]/60 py-3" style={d(700)}>
             <span className="text-xs uppercase tracking-[0.25em]">{date.weekday}</span>
             <span className="tpl-heading border-x border-[var(--accent)]/60 text-5xl text-[var(--accent)]">{date.day}</span>
             <span className="text-xs tracking-[0.25em]">
@@ -171,23 +171,23 @@ function EditorialHero({ data, guestName }: Props) {
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" aria-hidden />
       <div className="relative flex min-h-[var(--hero-h,100svh)] flex-col justify-between p-6 @3xl:p-12">
         <div className="tpl-rise flex items-center justify-between border-b border-white/30 pb-4 text-[11px] uppercase tracking-[0.4em]">
-          <span>{data.headline}</span>
+          <span><F f="headline">{data.headline}</F></span>
           <span>{date?.short ?? ""}</span>
         </div>
         <div>
           <h1 className="tpl-heading text-[15cqw] font-semibold uppercase leading-[0.85] tracking-tight @3xl:text-[7.5rem]">
             <span className="tpl-rise block" style={d(200)}>
-              {g}
+              <F f="groom.name">{g}</F>
             </span>
             <span className="tpl-script tpl-rise block py-2 text-[0.35em] font-normal normal-case italic tracking-normal" style={d(450)}>
               and
             </span>
             <span className="tpl-rise block" style={d(650)}>
-              {b}
+              <F f="bride.name">{b}</F>
             </span>
           </h1>
           <div className="tpl-rise mt-8 flex flex-wrap items-end justify-between gap-4 text-sm" style={d(900)}>
-            <p className="max-w-xs opacity-80">{date ? `${date.weekday}, ngày ${date.day} tháng ${date.month} năm ${date.year}` : ""}</p>
+            <p data-tf="weddingDate" className="max-w-xs opacity-80">{date ? `${date.weekday}, ngày ${date.day} tháng ${date.month} năm ${date.year}` : ""}</p>
             {guestName && (
               <p className="text-right">
                 <span className="block text-[10px] uppercase tracking-[0.4em] opacity-60">Kính mời</span>
@@ -224,16 +224,16 @@ function GardenHero({ data, guestName }: Props) {
     <header className="relative overflow-hidden bg-[var(--hero-bg)] px-5 pb-16 pt-14 text-center text-[var(--hero-text)]">
       <Branch className="tpl-rise absolute -left-6 -top-6 h-48 w-48 rotate-90 text-[var(--primary)]" />
       <Branch className="tpl-rise absolute -bottom-6 -right-6 h-48 w-48 -rotate-90 text-[var(--primary)]" />
-      <p className="tpl-heading tpl-rise text-xl italic text-[var(--muted)]">{data.headline}</p>
+      <p className="tpl-heading tpl-rise text-xl italic text-[var(--muted)]"><F f="headline">{data.headline}</F></p>
       <div className="relative mx-auto mt-8 h-[26rem] w-[17rem] @3xl:h-[30rem] @3xl:w-[20rem]">
         <div className="absolute -inset-3 rounded-[50%] border border-[var(--primary)]/40" aria-hidden />
         <KenBurns src={data.coverPhoto} className="h-full w-full rounded-[50%] shadow-2xl" position={data.photoPos.cover} />
       </div>
       <h1 className="tpl-script tpl-rise mt-8 text-6xl leading-tight text-[var(--primary)] @3xl:text-7xl" style={d(400)}>
-        {g} <span className="text-4xl">&</span> {b}
+        <F f="groom.name">{g}</F> <span className="text-4xl">&</span> <F f="bride.name">{b}</F>
       </h1>
       {date && (
-        <p className="tpl-heading tpl-rise mt-4 text-xl" style={d(700)}>
+        <p data-tf="weddingDate" className="tpl-heading tpl-rise mt-4 text-xl" style={d(700)}>
           {date.weekday}, {date.day} tháng {date.month} năm {date.year}
         </p>
       )}
@@ -253,14 +253,14 @@ function StarryHero({ data, guestName }: Props) {
       <div className="tpl-stars absolute inset-0 bg-gradient-to-b from-[var(--hero-bg)]/70 via-[var(--hero-bg)]/40 to-[var(--hero-bg)]" aria-hidden />
       <div className="absolute right-10 top-12 h-14 w-14 rounded-full shadow-[inset_-12px_4px_0_0_var(--primary)]" aria-hidden />
       <div className="relative">
-        <p className="tpl-rise text-[11px] uppercase tracking-[0.5em] text-[var(--primary)]">{data.headline}</p>
+        <p className="tpl-rise text-[11px] uppercase tracking-[0.5em] text-[var(--primary)]"><F f="headline">{data.headline}</F></p>
         <h1 className="tpl-script tpl-rise mt-8 text-7xl leading-[1.05] text-[var(--primary)] drop-shadow-[0_2px_20px_rgba(217,181,111,.35)] @3xl:text-8xl" style={d(300)}>
-          {g}
+          <F f="groom.name">{g}</F>
           <br />
-          <span className="text-5xl">&</span> {b}
+          <span className="text-5xl">&</span> <F f="bride.name">{b}</F>
         </h1>
         {date && (
-          <p className="tpl-heading tpl-rise mt-8 text-2xl tracking-[0.35em]" style={d(700)}>
+          <p data-tf="weddingDate" className="tpl-heading tpl-rise mt-8 text-2xl tracking-[0.35em]" style={d(700)}>
             {date.short}
             <span className="mt-2 block text-xs tracking-[0.4em] opacity-70">
               {date.weekday.toUpperCase()} · {date.time}
@@ -282,21 +282,21 @@ function SplitHero({ tpl, data, guestName }: Props) {
     <header className="grid bg-[var(--hero-bg)] text-[var(--hero-text)] @3xl:min-h-[var(--hero-h,100svh)] @3xl:grid-cols-2">
       <KenBurns src={data.coverPhoto} className="h-[68svh] rounded-b-[3rem] @3xl:h-auto @3xl:rounded-none" position={data.photoPos.cover} />
       <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
-        <p className="tpl-rise text-[11px] uppercase tracking-[0.45em] text-[var(--muted)]">{data.headline}</p>
+        <p className="tpl-rise text-[11px] uppercase tracking-[0.45em] text-[var(--muted)]"><F f="headline">{data.headline}</F></p>
         <h1 className="mt-6">
           <span className="tpl-heading tpl-rise block text-5xl @3xl:text-7xl" style={d(250)}>
-            {g}
+            <F f="groom.name">{g}</F>
           </span>
           <span className="tpl-script tpl-rise block text-5xl text-[var(--primary)]" style={d(450)}>
             và
           </span>
           <span className="tpl-heading tpl-rise block text-5xl @3xl:text-7xl" style={d(650)}>
-            {b}
+            <F f="bride.name">{b}</F>
           </span>
         </h1>
         <OrnamentMark type={tpl.ornament} className="tpl-rise mt-6" />
         {date && (
-          <p className="tpl-rise mt-4 rounded-full bg-[var(--surface)] px-6 py-3 shadow-sm" style={d(850)}>
+          <p data-tf="weddingDate" className="tpl-rise mt-4 rounded-full bg-[var(--surface)] px-6 py-3 shadow-sm" style={d(850)}>
             <span className="tpl-heading text-lg">
               {date.weekday}, {date.short}
             </span>
@@ -325,7 +325,7 @@ function PostcardHero({ data, guestName }: Props) {
             <Img src={data.coverPhoto} alt="" className="h-20 w-16 sepia-[.4]" position={data.photoPos.cover} />
           </div>
           {date && (
-            <div className="absolute right-16 top-20 flex h-20 w-20 -rotate-12 flex-col items-center justify-center rounded-full border-2 border-[var(--primary)]/70 text-[var(--primary)]">
+            <div data-tf="weddingDate" className="absolute right-16 top-20 flex h-20 w-20 -rotate-12 flex-col items-center justify-center rounded-full border-2 border-[var(--primary)]/70 text-[var(--primary)]">
               <span className="text-[9px] uppercase tracking-widest">Wedding</span>
               <span className="tpl-heading text-sm font-semibold">
                 {date.day}.{date.month}
@@ -333,16 +333,16 @@ function PostcardHero({ data, guestName }: Props) {
               <span className="text-[10px]">{date.year}</span>
             </div>
           )}
-          <p className="tpl-heading pr-28 text-xs uppercase tracking-[0.35em] text-[var(--muted)]">Post card · {data.headline}</p>
+          <p className="tpl-heading pr-28 text-xs uppercase tracking-[0.35em] text-[var(--muted)]">Post card · <F f="headline">{data.headline}</F></p>
           <div className="mt-10 grid gap-8 @3xl:grid-cols-[1.1fr_1px_1fr]">
             <KenBurns src={data.coverPhoto} className="aspect-[4/5] sepia-[.2]" position={data.photoPos.cover} />
             <div className="hidden bg-[var(--muted)]/30 @3xl:block" />
             <div className="flex flex-col justify-center">
               <h1 className="tpl-script tpl-rise text-6xl leading-tight text-[var(--primary)]" style={d(400)}>
-                {g} <span className="text-4xl">&</span> {b}
+                <F f="groom.name">{g}</F> <span className="text-4xl">&</span> <F f="bride.name">{b}</F>
               </h1>
               {date && (
-                <p className="tpl-heading tpl-rise mt-4 text-lg" style={d(600)}>
+                <p data-tf="weddingDate" className="tpl-heading tpl-rise mt-4 text-lg" style={d(600)}>
                   {date.weekday}, {date.short}
                 </p>
               )}
@@ -374,16 +374,16 @@ function LotusHero({ data, guestName }: Props) {
       <svg className="tpl-rise mx-auto h-14 w-24 text-[var(--accent)]" viewBox="-24 -24 48 26" aria-hidden>
         <LotusShape x={0} y={0} size={22} />
       </svg>
-      <p className="tpl-heading tpl-rise mt-2 text-xl italic opacity-90">{data.headline}</p>
+      <p className="tpl-heading tpl-rise mt-2 text-xl italic opacity-90"><F f="headline">{data.headline}</F></p>
       <div className="relative mx-auto mt-8 w-[74%] max-w-[380px]">
         <div className="absolute -inset-2.5 rounded-t-full border border-[var(--accent)]/70" aria-hidden />
         <KenBurns src={data.coverPhoto} className="aspect-[3/4] rounded-t-full" position={data.photoPos.cover} />
       </div>
       <h1 className="tpl-script tpl-rise mt-8 text-6xl leading-tight text-[var(--accent)]" style={d(400)}>
-        {g} <span className="text-4xl">&</span> {b}
+        <F f="groom.name">{g}</F> <span className="text-4xl">&</span> <F f="bride.name">{b}</F>
       </h1>
       {date && (
-        <p className="tpl-heading tpl-rise mx-auto mt-6 inline-block border-y border-[var(--accent)]/60 px-6 py-2 text-lg tracking-[0.2em]" style={d(700)}>
+        <p data-tf="weddingDate" className="tpl-heading tpl-rise mx-auto mt-6 inline-block border-y border-[var(--accent)]/60 px-6 py-2 text-lg tracking-[0.2em]" style={d(700)}>
           {date.time} · {date.weekday} · {date.short}
         </p>
       )}
@@ -406,14 +406,14 @@ function WaveHero({ data, guestName }: Props) {
       <KenBurns src={data.coverPhoto} className="absolute inset-0" position={data.photoPos.cover} />
       <div className="absolute inset-0 bg-gradient-to-b from-[#0d3a4d]/50 via-transparent to-[#0d3a4d]/60" aria-hidden />
       <div className="relative flex min-h-[var(--hero-h,100svh)] flex-col items-center justify-center px-6 pb-32">
-        <p className="tpl-rise text-[11px] uppercase tracking-[0.5em]">{data.headline}</p>
+        <p className="tpl-rise text-[11px] uppercase tracking-[0.5em]"><F f="headline">{data.headline}</F></p>
         <h1 className="tpl-script tpl-rise mt-6 text-7xl leading-tight drop-shadow-lg @3xl:text-8xl" style={d(300)}>
-          {g}
+          <F f="groom.name">{g}</F>
           <br />
-          <span className="text-4xl">&</span> {b}
+          <span className="text-4xl">&</span> <F f="bride.name">{b}</F>
         </h1>
         {date && (
-          <p className="tpl-heading tpl-rise mt-6 text-xl uppercase tracking-[0.45em]" style={d(650)}>
+          <p data-tf="weddingDate" className="tpl-heading tpl-rise mt-6 text-xl uppercase tracking-[0.45em]" style={d(650)}>
             {date.short}
           </p>
         )}
@@ -451,7 +451,7 @@ function DecoHero({ data, guestName }: Props) {
         {["left-2 top-2", "right-2 top-2 rotate-90", "bottom-2 right-2 rotate-180", "bottom-2 left-2 -rotate-90"].map((c) => (
           <DecoCorner key={c} className={`absolute h-14 w-14 text-[var(--primary)] ${c}`} />
         ))}
-        <p className="tpl-rise text-[11px] uppercase tracking-[0.55em] text-[var(--primary)]">{data.headline}</p>
+        <p className="tpl-rise text-[11px] uppercase tracking-[0.55em] text-[var(--primary)]"><F f="headline">{data.headline}</F></p>
         <div className="tpl-rise mx-auto my-9 h-80 w-56 bg-[var(--primary)] p-[3px]" style={{ ...d(150), clipPath: OCTA }}>
           <div className="h-full w-full" style={{ clipPath: OCTA }}>
             <KenBurns src={data.coverPhoto} className="h-full w-full" position={data.photoPos.cover} />
@@ -459,17 +459,17 @@ function DecoHero({ data, guestName }: Props) {
         </div>
         <h1 className="tpl-heading">
           <span className="tpl-rise block text-4xl font-semibold uppercase tracking-[0.22em]" style={d(350)}>
-            {g}
+            <F f="groom.name">{g}</F>
           </span>
           <span className="tpl-script tpl-rise my-1 block text-5xl text-[var(--primary)]" style={d(550)}>
             &
           </span>
           <span className="tpl-rise block text-4xl font-semibold uppercase tracking-[0.22em]" style={d(750)}>
-            {b}
+            <F f="bride.name">{b}</F>
           </span>
         </h1>
         {date && (
-          <div className="tpl-heading tpl-rise mt-9 flex items-center justify-center text-[var(--primary)]" style={d(950)}>
+          <div data-tf="weddingDate" className="tpl-heading tpl-rise mt-9 flex items-center justify-center text-[var(--primary)]" style={d(950)}>
             <span className="border-y border-[var(--primary)] px-3 py-1 text-[11px] uppercase tracking-widest">{date.weekday}</span>
             <span className="border border-[var(--primary)] px-4 py-2 text-3xl">{date.day}</span>
             <span className="border-y border-[var(--primary)] px-3 py-1 text-[11px] tracking-widest">
@@ -502,17 +502,17 @@ function PolaroidHero({ data, guestName }: Props) {
   const right = data.bride.photo || data.gallery[1] || data.coverPhoto;
   return (
     <header className="overflow-hidden bg-[var(--hero-bg)] px-5 py-14 text-center text-[var(--hero-text)]">
-      <p className="tpl-rise text-[11px] uppercase tracking-[0.45em] text-[var(--primary)]">{data.headline}</p>
+      <p className="tpl-rise text-[11px] uppercase tracking-[0.45em] text-[var(--primary)]"><F f="headline">{data.headline}</F></p>
       <div className="relative mx-auto my-10 h-[22rem] w-full max-w-sm">
         <Polaroid src={left} caption={g} className="left-0 top-10 h-56 w-40 -rotate-12" style={d(150)} />
         <Polaroid src={right} caption={b} className="right-0 top-10 h-56 w-40 rotate-12" style={d(300)} />
         <Polaroid src={data.coverPhoto} caption="us, forever" className="left-1/2 top-0 z-10 h-72 w-52 -translate-x-1/2 rotate-2" style={d(450)} />
       </div>
       <h1 className="tpl-script tpl-rise text-6xl leading-tight text-[var(--primary)]" style={d(650)}>
-        {g} <span className="text-4xl">+</span> {b}
+        <F f="groom.name">{g}</F> <span className="text-4xl">+</span> <F f="bride.name">{b}</F>
       </h1>
       {date && (
-        <div className="tpl-heading tpl-rise mx-auto mt-4 inline-block text-xl" style={d(850)}>
+        <div data-tf="weddingDate" className="tpl-heading tpl-rise mx-auto mt-4 inline-block text-xl" style={d(850)}>
           {date.weekday}, {date.short}
           <svg className="mt-1 h-3 w-full text-[var(--primary)]" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden>
             <path d="M2 6c20-6 40 4 60-1s30-3 36 0" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />

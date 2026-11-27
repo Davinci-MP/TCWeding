@@ -31,10 +31,12 @@ type Props = {
   defaultFont?: string;
   sample?: string;
   hint?: string;
+  /** Ẩn dòng xem trước trên màn hình nhỏ (bảng chỉnh nhanh trên điện thoại). */
+  compact?: boolean;
 };
 
 /** Chọn font từ danh sách có hỗ trợ tiếng Việt, kèm dòng chữ xem trước bằng chính font đó. */
-export function FontPicker({ label, value, defaultValue = "", onChange, name, kinds = ["serif", "sans", "script"], defaultLabel, defaultFont = "", sample = "Minh Khang & Bảo Ngọc — Trân trọng kính mời", hint }: Props) {
+export function FontPicker({ label, value, defaultValue = "", onChange, name, kinds = ["serif", "sans", "script"], defaultLabel, defaultFont = "", sample = "Minh Khang & Bảo Ngọc — Trân trọng kính mời", hint, compact }: Props) {
   const [inner, setInner] = useState(defaultValue);
   const current = value ?? inner;
   const preview = current || defaultFont;
@@ -63,7 +65,7 @@ export function FontPicker({ label, value, defaultValue = "", onChange, name, ki
           </optgroup>
         ))}
       </select>
-      <span className="mt-2 block truncate rounded-lg bg-zinc-50 px-3 py-2 text-xl text-zinc-800" style={{ fontFamily: fontFamily(preview) || undefined }}>
+      <span className={`mt-2 truncate rounded-lg bg-zinc-50 px-3 py-2 text-xl text-zinc-800 ${compact ? "hidden sm:block" : "block"}`} style={{ fontFamily: fontFamily(preview) || undefined }}>
         {sample}
       </span>
     </label>

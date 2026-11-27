@@ -593,13 +593,13 @@ export function Faq({ items }: { items: { id: string; q: string; a: string }[] }
                 onClick={() => setOpen(isOpen ? null : f.id)}
                 className="flex min-h-14 w-full cursor-pointer items-center justify-between gap-4 py-5 text-left text-lg"
               >
-                <span className="tpl-heading">{f.q}</span>
+                <span className="tpl-heading" data-tf={`faq.${f.id}.q`}>{f.q}</span>
                 <Icon name="plus" className={`shrink-0 text-[var(--primary)] transition duration-300 ${isOpen ? "rotate-45" : ""}`} />
               </button>
             </h3>
             <div className={`grid transition-[grid-template-rows] duration-500 ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
               <p className="overflow-hidden pb-0 leading-relaxed text-[var(--muted)]">
-                <span className="block pb-5">{f.a}</span>
+                <span className="block pb-5" data-tf={`faq.${f.id}.a`}>{f.a}</span>
               </p>
             </div>
           </div>
