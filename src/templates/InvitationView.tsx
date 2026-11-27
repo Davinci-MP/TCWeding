@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type CSSProperties } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
+import { fontFamily } from "@/lib/fonts";
 import { initials, type InvitationData } from "@/lib/invitation";
 import { fontUrl, getTemplateDef } from "./registry";
 import { Hero } from "./heroes";
@@ -9,6 +10,7 @@ import { Faq, FloatingDock, Gallery, GateFold, GiftBox, MusicButton, RsvpForm, u
 import { FallingEffect, isImmersive, Marquee, ModeContext, ScrollProgress, type ViewMode } from "./motion";
 import { formatDate, Section, SectionTitle, TplContext } from "./parts";
 import { resolveMusic } from "./music/tracks";
+import { useFitHeroNames } from "./fit";
 import { CalendarSection, Couple, DressCode, Events, Families, FeaturePhoto, QuoteSection, Schedule, Story, ThankYou, VideoSection } from "./sections";
 
 type Props = {
@@ -21,7 +23,21 @@ type Props = {
 };
 
 export function InvitationView({ templateId, data, slug, mode = "live", guestName, wishes = [] }: Props) {
-  const tpl = getTemplateDef(templateId);
+  const base = getTemplateDef(templateId);
+  // Font riêng chọn trong trình soạn thảo thay cho font của mẫu
+  const tpl = useMemo(
+    () => ({
+      ...base,
+      fonts: {
+        heading: fontFamily(data.fontHeading) || base.fonts.heading,
+        body: fontFamily(data.fontBody) || base.fonts.body,
+        script: fontFamily(data.fontScript) || base.fonts.script,
+      },
+    }),
+    [base, data.fontHeading, data.fontBody, data.fontScript],
+  );
+  const rootRef = useRef<HTMLDivElement>(null);
+  useFitHeroNames(rootRef, data.nameScale || 1, mode === "thumb", [templateId, data.groom.name, data.bride.name, tpl.fonts.heading, tpl.fonts.script]);
   const c = tpl.colors;
   const primary = data.primaryColor || c.primary;
   const [opened, setOpened] = useState(!isImmersive(mode));
@@ -45,7 +61,9 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
     "--f-heading": tpl.fonts.heading,
     "--f-body": tpl.fonts.body,
     "--f-script": tpl.fonts.script,
+    "--text-scale": data.textScale || 1,
   } as CSSProperties;
+  const textScaled = (data.textScale || 1) !== 1 ? "" : undefined;
 
   const P = { tpl, data };
 
@@ -53,7 +71,7 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
   if (mode === "thumb") {
     return (
       <ModeContext.Provider value="thumb">
-        <div style={style} className="tpl-root @container bg-[var(--bg)] text-[var(--text)]">
+        <div ref={rootRef} style={style} className="tpl-root @container bg-[var(--bg)] text-[var(--text)]">
           <link rel="stylesheet" href={fontUrl(tpl)} precedence="default" />
           <Hero tpl={tpl} data={data} />
         </div>
@@ -75,7 +93,7 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
   return (
     <ModeContext.Provider value={mode}>
     <TplContext.Provider value={tpl}>
-      <div style={style} data-gate={opened ? "open" : "closed"} className="tpl-root @container min-h-full overflow-x-clip bg-[var(--bg)] text-[var(--text)] antialiased">
+      <div ref={rootRef} style={style} data-text-scale={textScaled} data-gate={opened ? "open" : "closed"} className="tpl-root @container min-h-full overflow-x-clip bg-[var(--bg)] text-[var(--text)] antialiased">
         <link rel="stylesheet" href={fontUrl(tpl)} precedence="default" />
 
         <GateFold

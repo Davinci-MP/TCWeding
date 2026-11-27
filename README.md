@@ -175,6 +175,8 @@ Một trang `/thiep`, điều hướng bằng `#` giống quocanhwedding.com/thi
 | `/thiep#chon-tc-02` | Form 9 bước, chọn sẵn mẫu TC-02: mẫu · cô dâu chú rể (thứ bậc) · gia đình · lịch cưới (ngày âm **tự tính**) · hộp mừng cưới (ảnh QR) · nhạc nền · video slideshow · ảnh cưới (tối đa 30) · liên hệ |
 | `/thiep#xem` | Xem trước thiệp với thông tin khách đã điền (chưa có ảnh thì dùng ảnh minh hoạ) |
 
+- **107 mẫu thiệp** = 30 thiết kế gốc + 77 biến thể màu (`src/templates/palettes.ts`: bảng màu theo họ đầu thiệp sáng / tối; Song Hỷ, Burgundy Velvet, Ocean Breeze không có biến thể vì có màu vẽ cố định). Thư viện lọc theo loại, **thiết kế**, **màu sắc**, đã thích.
+- **207 mẫu slideshow**: mỗi mẫu thiệp một mẫu cùng tông + mỗi bảng màu × 4 kiểu khung mới (Phóng chậm, Polaroid, Chia đôi, Cuộn phim); 8 kịch bản (thêm Save the date, Hành trình yêu, Đếm ngược, Lời cảm ơn cuối tiệc). Mã TC-xx / SS-xx cũ giữ nguyên, mẫu mới chỉ thêm vào cuối.
 - Bản nháp lưu trên máy khách, điền dở quay lại vẫn còn. "Gửi cho studio" tạo **đơn mới** (không trả tiền trước) và đưa khách tới trang đơn riêng `/don/...`.
 - **Thả tim mẫu**: lưu trên server theo cookie ẩn danh `tcw_vid` (1 năm). Lần sau khách quay lại vẫn thấy mẫu đã thích; admin thấy số ❤ từng mẫu ở `/admin/templates` và các mẫu khách đã thích trong chi tiết đơn.
 - Trang chủ có mục **Thiệp cưới online** (8 mẫu, cùng hộp chọn mẫu) và **Slideshow tiệc cưới** (`/#slideshow`): 30 mẫu video theo kịch bản / chuyển cảnh / tông màu, xem toàn màn hình, "Chọn mẫu này" tick sẵn bước 7 trong form.
@@ -192,6 +194,11 @@ Một trang `/thiep`, điều hướng bằng `#` giống quocanhwedding.com/thi
 | 6 | Gửi link thiệp cho khách mời; mở lại trang đơn để xem **ai xác nhận tham dự và lời chúc** | |
 
 - Web không tự đối soát ngân hàng. Ai có link đơn đều xem được đơn; khách mất link thì admin sao chép lại ở trang chi tiết đơn.
+
+### Kiểu chữ và nội dung dài
+
+- **Website:** tiêu đề tự chọn cỡ theo độ dài câu (câu dài không còn chiếm cả màn hình), từ quá dài tự xuống dòng. Chỉnh font và cỡ chữ ở Nội dung trang chủ › Kiểu chữ toàn website.
+- **Thiệp:** tên cô dâu chú rể ở đầu thiệp tự thu nhỏ cho vừa màn hình điện thoại (`src/templates/fit.ts`). Trong trình soạn thiệp (tab Giao diện › Kiểu chữ) chọn font tiêu đề / viết tay / nội dung (danh sách font tiếng Việt ở `src/lib/fonts.ts`), cỡ chữ tên và cỡ chữ nội dung.
 
 ### Studio: bộ sưu tập, ghép album, bảng giá, về tôi, đặt lịch
 
@@ -222,7 +229,7 @@ Cả hai dựng video ngay trong trình duyệt, ảnh không tải lên máy ch
 | `/admin/bookings` | Yêu cầu đặt lịch tư vấn |
 | `/admin/templates` | Bật/tắt, thứ tự mẫu; số ❤, số đơn từng mẫu |
 | `/admin/invitations` | Thiệp đã làm: gỡ/xuất bản, sửa, xoá |
-| `/admin/studio` · `/admin/about` | Nội dung trang chủ, SEO, chân trang, ghép album · trang Về tôi |
+| `/admin/studio` · `/admin/about` | Nội dung trang chủ, **kiểu chữ toàn website** (font tiêu đề / nội dung, cỡ tiêu đề đầu trang, cỡ tiêu đề mục, cỡ chữ nội dung), SEO, chân trang, ghép album · trang Về tôi |
 | `/admin/albums` · `/admin/ghep-album` | Bộ sưu tập ảnh · album mẫu lật trang |
 | `/admin/studio-pricing` | Bảng giá gói chụp |
 | `/admin/music` | Thư viện nhạc |

@@ -3,7 +3,7 @@ import type { TplLite } from "@/components/thiep/TemplateCard";
 import { settingsError } from "@/lib/orders";
 import { getMusicLibrary, getOrderSettings } from "@/lib/settings";
 import { listTemplates } from "@/lib/templates";
-import { fontLabel } from "@/lib/thiep";
+import { toTplLite } from "@/lib/thiep";
 
 export const metadata = {
   title: "Thiệp cưới online",
@@ -19,7 +19,7 @@ export const metadata = {
  */
 export default async function ThiepPage() {
   const [templates, library, settings] = await Promise.all([listTemplates(), getMusicLibrary(), getOrderSettings()]);
-  const list: TplLite[] = templates.map((t) => ({ id: t.id, name: t.name, description: t.description, category: t.category, premium: t.isPremium, fonts: fontLabel(t) }));
+  const list: TplLite[] = templates.map(toTplLite);
   const deposit = settings.enabled && !settingsError(settings) ? settings.deposit : 0;
   return (
     <ThiepApp

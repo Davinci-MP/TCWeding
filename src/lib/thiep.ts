@@ -3,6 +3,8 @@
 
 import { DEMO_PHOTOS, defaultInvitationData, uid, unsplash, type InvitationData } from "@/lib/invitation";
 import { lunarText } from "@/lib/lunar";
+import { FONTS } from "@/lib/fonts";
+import { ALL_PALETTES } from "@/templates/palettes";
 import { TEMPLATES, type TemplateDef } from "@/templates/registry";
 
 /* ------------------------------ Mã mẫu ------------------------------ */
@@ -22,6 +24,21 @@ export function templateIdFrom(codeOrId: string) {
 }
 
 export const templateHash = (id: string) => templateCode(id).toLowerCase();
+
+/** Dữ liệu gọn của một mẫu để gửi xuống trình duyệt (thư viện mẫu, trang chủ). */
+export function toTplLite(t: TemplateDef & { isPremium: boolean }) {
+  const base = t.baseId ? TEMPLATES.find((x) => x.id === t.baseId) : undefined;
+  return {
+    id: t.id,
+    name: t.name,
+    description: t.description,
+    category: t.category,
+    premium: t.isPremium,
+    fonts: fontLabel(t),
+    design: (base ?? t).name,
+    color: t.colorName ?? "Màu gốc",
+  };
+}
 
 /** Tên font hiển thị gọn: "'Playfair Display', serif" → "Playfair Display". */
 export const fontLabel = (t: Pick<TemplateDef, "fonts">) =>
@@ -211,12 +228,22 @@ export const SLIDE_SCRIPTS = [
   { id: "cam-on", label: "Cảm ơn mọi người", title: "Chào mừng đến với ngày vui", line: "Cảm ơn mọi người đã đến chung vui cùng chúng mình." },
   { id: "bo-me", label: "Tri ân bố mẹ", title: "Gửi bố mẹ", line: "Thước phim nhỏ chúng con dành tặng bố mẹ hai bên." },
   { id: "love", label: "Love story", title: "Our love story", line: "Chuyện tình của chúng mình, kể bằng những khung hình." },
+  // Thêm sau — chỉ dùng cho mẫu từ SS-31 trở đi để mẫu cũ không đổi
+  { id: "save-date", label: "Save the date", title: "Save the date", line: "Hẹn gặp bạn trong ngày vui của chúng mình." },
+  { id: "hanh-trinh", label: "Hành trình yêu", title: "Hành trình của chúng mình", line: "Từ lần đầu gặp gỡ đến ngày về chung một nhà." },
+  { id: "dem-nguoc", label: "Đếm ngược giờ G", title: "Chỉ còn ít phút nữa thôi", line: "Cô dâu chú rể sắp bước ra lễ đường." },
+  { id: "loi-cam-on", label: "Lời cảm ơn cuối tiệc", title: "Cảm ơn vì đã ở đây", line: "Sự hiện diện của bạn là món quà ý nghĩa nhất." },
 ] as const;
 
 export const SLIDE_MOTIONS = [
   { id: "fade", label: "Nhẹ nhàng" },
   { id: "slide", label: "Lướt ngang" },
   { id: "cinema", label: "Điện ảnh" },
+  // Thêm sau
+  { id: "kenburns", label: "Phóng chậm" },
+  { id: "polaroid", label: "Khung Polaroid" },
+  { id: "split", label: "Chia đôi khung hình" },
+  { id: "film", label: "Cuộn phim" },
 ] as const;
 
 export type SlideStyle = {
@@ -224,21 +251,51 @@ export type SlideStyle = {
   code: string;
   script: (typeof SLIDE_SCRIPTS)[number];
   motion: (typeof SLIDE_MOTIONS)[number];
-  /** Tông màu lấy từ một mẫu thiệp để video cùng tông với thiệp. */
+  /** Tông màu lấy từ một mẫu thiệp (hoặc một bảng màu) để video cùng tông với thiệp. */
   palette: { name: string; bg: string; text: string; accent: string; heading: string; script: string };
 };
 
-/** Mỗi mẫu thiệp sinh một mẫu slideshow cùng tông màu, kịch bản và chuyển cảnh xoay vòng. */
-export const SLIDE_STYLES: SlideStyle[] = TEMPLATES.map((t, i) => {
-  const code = `SS-${String(i + 1).padStart(2, "0")}`;
+const OLD_SCRIPTS = 4;
+const OLD_MOTIONS = 3;
+const OLD_STYLES = 30;
+const code = (n: number) => `SS-${String(n).padStart(2, "0")}`;
+
+/**
+ * Mẫu slideshow:
+ * 1. Mỗi mẫu thiệp sinh một mẫu cùng tông màu (SS-01…). 30 mẫu đầu giữ nguyên kịch bản/chuyển cảnh như trước.
+ * 2. Thêm mỗi bảng màu × 4 kiểu khung hình mới (Phóng chậm, Polaroid, Chia đôi, Cuộn phim).
+ * Chỉ thêm vào cuối để mã SS-xx khách đã chọn không đổi.
+ */
+const fromTemplates: SlideStyle[] = TEMPLATES.map((t, i) => {
+  const old = i < OLD_STYLES;
   return {
-    id: code.toLowerCase(),
-    code,
-    script: SLIDE_SCRIPTS[i % SLIDE_SCRIPTS.length],
-    motion: SLIDE_MOTIONS[Math.floor(i / SLIDE_SCRIPTS.length) % SLIDE_MOTIONS.length],
+    id: code(i + 1).toLowerCase(),
+    code: code(i + 1),
+    script: SLIDE_SCRIPTS[old ? i % OLD_SCRIPTS : i % SLIDE_SCRIPTS.length],
+    motion: SLIDE_MOTIONS[old ? Math.floor(i / OLD_SCRIPTS) % OLD_MOTIONS : Math.floor(i / SLIDE_SCRIPTS.length) % SLIDE_MOTIONS.length],
     palette: { name: t.name, bg: t.colors.heroBg, text: t.colors.heroText, accent: t.colors.primary, heading: t.fonts.heading, script: t.fonts.script },
   };
 });
+
+const SERIFS = FONTS.filter((f) => f.kind === "serif");
+const SCRIPTS = FONTS.filter((f) => f.kind === "script" && !["Patrick Hand", "Pangolin", "Itim", "Mali"].includes(f.name));
+const NEW_MOTIONS = SLIDE_MOTIONS.slice(OLD_MOTIONS);
+const fromPalettes: SlideStyle[] = ALL_PALETTES.flatMap((p, pi) =>
+  NEW_MOTIONS.map((m, mi) => {
+    const n = TEMPLATES.length + pi * NEW_MOTIONS.length + mi + 1;
+    const heading = SERIFS[(pi + mi) % SERIFS.length];
+    const script = SCRIPTS[(pi * 3 + mi) % SCRIPTS.length];
+    return {
+      id: code(n).toLowerCase(),
+      code: code(n),
+      script: SLIDE_SCRIPTS[(pi + mi * 3) % SLIDE_SCRIPTS.length],
+      motion: m,
+      palette: { name: p.name, bg: p.colors.heroBg, text: p.colors.heroText, accent: p.colors.primary, heading: `'${heading.name}', serif`, script: `'${script.name}', cursive` },
+    };
+  }),
+);
+
+export const SLIDE_STYLES: SlideStyle[] = [...fromTemplates, ...fromPalettes];
 export const getSlideStyle = (id: string) => SLIDE_STYLES.find((s) => s.id === id.toLowerCase());
 
 /** Ảnh minh hoạ cho xem trước slideshow (12 cảnh = mở đầu + 10 ảnh + kết). */

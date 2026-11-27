@@ -22,7 +22,23 @@ body {
 }
 
 .font-serif-display {
-  font-family: "Cormorant Garamond", Georgia, serif;
+  font-family: var(--site-heading, "Cormorant Garamond"), Georgia, serif;
+}
+
+/* Tiêu đề do admin nhập có thể chứa từ rất dài: cho xuống dòng thay vì tràn ngang */
+main :is(h1, h2, h3) {
+  overflow-wrap: anywhere;
+}
+
+/* Cỡ chữ nội dung website (Quản trị › Nội dung trang chủ › Kiểu chữ). Không áp vào thiệp xem trước. */
+[data-body-size] main :is(p, li, dd):not(:is(p, li, dd) *):not(.tpl-root *) {
+  zoom: var(--body-zoom);
+}
+[data-body-size="sm"] {
+  --body-zoom: 0.92;
+}
+[data-body-size="lg"] {
+  --body-zoom: 1.12;
 }
 
 /* ---- Các lớp dùng trong mẫu thiệp (biến CSS do InvitationView đặt) ---- */
@@ -292,4 +308,9 @@ html {
 /* /thiep: khi xem thiệp toàn màn hình thì ẩn header, footer và thanh nổi của website */
 html[data-fullview] [data-site-chrome] {
   display: none !important;
+}
+
+/* Cỡ chữ nội dung thiệp (trình soạn thảo › Kiểu chữ): zoom từng khối chữ, bề ngang tự co vừa khung */
+.tpl-root[data-text-scale] section :is(p, li, blockquote, dd, dt, label, td, figcaption):not(:is(p, li, blockquote, dd, dt, label, td, figcaption) *) {
+  zoom: var(--text-scale, 1);
 }

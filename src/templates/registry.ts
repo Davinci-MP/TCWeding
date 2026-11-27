@@ -1,4 +1,6 @@
+import { googleFontsUrl } from "@/lib/fonts";
 import type { DemoPhotoKey, EffectKind } from "@/lib/invitation";
+import { familyOf, luminance, PALETTES } from "./palettes";
 
 // Danh sách mẫu thiệp. Thêm mẫu mới: thêm 1 object vào TEMPLATES
 // (chọn hero/ornament có sẵn hoặc viết thêm biến thể trong InvitationView).
@@ -76,50 +78,18 @@ type TemplateBase = {
 };
 
 export type TemplateDef = TemplateBase & {
+  /** Biến thể màu: id thiết kế gốc và tên bảng màu. Mẫu gốc không có. */
+  baseId?: string;
+  colorName?: string;
   effect: Exclude<EffectKind, "">; // hiệu ứng nền mặc định
   frame: FrameShape; // kiểu khung ảnh chân dung
   demoCover: DemoPhotoKey; // ảnh bìa khi xem thử
   layout: LayoutFamily;
 };
 
-const families = (...f: string[]) =>
-  "https://fonts.googleapis.com/css2?" +
-  f.map((x) => `family=${x}`).join("&") +
-  "&display=swap&subset=vietnamese";
-
-export function fontUrl(t: TemplateDef) {
-  const map: Record<string, string> = {
-    "Cormorant Garamond": "Cormorant+Garamond:ital,wght@0,400;0,600;1,400",
-    "Great Vibes": "Great+Vibes",
-    Lora: "Lora:ital,wght@0,400;0,600;1,400",
-    "Playfair Display": "Playfair+Display:ital,wght@0,400;0,700;1,400",
-    "Dancing Script": "Dancing+Script:wght@500;700",
-    "Be Vietnam Pro": "Be+Vietnam+Pro:wght@300;400;600",
-    Montserrat: "Montserrat:wght@300;400;600",
-    Quicksand: "Quicksand:wght@400;600",
-    Charm: "Charm:wght@400;700",
-    "Josefin Sans": "Josefin+Sans:wght@300;400;600",
-    Pacifico: "Pacifico",
-    "Patrick Hand": "Patrick+Hand",
-    Prata: "Prata",
-    Spectral: "Spectral:ital,wght@0,300;0,400;0,600;1,300;1,400",
-    "Imperial Script": "Imperial+Script",
-    "Yeseva One": "Yeseva+One",
-    "EB Garamond": "EB+Garamond:ital,wght@0,400;0,600;1,400",
-    Allura: "Allura",
-    Fraunces: "Fraunces:ital,opsz,wght@0,9..144,300..800;1,9..144,300..800",
-    Ephesis: "Ephesis",
-    "Bricolage Grotesque": "Bricolage+Grotesque:opsz,wght@12..96,300..800",
-    "Space Grotesk": "Space+Grotesk:wght@400;500;700",
-    Pangolin: "Pangolin",
-    Unbounded: "Unbounded:wght@400;700;900",
-    Itim: "Itim",
-    Mali: "Mali:wght@400;600",
-  };
-  const names = new Set(
-    [t.fonts.heading, t.fonts.body, t.fonts.script].map((f) => f.split(",")[0].replace(/['"]/g, "").trim()),
-  );
-  return families(...[...names].map((n) => map[n]).filter(Boolean));
+/** URL Google Fonts cho 3 font của mẫu (danh sách font ở src/lib/fonts.ts). */
+export function fontUrl(t: Pick<TemplateDef, "fonts">) {
+  return googleFontsUrl([t.fonts.heading, t.fonts.body, t.fonts.script]);
 }
 
 const BASE: TemplateBase[] = [
@@ -794,10 +764,51 @@ const EXTRAS: Record<string, Pick<TemplateDef, "effect" | "frame" | "demoCover" 
   "linen-offset": { effect: "none", frame: "rect", demoCover: "coupleVineyard", layout: "zen" },
 };
 
-export const TEMPLATES: TemplateDef[] = BASE.map((t) => ({
+const ORIGINALS: TemplateDef[] = BASE.map((t) => ({
   ...t,
   ...(EXTRAS[t.id] ?? { effect: "none", frame: "rounded", demoCover: "coupleClose", layout: "classic" }),
 }));
+
+/** Thiết kế có màu vẽ cố định trong phần đầu thiệp: giữ nguyên, không tạo biến thể màu. */
+const NO_VARIANTS = new Set(["song-hy", "burgundy-velvet", "ocean-breeze"]);
+const VARIANTS_PER_DESIGN = 3;
+
+/** Khoảng cách màu chủ đạo (để không tạo biến thể gần trùng màu gốc). */
+const hueDistance = (a: string, b: string) => {
+  const rgb = (h: string) => {
+    const n = parseInt(h.replace("#", ""), 16);
+    return [n >> 16, (n >> 8) & 255, n & 255];
+  };
+  if (!/^#[0-9a-f]{6}$/i.test(a) || !/^#[0-9a-f]{6}$/i.test(b)) return 999;
+  const [x, y] = [rgb(a), rgb(b)];
+  return Math.hypot(x[0] - y[0], x[1] - y[1], x[2] - y[2]);
+};
+
+/**
+ * Biến thể màu: mỗi thiết kế gốc × 3 bảng màu cùng họ (đầu thiệp sáng/tối) → thêm nhiều mẫu cho khách chọn
+ * mà bố cục không vỡ. Chọn bảng màu xoay vòng theo thứ tự mẫu, bỏ bảng màu quá giống màu gốc.
+ * Chỉ thêm vào CUỐI danh sách để mã TC-xx của các mẫu cũ không đổi.
+ */
+const VARIANTS: TemplateDef[] = ORIGINALS.flatMap((t, i) => {
+  if (NO_VARIANTS.has(t.id)) return [];
+  const pool = PALETTES[familyOf(t.colors)].filter((p) => hueDistance(p.colors.primary, t.colors.primary) > 60);
+  const picked = Array.from({ length: Math.min(VARIANTS_PER_DESIGN, pool.length) }, (_, k) => pool[(i * 2 + k * Math.max(1, Math.floor(pool.length / VARIANTS_PER_DESIGN))) % pool.length]);
+  return [...new Map(picked.map((p) => [p.id, p])).values()].map((p) => ({
+    ...t,
+    id: `${t.id}--${p.id}`,
+    baseId: t.id,
+    colorName: p.name,
+    name: `${t.name} · ${p.name}`,
+    description: `${t.description.replace(/.$/, "")}. Phối màu ${p.name.toLowerCase()}.`,
+    colors: { ...p.colors },
+  }));
+});
+
+export const TEMPLATES: TemplateDef[] = [...ORIGINALS, ...VARIANTS];
+/** Thiết kế gốc của một mẫu (chính nó nếu không phải biến thể màu). */
+export const designOf = (t: Pick<TemplateDef, "id" | "baseId">) => t.baseId ?? t.id;
+/** Đầu thiệp tối hay sáng (dùng để gợi ý chữ trên ảnh thu nhỏ). */
+export const isDarkHero = (t: Pick<TemplateDef, "colors">) => luminance(t.colors.heroBg) <= 0.35;
 
 export function getTemplateDef(id: string): TemplateDef {
   return TEMPLATES.find((t) => t.id === id) ?? TEMPLATES[0];

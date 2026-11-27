@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import {
   BANKS,
   EFFECT_LABELS,
+  NAME_SCALE_RANGE,
+  TEXT_SCALE_RANGE,
   SECTION_LABELS,
   type EffectKind,
   uid,
@@ -19,6 +21,8 @@ import { getTemplateDef } from "@/templates/registry";
 import { InvitationView } from "@/templates/InvitationView";
 import { Field, ImageField, ListItem, move, TextArea, TextInput, UploadButton } from "./fields";
 import { MusicField } from "./MusicField";
+import { FontPicker } from "@/components/admin/FontPicker";
+import { fontName } from "@/lib/fonts";
 import { PHOTO_SPECS, PhotoField } from "./PhotoField";
 import type { LibraryTrack } from "@/lib/settings";
 
@@ -44,6 +48,27 @@ const TABS = [
   ["publish", "Xuất bản"],
 ] as const;
 type Tab = (typeof TABS)[number][0];
+
+/** Thanh kéo cỡ chữ (phần trăm so với mẫu), có nút về mặc định. */
+function ScaleSlider({ label, value, min, max, onChange }: { label: string; value: number; min: number; max: number; onChange: (v: number) => void }) {
+  const v = value || 1;
+  return (
+    <div className="text-sm">
+      <div className="flex items-center justify-between">
+        <span className="font-medium">{label}</span>
+        <span className="flex items-center gap-2">
+          <span className="tabular-nums text-zinc-600">{Math.round(v * 100)}%</span>
+          {v !== 1 && (
+            <button type="button" className="text-xs text-brand underline" onClick={() => onChange(1)}>
+              Về mặc định
+            </button>
+          )}
+        </span>
+      </div>
+      <input type="range" min={min} max={max} step={0.05} value={v} onChange={(e) => onChange(Number(e.target.value))} className="mt-1 w-full accent-[#7b2d26]" aria-label={label} />
+    </div>
+  );
+}
 
 export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: Props) {
   const [tab, setTab] = useState<Tab>("couple");
@@ -474,6 +499,15 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                         Khôi phục
                       </button>
                     )}
+                  </div>
+                </Field>
+                <Field label="Kiểu chữ" hint="Để “Theo mẫu” để giữ font gốc. Tên dài tự thu nhỏ cho vừa màn hình điện thoại.">
+                  <div className="space-y-3">
+                    <FontPicker label="Font tiêu đề" value={data.fontHeading} onChange={(v) => set("fontHeading", v)} defaultLabel={`Theo mẫu (${fontName(tplDef.fonts.heading)})`} defaultFont={fontName(tplDef.fonts.heading)} kinds={["serif", "sans", "script"]} sample={`${data.groom.name || "Minh Khang"} & ${data.bride.name || "Bảo Ngọc"}`} />
+                    <FontPicker label="Font chữ viết tay (tên, lời chúc)" value={data.fontScript} onChange={(v) => set("fontScript", v)} defaultLabel={`Theo mẫu (${fontName(tplDef.fonts.script)})`} defaultFont={fontName(tplDef.fonts.script)} kinds={["script", "serif"]} sample="Save the date · Trân trọng kính mời" />
+                    <FontPicker label="Font nội dung" value={data.fontBody} onChange={(v) => set("fontBody", v)} defaultLabel={`Theo mẫu (${fontName(tplDef.fonts.body)})`} defaultFont={fontName(tplDef.fonts.body)} kinds={["sans", "serif"]} sample="Trân trọng kính mời bạn đến dự tiệc cưới của chúng tôi." />
+                    <ScaleSlider label="Cỡ chữ tên cô dâu chú rể" value={data.nameScale} min={NAME_SCALE_RANGE.min} max={NAME_SCALE_RANGE.max} onChange={(v) => set("nameScale", v)} />
+                    <ScaleSlider label="Cỡ chữ nội dung" value={data.textScale} min={TEXT_SCALE_RANGE.min} max={TEXT_SCALE_RANGE.max} onChange={(v) => set("textScale", v)} />
                   </div>
                 </Field>
                 <Field label="Hiệu ứng nền">

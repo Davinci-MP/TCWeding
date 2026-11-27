@@ -15,6 +15,7 @@ import {
   PACKAGE_DEFAULTS,
   STUDIO_DEFAULTS,
   bookingServices,
+  cleanTypo,
   isAlbumSize,
   isCategory,
   isSampleStyle,
@@ -63,6 +64,13 @@ export async function saveStudioAction(fd: FormData) {
   const str = (k: string, max = 200) => String(fd.get(k) ?? "").replace(/\r\n?/g, "\n").trim().slice(0, max);
   const one = (k: string, max = 200) => str(k, max).replace(/\s+/g, " ");
   const content: StudioContent = {
+    typo: cleanTypo({
+      headingFont: one("typo.headingFont", 60),
+      bodyFont: one("typo.bodyFont", 60),
+      heroSize: one("typo.heroSize", 10) as StudioContent["typo"]["heroSize"],
+      titleSize: one("typo.titleSize", 10) as StudioContent["typo"]["titleSize"],
+      bodySize: one("typo.bodySize", 10) as StudioContent["typo"]["bodySize"],
+    }),
     seoTitle: one("seoTitle", 70),
     seoDescription: one("seoDescription", 200),
     footerText: one("footerText", 200),

@@ -54,7 +54,7 @@ export default async function AdminAbout({ searchParams }: { searchParams: Promi
             <Text name="name" label="Tên" value={a.name} max={80} />
             <Text name="role" label="Chức danh" value={a.role} max={120} placeholder="Wedding Photographer & Creative Director" />
           </div>
-          <Area name="headline" label="Câu tiêu đề lớn" value={a.headline} max={200} rows={2} />
+          <Area name="headline" label="Câu tiêu đề lớn" value={a.headline} max={200} rows={2} hint="Nên dưới 80 ký tự; câu dài tự thu nhỏ. Font và cỡ chữ chỉnh ở Nội dung trang chủ › Kiểu chữ." />
           <Area name="intro" label="Giới thiệu ngắn" value={a.intro} max={600} rows={3} />
           <ImageInput name="photo" label="Ảnh chân dung" aspect="aspect-[4/5]" defaultValue={a.photo} hint="Ảnh dọc 4:5. Để trống: dùng một ảnh trong bộ sưu tập." />
           <div>

@@ -81,6 +81,21 @@ export type InvitationData = {
   closingText: string;
   /** Điểm lấy nét của ảnh nền ("x% y%") — người dùng kéo chỉnh trong trình soạn thảo. */
   photoPos: PhotoPos;
+  /** Kiểu chữ riêng (tên font trong src/lib/fonts.ts). "" = dùng font của mẫu. */
+  fontHeading: string;
+  fontBody: string;
+  fontScript: string;
+  /** Cỡ chữ tên cô dâu chú rể ở đầu thiệp (1 = theo mẫu). Tên dài vẫn tự thu nhỏ cho vừa màn hình. */
+  nameScale: number;
+  /** Cỡ chữ phần nội dung (lời mời, gia đình, sự kiện…), 1 = theo mẫu. */
+  textScale: number;
+};
+
+export const NAME_SCALE_RANGE = { min: 0.6, max: 1.4 } as const;
+export const TEXT_SCALE_RANGE = { min: 0.85, max: 1.3 } as const;
+const clampNum = (v: unknown, min: number, max: number) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? Math.min(max, Math.max(min, n)) : 1;
 };
 
 export type PhotoPosKey = "cover" | "feature" | "thanks";
@@ -173,6 +188,11 @@ export function defaultInvitationData(): InvitationData {
     sections: { ...ALL_SECTIONS_ON },
     thankYouPhoto: "",
     photoPos: { ...DEFAULT_PHOTO_POS },
+    fontHeading: "",
+    fontBody: "",
+    fontScript: "",
+    nameScale: 1,
+    textScale: 1,
     closingText: "Cảm ơn bạn rất nhiều vì đã gửi những lời chúc mừng tốt đẹp nhất đến đám cưới của chúng tôi!",
   };
 }
@@ -201,6 +221,11 @@ export function parseInvitationData(json: string | null | undefined): Invitation
       gallery: raw.gallery ?? [],
       faqs: raw.faqs ?? [],
       gifts: raw.gifts ?? [],
+      fontHeading: typeof raw.fontHeading === "string" ? raw.fontHeading : "",
+      fontBody: typeof raw.fontBody === "string" ? raw.fontBody : "",
+      fontScript: typeof raw.fontScript === "string" ? raw.fontScript : "",
+      nameScale: clampNum(raw.nameScale ?? 1, NAME_SCALE_RANGE.min, NAME_SCALE_RANGE.max),
+      textScale: clampNum(raw.textScale ?? 1, TEXT_SCALE_RANGE.min, TEXT_SCALE_RANGE.max),
     };
   } catch {
     return base;

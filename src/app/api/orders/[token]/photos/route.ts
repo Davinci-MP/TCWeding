@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isOpen, MAX_ORDER_PHOTOS } from "@/lib/orders";
 import { rateLimit } from "@/lib/rateLimit";
-import { saveUpload } from "@/lib/storage";
+import { saveUploadResponse } from "@/lib/storage";
 import { ALLOWED } from "@/lib/uploads";
 
 const SIGNATURES: Record<string, (b: Buffer) => boolean> = {
@@ -30,8 +30,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ token: 
   const buf = Buffer.from(await file.arrayBuffer());
   if (!check(buf)) return NextResponse.json({ error: "File không phải ảnh hợp lệ" }, { status: 415 });
 
-  const url = await saveUpload(buf, rule.ext, file.type);
-  await db.orderPhoto.create({ data: { orderId: order.id, url } });
+  const r = await saveUploadResponse(buf, rule.ext, file.type);
+  if (!("url" in r)) return NextResponse.json({ error: r.error }, { status: r.status });
+  await db.orderPhoto.create({ data: { orderId: order.id, url: r.url } });
   revalidatePath(`/don/${token}`);
   return NextResponse.json({ ok: true });
 }

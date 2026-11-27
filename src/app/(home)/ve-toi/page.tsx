@@ -4,6 +4,7 @@ import { AlbumCard } from "@/components/studio/AlbumCard";
 import { socialLinks } from "@/components/studio/Contact";
 import { getAbout } from "@/lib/about";
 import { contactLinks, getStudio, listPublishedAlbums, pickPortraitPhoto } from "@/lib/studio";
+import { heroTitleClass, sectionTitleClass } from "@/lib/typo";
 import { Icon } from "@/templates/icons";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -38,7 +39,7 @@ export default async function AboutPage() {
         <div className={`mx-auto grid max-w-6xl items-center gap-12 ${photo ? "lg:grid-cols-[1.2fr_1fr]" : ""}`}>
           <div>
             {a.eyebrow && <p className="text-[11px] font-semibold uppercase tracking-[0.45em] text-[#d8cdbf]">{a.eyebrow}</p>}
-            <h1 className="font-serif-display mt-5 text-balance text-5xl leading-[1.02] sm:text-6xl lg:text-7xl">{a.headline}</h1>
+            <h1 className={`font-serif-display mt-5 text-balance leading-[1.02] ${heroTitleClass(a.headline, studio.typo.heroSize)}`}>{a.headline}</h1>
             <p className="mt-6 text-lg text-white/85">
               <strong className="font-semibold">{a.name}</strong>
               {a.role ? `, ${a.role}` : ""}
@@ -74,7 +75,7 @@ export default async function AboutPage() {
         <section className="bg-[#f6f2ec] px-4 py-24 lg:py-28">
           <div className="mx-auto max-w-3xl">
             <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-[#7b2d26]">Về tôi</p>
-            {a.storyTitle && <h2 className="font-serif-display mt-4 text-4xl leading-[1.05] text-[#1d1a17] sm:text-5xl">{a.storyTitle}</h2>}
+            {a.storyTitle && <h2 className={`font-serif-display mt-4 leading-[1.05] text-[#1d1a17] ${sectionTitleClass(a.storyTitle, studio.typo.titleSize)}`}>{a.storyTitle}</h2>}
             <div className="mt-6 space-y-4 text-lg leading-relaxed text-zinc-700">
               {paras(a.storyBody).map((p, i) => (
                 <p key={i} className="whitespace-pre-line">
@@ -129,7 +130,7 @@ export default async function AboutPage() {
         <section key={i} className={`px-4 py-24 lg:py-28 ${i % 2 ? "bg-[#f6f2ec]" : "bg-white"}`}>
           <div className="mx-auto max-w-3xl">
             {b.eyebrow && <p className="text-[11px] font-semibold uppercase tracking-[0.4em] text-[#7b2d26]">{b.eyebrow}</p>}
-            <h2 className="font-serif-display mt-4 text-4xl leading-[1.08] text-[#1d1a17] sm:text-5xl">{b.title}</h2>
+            <h2 className={`font-serif-display mt-4 leading-[1.08] text-[#1d1a17] ${sectionTitleClass(b.title, studio.typo.titleSize)}`}>{b.title}</h2>
             <div className="mt-6 space-y-4 text-lg leading-relaxed text-zinc-700">
               {paras(b.body).map((p, j) => (
                 <p key={j} className="whitespace-pre-line">

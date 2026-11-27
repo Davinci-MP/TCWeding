@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { saveUpload } from "@/lib/storage";
+import { saveUploadResponse } from "@/lib/storage";
 import { ALLOWED } from "@/lib/uploads";
 
 export async function POST(req: Request) {
@@ -16,6 +16,6 @@ export async function POST(req: Request) {
   if (file.size > rule.max)
     return NextResponse.json({ error: `File quá lớn (tối đa ${rule.max / 1024 / 1024}MB)` }, { status: 413 });
 
-  const url = await saveUpload(Buffer.from(await file.arrayBuffer()), rule.ext, file.type);
-  return NextResponse.json({ url });
+  const r = await saveUploadResponse(Buffer.from(await file.arrayBuffer()), rule.ext, file.type);
+  return "url" in r ? NextResponse.json({ url: r.url }) : NextResponse.json({ error: r.error }, { status: r.status });
 }

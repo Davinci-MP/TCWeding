@@ -1,5 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
+import { findFont } from "@/lib/fonts";
+import { isBodySize, isTitleSize, type BodySize, type TitleSize } from "@/lib/typo";
 
 /** Loại album. Thứ tự này cũng là thứ tự bộ lọc trên /bo-suu-tap. */
 export const ALBUM_CATEGORIES = [
@@ -140,7 +142,22 @@ export type StudioStep = { title: string; body: string };
 export type StudioFaq = { q: string; a: string };
 export const STEP_SLOTS = 4;
 export const FAQ_SLOTS = 8;
+/** Kiểu chữ toàn website: font tiêu đề / nội dung, cỡ tiêu đề đầu trang, cỡ tiêu đề mục, cỡ chữ nội dung. */
+export type StudioTypo = { headingFont: string; bodyFont: string; heroSize: TitleSize; titleSize: TitleSize; bodySize: BodySize };
+export const TYPO_DEFAULTS: StudioTypo = { headingFont: "Cormorant Garamond", bodyFont: "Be Vietnam Pro", heroSize: "auto", titleSize: "auto", bodySize: "md" };
+export function cleanTypo(t: Partial<StudioTypo> | undefined): StudioTypo {
+  const d = TYPO_DEFAULTS;
+  return {
+    headingFont: t?.headingFont && findFont(t.headingFont) ? t.headingFont : d.headingFont,
+    bodyFont: t?.bodyFont && findFont(t.bodyFont) ? t.bodyFont : d.bodyFont,
+    heroSize: isTitleSize(t?.heroSize) ? t.heroSize : d.heroSize,
+    titleSize: isTitleSize(t?.titleSize) ? t.titleSize : d.titleSize,
+    bodySize: isBodySize(t?.bodySize) ? t.bodySize : d.bodySize,
+  };
+}
+
 export type StudioContent = {
+  typo: StudioTypo;
   /** Tiêu đề & mô tả hiện trên Google, Facebook, Zalo khi chia sẻ trang chủ. Trống = mặc định. */
   seoTitle: string;
   seoDescription: string;
@@ -176,6 +193,7 @@ export type StudioContent = {
 };
 
 export const STUDIO_DEFAULTS: StudioContent = {
+  typo: TYPO_DEFAULTS,
   seoTitle: "",
   seoDescription: "",
   footerText: "Chụp ảnh cưới, thiệp mời online và album cưới.",
@@ -235,6 +253,7 @@ export async function getStudio(): Promise<StudioContent> {
       steps: d.steps.map((x, i) => (Array.isArray(s.steps) ? { title: "", body: "", ...(s.steps[i] as Partial<StudioStep> | undefined) } : x)),
       faqs: d.faqs.map((x, i) => (Array.isArray(s.faqs) ? { q: "", a: "", ...(s.faqs[i] as Partial<StudioFaq> | undefined) } : x)),
       contact: { ...d.contact, ...s.contact },
+      typo: cleanTypo(s.typo),
     };
   } catch {
     return STUDIO_DEFAULTS;

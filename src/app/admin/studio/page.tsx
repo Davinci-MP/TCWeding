@@ -1,7 +1,24 @@
 import Link from "next/link";
 import { saveStudioAction } from "@/app/actions/studio";
+import { FontPicker } from "@/components/admin/FontPicker";
 import { ImageInput } from "@/components/admin/ImageInput";
 import { getStudio } from "@/lib/studio";
+import { BODY_SIZE_LABEL, TITLE_SIZE_LABEL } from "@/lib/typo";
+
+function Choice({ name, label, value, options }: { name: string; label: string; value: string; options: Record<string, string> }) {
+  return (
+    <label className="block text-sm">
+      <span className="font-medium">{label}</span>
+      <select name={name} defaultValue={value} className="input mt-1">
+        {Object.entries(options).map(([k, v]) => (
+          <option key={k} value={k}>
+            {v}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
 
 export const metadata = { title: "Nội dung trang chủ" };
 
@@ -37,8 +54,24 @@ export default async function AdminStudio({ searchParams }: { searchParams: Prom
 
       <form action={saveStudioAction} className="mt-6 space-y-6">
         <fieldset className="card space-y-4 p-5">
+          <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">Kiểu chữ toàn website</legend>
+          <p className="text-xs text-zinc-500">
+            Áp dụng cho trang chủ, Bộ sưu tập, Ghép album, Về tôi, Thiệp mời… (không đổi kiểu chữ bên trong mẫu thiệp). Tiêu đề dài tự thu nhỏ cho vừa màn hình; chọn cỡ chữ để chỉnh thêm.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FontPicker name="typo.headingFont" label="Font tiêu đề" defaultValue={s.typo.headingFont} kinds={["serif", "sans", "script"]} sample="Ảnh cưới giữ nguyên cách hai bạn nhìn nhau" />
+            <FontPicker name="typo.bodyFont" label="Font nội dung" defaultValue={s.typo.bodyFont} kinds={["sans", "serif"]} sample="Chụp ảnh cưới studio, ngoại cảnh và thiệp mời online." />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Choice name="typo.heroSize" label="Cỡ tiêu đề đầu trang" value={s.typo.heroSize} options={TITLE_SIZE_LABEL} />
+            <Choice name="typo.titleSize" label="Cỡ tiêu đề các mục" value={s.typo.titleSize} options={TITLE_SIZE_LABEL} />
+            <Choice name="typo.bodySize" label="Cỡ chữ nội dung" value={s.typo.bodySize} options={BODY_SIZE_LABEL} />
+          </div>
+        </fieldset>
+
+        <fieldset className="card space-y-4 p-5">
           <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">Phần mở đầu</legend>
-          <Text name="heroTitle" label="Tiêu đề lớn" value={s.heroTitle} max={120} hint="Từ đầu tiên in đứng, phần còn lại in nghiêng." />
+          <Text name="heroTitle" label="Tiêu đề lớn" value={s.heroTitle} max={120} hint="Từ đầu tiên in đứng, phần còn lại in nghiêng. Nên ngắn gọn (dưới 60 ký tự) để hiện trọn trên điện thoại; câu dài sẽ tự thu nhỏ." />
           <label className="block text-sm">
             <span className="font-medium">Câu giới thiệu</span>
             <textarea name="heroLead" defaultValue={s.heroLead} maxLength={300} rows={2} className="input mt-1" />
@@ -53,7 +86,7 @@ export default async function AdminStudio({ searchParams }: { searchParams: Prom
 
         <fieldset className="card space-y-4 p-5">
           <legend className="px-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">Về chúng tôi</legend>
-          <Text name="introTitle" label="Tiêu đề" value={s.introTitle} max={150} />
+          <Text name="introTitle" label="Tiêu đề" value={s.introTitle} max={150} hint="Nên dưới 80 ký tự; câu dài tự thu nhỏ." />
           <label className="block text-sm">
             <span className="font-medium">Nội dung</span>
             <span className="block text-xs text-zinc-500">Cách một dòng trống để xuống đoạn mới.</span>
