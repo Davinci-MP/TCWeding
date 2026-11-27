@@ -6,13 +6,19 @@
 // Việc khách quay lại trang chỉ để gợi mở popup; trạng thái tiền chỉ đổi khi chủ thiệp xác nhận.
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { appSupport, BANK_APPS, bankAppLogo, bankDeepLink, detectPlatform, type BankApp, type Platform } from "@/lib/bankApps";
+import { appOpenUrl, appSupport, autofillClaimUrl, BANK_APPS, bankAppLogo, detectPlatform, sendAutofillClaim, type BankApp, type Platform } from "@/lib/bankApps";
 import { BILL_MAX_BYTES, giftContent, giftSide, maskAccount, SIDE_LABEL, type GiftSide } from "@/lib/gifts";
 import { giftQrUrl, type GiftAccount } from "@/lib/invitation";
 import { Icon } from "./icons";
 import type { ViewMode } from "./motion";
 
-type Props = { gifts: GiftAccount[]; slug: string; mode: ViewMode; groomName: string; brideName: string };
+type Props = {
+  gifts: GiftAccount[];
+  slug: string;
+  mode: ViewMode;
+  groomName: string;
+  brideName: string;
+};
 
 type Step =
   | { kind: "banks"; gift: GiftAccount }
@@ -26,6 +32,7 @@ type Step =
 /** Lượt mở app đang chờ khách quay lại (giữ trong phiên để về đúng thiệp + đúng bên nhận). */
 type Pending = { giftId: string; appId: string; at: number; awaiting: boolean };
 const PENDING_TTL = 3 * 3600_000;
+const FAIL_HASH = "mung-cuoi-chua-cai-";
 const keyOf = (slug: string) => `tcw-gift:${slug}`;
 function readPending(slug: string): Pending | null {
   try {
@@ -143,6 +150,30 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
           ask();
         }, 400);
     }
+    // Android chưa cài app: intent quay về thiệp với #${FAIL_HASH}<app>
+    const onFailHash = () => {
+      const h = window.location.hash.slice(1);
+      if (!h.startsWith(FAIL_HASH)) return;
+      const app = BANK_APPS.find((a) => a.id === h.slice(FAIL_HASH.length));
+      history.replaceState(null, "", `${window.location.pathname}${window.location.search}#mung-cuoi`);
+      const p = readPending(slug);
+      const g = p ? findGift(p.giftId) : undefined;
+      if (p) writePending(slug, { ...p, awaiting: false });
+      if (!g || !app) return;
+      setTab(groupOf(g));
+      window.dispatchEvent(new Event("tcw:skip-gate"));
+      setStack([
+        { kind: "banks", gift: g },
+        {
+          kind: "qr",
+          gift: g,
+          app,
+          note: `Máy chưa cài ${app.name}. Hãy dùng mã QR hoặc sao chép số tài khoản bên dưới, hoặc chọn app khác.`,
+        },
+      ]);
+    };
+    onFailHash();
+    window.addEventListener("hashchange", onFailHash);
     const onVisible = () => document.visibilityState === "visible" && ask();
     const onShow = (e: PageTransitionEvent) => e.persisted && ask();
     document.addEventListener("visibilitychange", onVisible);
@@ -150,10 +181,26 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
     return () => {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("pageshow", onShow);
+      window.removeEventListener("hashchange", onFailHash);
     };
   }, [live, slug, findGift, groupOf]);
 
-  /** Khách chọn app ngân hàng của mình. */
+  /** Thông tin bên nhận đang chọn: đổi app gửi không bao giờ đổi STK nhận. */
+  const receiver = (gift: GiftAccount) => ({
+    bankCode: gift.bankCode,
+    accountNumber: gift.accountNumber,
+    accountName: gift.accountName,
+    content,
+  });
+  /** Link quay về thiệp khi máy Android chưa cài app (thay cho Play Store). */
+  const fallbackUrl = (app: BankApp) => (typeof window === "undefined" ? "" : `${window.location.origin}${window.location.pathname}${window.location.search}#${FAIL_HASH}${app.id}`);
+  /** Link mở app gắn vào thẻ <a>; trống khi không mở được (máy tính, app không có trên nền tảng, bản xem trước). */
+  const openHref = (gift: GiftAccount, app: BankApp) => (live && gift.accountNumber ? appOpenUrl(app, platform, fallbackUrl(app)) : "");
+
+  /**
+   * Khách chạm vào một app. Việc mở app do chính thẻ <a href> làm (trình duyệt coi là thao tác của khách, không qua trang
+   * trung gian, không chờ API / hẹn giờ). Ở đây chỉ: hiện bước QR, ghi lượt chờ quay lại, gửi yêu cầu điền sẵn ở chế độ nền.
+   */
   const chooseApp = (gift: GiftAccount, app: BankApp | undefined, reopen = false) => {
     const support = app ? appSupport(app, platform) : 0;
     const go = (s: Step) => (reopen ? replaceTop(() => s) : push(s));
@@ -162,41 +209,54 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
         kind: "qr",
         gift,
         app,
-        note: !app ? undefined : platform === "desktop" ? "Máy tính không mở được app ngân hàng. Hãy quét mã QR bằng app trên điện thoại." : !gift.bankCode ? "Tài khoản này chỉ có ảnh QR, hãy quét mã hoặc nhập tay." : `${app.name} chưa có trên loại điện thoại này. Hãy dùng mã QR hoặc sao chép số tài khoản.`,
+        note: !app
+          ? undefined
+          : platform === "desktop"
+            ? "Máy tính không mở được app ngân hàng. Hãy quét mã QR bằng app trên điện thoại."
+            : !gift.bankCode
+              ? "Tài khoản này chỉ có ảnh QR, hãy quét mã hoặc nhập tay."
+              : `${app.name} chưa có trên loại điện thoại này. Hãy dùng mã QR hoặc sao chép số tài khoản.`,
       });
       return;
     }
+    const ask = platform === "ios" ? " Nếu điện thoại hỏi “Mở trong " + app.name + "?”, chọn Mở." : "";
     go({
       kind: "qr",
       gift,
       app,
       note:
         support === 2
-          ? `Đang mở ${app.name}: số tài khoản, ngân hàng nhận và nội dung đã điền sẵn. Bạn tự nhập số tiền, kiểm tra tên người nhận rồi xác nhận trong app.`
-          : `Đang mở ${app.name}. App này chưa hỗ trợ điền sẵn: hãy quét mã QR (Lưu mã QR rồi chọn ảnh trong app) hoặc dán số tài khoản và nội dung bên dưới.`,
+          ? `Đang mở ${app.name}.${ask} Trong app, kiểm tra người nhận ${gift.accountName} · ${gift.bankName} · STK ${gift.accountNumber} đã được điền sẵn, tự nhập số tiền rồi xác nhận. Nếu app chưa điền sẵn, dùng mã QR hoặc sao chép bên dưới.`
+          : `Đang mở ${app.name}.${ask} App này không nhận thông tin điền sẵn: trong app, chọn Quét QR → chọn ảnh (biểu tượng thư viện ảnh) → chọn mã QR vừa lưu; hoặc dán số tài khoản và nội dung chuyển khoản bên dưới.`,
     });
     if (!live) return; // xem trước / demo: không mở app thật
-    writePending(slug, { giftId: gift.id, appId: app.id, at: Date.now(), awaiting: true });
+    writePending(slug, {
+      giftId: gift.id,
+      appId: app.id,
+      at: Date.now(),
+      awaiting: true,
+    });
+    sendAutofillClaim(autofillClaimUrl(app, platform, receiver(gift)));
     let left = false;
     const onHide = () => {
       if (document.visibilityState === "hidden") left = true;
     };
     document.addEventListener("visibilitychange", onHide);
-    window.location.href = bankDeepLink(app, platform, {
-      bankCode: gift.bankCode,
-      accountNumber: gift.accountNumber,
-      accountName: gift.accountName,
-      content,
-      returnUrl: `${window.location.origin}${window.location.pathname}${window.location.search}#mung-cuoi`,
-    });
-    // Sau 2,5 giây trang vẫn hiển thị → app không mở được: bỏ lượt chờ, giữ mã QR trên màn hình
+    // Sau 3 giây trang vẫn hiển thị → app không mở được (chưa cài, trình duyệt Zalo / Facebook chặn…): bỏ lượt chờ, giữ mã QR
     setTimeout(() => {
       document.removeEventListener("visibilitychange", onHide);
       if (left || document.visibilityState === "hidden") return;
       const p = readPending(slug);
       if (p?.awaiting && p.appId === app.id) writePending(slug, { ...p, awaiting: false });
-      replaceTop((s) => (s.kind === "qr" && s.app?.id === app.id ? { ...s, note: `Không mở được ${app.name} trên thiết bị này. Hãy dùng mã QR hoặc sao chép số tài khoản bên dưới.` } : s));
-    }, 2500);
+      replaceTop((s) =>
+        s.kind === "qr" && s.app?.id === app.id
+          ? {
+              ...s,
+              note: `Chưa mở được ${app.name} trên trình duyệt này (máy chưa cài app, hoặc đang mở thiệp trong Zalo / Facebook). Hãy dùng mã QR hoặc sao chép số tài khoản bên dưới, hoặc mở thiệp bằng Safari / Chrome rồi thử lại.`,
+            }
+          : s,
+      );
+    }, 3000);
   };
 
   /** Gửi bill (chỉ ở bước Xem lại). Mã yêu cầu giữ nguyên trong cả lần mở popup → gửi lại không tạo dòng trùng. */
@@ -281,7 +341,7 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
 
       {step && (
         <Sheet onClose={close} onBack={canBack ? (stack.length > 1 ? back : close) : undefined} heading={STEP_HEADING[step.kind]}>
-          {step.kind === "banks" && <BankPicker gift={step.gift} platform={platform} onPick={(a) => chooseApp(step.gift, a)} />}
+          {step.kind === "banks" && <BankPicker gift={step.gift} platform={platform} hrefOf={(a) => openHref(step.gift, a)} onPick={(a) => chooseApp(step.gift, a)} />}
           {step.kind === "qr" && (
             <QrPanel
               gift={step.gift}
@@ -289,6 +349,7 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
               note={step.note}
               content={content}
               live={live}
+              reopenHref={step.app ? openHref(step.gift, step.app) : ""}
               onReopen={step.app && platform !== "desktop" && appSupport(step.app, platform) > 0 ? () => chooseApp(step.gift, step.app, true) : undefined}
               onDone={() => push({ kind: "ask", gift: step.gift, app: step.app })}
             />
@@ -298,10 +359,18 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
               <p className="text-sm text-[var(--muted)]">
                 Tiền mừng gửi tới <b className="text-[var(--text)]">{sideTitle(step.gift)}</b> · {step.gift.bankName} · {step.gift.accountName}
               </p>
-              <button type="button" onClick={() => startBill(step.gift, step.app)} className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-5 font-semibold text-[var(--on-primary)]">
+              <button
+                type="button"
+                onClick={() => startBill(step.gift, step.app)}
+                className="flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--primary)] px-5 font-semibold text-[var(--on-primary)]"
+              >
                 <Icon name="check" size={18} /> Đã chuyển khoản · Gửi bill
               </button>
-              <button type="button" onClick={() => setStack([{ kind: "thanks" }])} className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded-full border border-[var(--primary)]/40 px-5 font-semibold text-[var(--primary)]">
+              <button
+                type="button"
+                onClick={() => setStack([{ kind: "thanks" }])}
+                className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded-full border border-[var(--primary)]/40 px-5 font-semibold text-[var(--primary)]"
+              >
                 Mừng tại đám cưới
               </button>
               <p className="text-center text-xs text-[var(--muted)]">Cô dâu chú rể sẽ tự đối chiếu với tài khoản ngân hàng.</p>
@@ -350,16 +419,22 @@ function AccountCard({ gift, content, children }: { gift: GiftAccount; content: 
   const qr = giftQrUrl(gift, content);
   return (
     <div className="rounded-3xl border border-[var(--primary)]/20 bg-[var(--surface)] p-7 text-center shadow-[0_20px_60px_-30px_rgba(0,0,0,.3)]">
-      <p data-tf={`gift.${gift.id}.label`} className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--primary)]">{gift.label || sideTitle(gift)}</p>
+      <p data-tf={`gift.${gift.id}.label`} className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--primary)]">
+        {gift.label || sideTitle(gift)}
+      </p>
       {qr && (
         <div className="mx-auto mt-5 w-44 rounded-2xl bg-white p-3 shadow-inner">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={qr} alt={`Mã QR chuyển khoản ${gift.bankName}`} className="aspect-square w-full object-contain" loading="lazy" />
         </div>
       )}
-      <p data-tf={`gift.${gift.id}.bankName`} className="mt-5 text-sm text-[var(--muted)]">{gift.bankName}</p>
+      <p data-tf={`gift.${gift.id}.bankName`} className="mt-5 text-sm text-[var(--muted)]">
+        {gift.bankName}
+      </p>
       <AccountNumber gift={gift} className="mt-1" />
-      <p data-tf={`gift.${gift.id}.accountName`} className="mt-1 text-sm uppercase tracking-wider">{gift.accountName}</p>
+      <p data-tf={`gift.${gift.id}.accountName`} className="mt-1 text-sm uppercase tracking-wider">
+        {gift.accountName}
+      </p>
       {children}
     </div>
   );
@@ -401,7 +476,12 @@ function Sheet({ heading, onBack, onClose, children }: { heading: string; onBack
   }, [onClose]);
   return (
     <div className="fixed inset-0 z-[95] flex items-end justify-center bg-black/55 sm:items-center sm:p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div role="dialog" aria-modal="true" aria-label={`Mừng Cưới: ${heading}`} className="tpl-gift-sheet flex max-h-[92svh] w-full max-w-md sm:max-w-lg flex-col overflow-hidden rounded-t-3xl bg-[var(--bg)] text-[var(--text)] shadow-2xl sm:rounded-3xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Mừng Cưới: ${heading}`}
+        className="tpl-gift-sheet flex max-h-[92svh] w-full max-w-md sm:max-w-lg flex-col overflow-hidden rounded-t-3xl bg-[var(--bg)] text-[var(--text)] shadow-2xl sm:rounded-3xl"
+      >
         <div className="flex items-center gap-1 border-b border-[var(--muted)]/20 py-2 pl-2 pr-3">
           {onBack ? (
             <button type="button" onClick={onBack} className="flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-full px-3 text-sm font-medium hover:bg-[var(--primary)]/10">
@@ -418,7 +498,9 @@ function Sheet({ heading, onBack, onClose, children }: { heading: string; onBack
             <Icon name="x" />
           </button>
         </div>
-        <div ref={bodyRef} className="overflow-y-auto overscroll-contain px-5 py-4">{children}</div>
+        <div ref={bodyRef} className="overflow-y-auto overscroll-contain px-5 py-4">
+          {children}
+        </div>
       </div>
     </div>
   );
@@ -426,7 +508,7 @@ function Sheet({ heading, onBack, onClose, children }: { heading: string; onBack
 
 /* ================================ Chọn app ngân hàng của khách ================================ */
 
-function BankPicker({ gift, platform, onPick }: { gift: GiftAccount; platform: Platform; onPick: (a: BankApp | undefined) => void }) {
+function BankPicker({ gift, platform, hrefOf, onPick }: { gift: GiftAccount; platform: Platform; hrefOf: (a: BankApp) => string; onPick: (a: BankApp | undefined) => void }) {
   const [q, setQ] = useState("");
   const apps = useMemo(() => {
     const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
@@ -439,20 +521,46 @@ function BankPicker({ gift, platform, onPick }: { gift: GiftAccount; platform: P
         Tiền mừng sẽ chuyển tới <b>{sideTitle(gift)}</b>: {gift.bankName} · <span className="tabular-nums">{gift.accountNumber}</span> · {gift.accountName}
       </p>
       <p className="text-sm text-[var(--muted)]">Chọn app ngân hàng bạn dùng để chuyển. App có dấu ⚡ sẽ điền sẵn số tài khoản và nội dung; bạn chỉ nhập số tiền.</p>
-      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm ngân hàng (vd: VCB, Techcombank)" aria-label="Tìm ngân hàng" className="min-h-11 w-full rounded-xl border border-[var(--muted)]/30 bg-[var(--surface)] px-4 text-base outline-none focus:border-[var(--primary)]" />
+      <input
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Tìm ngân hàng (vd: VCB, Techcombank)"
+        aria-label="Tìm ngân hàng"
+        className="min-h-11 w-full rounded-xl border border-[var(--muted)]/30 bg-[var(--surface)] px-4 text-base outline-none focus:border-[var(--primary)]"
+      />
       <ul className="grid grid-cols-3 gap-2">
         {apps.map((a) => {
           const s = appSupport(a, platform);
+          const href = hrefOf(a);
+          const cls =
+            "flex h-full min-h-24 w-full cursor-pointer flex-col items-center justify-start gap-1.5 rounded-2xl border border-[var(--muted)]/20 bg-[var(--surface)] p-2 text-center text-xs leading-tight text-[var(--text)] transition hover:border-[var(--primary)]";
+          const inner = (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={bankAppLogo(a.id, platform)} alt="" width={44} height={44} loading="lazy" className="h-11 w-11 rounded-xl" />
+              <span>
+                {a.name}
+                {s === 2 && (
+                  <span title="Điền sẵn thông tin" aria-label="điền sẵn">
+                    {" "}
+                    ⚡
+                  </span>
+                )}
+              </span>
+            </>
+          );
           return (
             <li key={a.id}>
-              <button type="button" onClick={() => onPick(a)} className="flex h-full min-h-24 w-full cursor-pointer flex-col items-center justify-start gap-1.5 rounded-2xl border border-[var(--muted)]/20 bg-[var(--surface)] p-2 text-center text-xs leading-tight transition hover:border-[var(--primary)]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={bankAppLogo(a.id, platform)} alt="" width={44} height={44} loading="lazy" className="h-11 w-11 rounded-xl" />
-                <span>
-                  {a.name}
-                  {s === 2 && <span title="Điền sẵn thông tin" aria-label="điền sẵn"> ⚡</span>}
-                </span>
-              </button>
+              {href ? (
+                // Một chạm mở app ngay: link mở app đã chuẩn bị sẵn trong href, trình duyệt tự mở khi chạm
+                <a href={href} onClick={() => onPick(a)} className={cls}>
+                  {inner}
+                </a>
+              ) : (
+                <button type="button" onClick={() => onPick(a)} className={cls}>
+                  {inner}
+                </button>
+              )}
             </li>
           );
         })}
@@ -467,12 +575,30 @@ function BankPicker({ gift, platform, onPick }: { gift: GiftAccount; platform: P
 
 /* ================================ Mã QR + sao chép ================================ */
 
-function QrPanel({ gift, app, note, content, live, onReopen, onDone }: { gift: GiftAccount; app?: BankApp; note?: string; content: string; live: boolean; onReopen?: () => void; onDone: () => void }) {
+function QrPanel({
+  gift,
+  app,
+  note,
+  content,
+  live,
+  reopenHref,
+  onReopen,
+  onDone,
+}: {
+  gift: GiftAccount;
+  app?: BankApp;
+  note?: string;
+  content: string;
+  live: boolean;
+  reopenHref: string;
+  onReopen?: () => void;
+  onDone: () => void;
+}) {
   const qr = giftQrUrl(gift, content);
   const [msg, setMsg] = useState("");
   const flash = (t: string) => {
     setMsg(t);
-    setTimeout(() => setMsg(""), 2000);
+    setTimeout(() => setMsg(""), 2500);
   };
   const saveQr = async () => {
     try {
@@ -482,22 +608,42 @@ function QrPanel({ gift, app, note, content, live, onReopen, onDone }: { gift: G
         if (!r.ok) throw new Error();
         return r.blob();
       });
+      const name = `qr-mung-cuoi-${gift.accountNumber || "tcwedding"}.png`;
+      // Điện thoại: mở bảng chia sẻ để chọn "Lưu hình ảnh" (vào thư viện Ảnh — nơi app ngân hàng chọn ảnh QR)
+      const file = new File([blob], name, { type: blob.type || "image/png" });
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: "Mã QR mừng cưới" });
+          return flash("Chọn “Lưu hình ảnh” để lưu mã QR vào Ảnh");
+        } catch (e) {
+          if ((e as Error).name === "AbortError") return;
+        }
+      }
       const url = URL.createObjectURL(blob);
-      const a = Object.assign(document.createElement("a"), { href: url, download: `qr-mung-cuoi-${gift.accountNumber || "tcwedding"}.png` });
-      a.click();
+      Object.assign(document.createElement("a"), {
+        href: url,
+        download: name,
+      }).click();
       setTimeout(() => URL.revokeObjectURL(url), 2000);
       flash("Đã lưu mã QR");
     } catch {
       window.open(qr, "_blank", "noopener");
-      flash("Nhấn giữ ảnh QR để lưu vào máy");
+      flash("Nhấn giữ ảnh QR rồi chọn Lưu vào Ảnh");
     }
   };
+  const outline = "flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-full border-2 border-[var(--primary)] px-4 font-semibold text-[var(--primary)]";
   return (
     <div className="space-y-3 text-center">
       {note && <p className="rounded-2xl bg-[var(--surface)] p-3 text-left text-sm">{note}</p>}
       {!live && app && <p className="text-xs text-[var(--muted)]">Bản xem trước: không mở app thật.</p>}
+      {/* Mở lại app: thẻ <a> thật để mở ngay trong lần chạm (kể cả app không điền sẵn như VCB Digibank) */}
+      {app && reopenHref && onReopen && (
+        <a href={reopenHref} onClick={onReopen} className={outline}>
+          Mở lại {app.name}
+        </a>
+      )}
       {qr ? (
-        <div className="mx-auto w-56 rounded-2xl bg-white p-3 shadow-inner">
+        <div className="mx-auto w-56 max-w-full rounded-2xl bg-white p-3 shadow-inner">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={qr} alt={`Mã VietQR chuyển khoản tới ${gift.accountName}`} className="aspect-square w-full object-contain" />
         </div>
@@ -516,21 +662,16 @@ function QrPanel({ gift, app, note, content, live, onReopen, onDone }: { gift: G
       </div>
       <div className="grid grid-cols-1 gap-2">
         {qr && (
-          <button type="button" onClick={saveQr} className="min-h-11 cursor-pointer rounded-full border border-[var(--primary)]/40 font-semibold text-[var(--primary)]">
+          <button type="button" onClick={saveQr} className={outline}>
             Lưu mã QR
           </button>
         )}
-        <button type="button" onClick={async () => flash((await copy(gift.accountNumber)) ? "Đã sao chép số tài khoản" : "Không sao chép được, hãy chép tay")} className="min-h-11 cursor-pointer rounded-full border border-[var(--primary)]/40 font-semibold text-[var(--primary)]">
-          Sao chép số tài khoản
+        <button type="button" onClick={async () => flash((await copy(gift.accountNumber)) ? "Đã sao chép số tài khoản" : "Không sao chép được, hãy chép tay")} className={outline}>
+          Sao chép STK
         </button>
-        <button type="button" onClick={async () => flash((await copy(content)) ? "Đã sao chép nội dung chuyển khoản" : "Không sao chép được, hãy chép tay")} className="min-h-11 cursor-pointer rounded-full border border-[var(--primary)]/40 font-semibold text-[var(--primary)]">
-          Sao chép nội dung chuyển khoản
+        <button type="button" onClick={async () => flash((await copy(content)) ? "Đã sao chép nội dung chuyển khoản" : "Không sao chép được, hãy chép tay")} className={outline}>
+          Sao chép nội dung
         </button>
-        {onReopen && app && (
-          <button type="button" onClick={onReopen} className="min-h-11 cursor-pointer text-sm text-[var(--muted)] underline">
-            Mở lại {app.name}
-          </button>
-        )}
       </div>
       <p aria-live="polite" className="min-h-5 text-sm text-[var(--primary)]">
         {msg}
@@ -549,7 +690,10 @@ async function compressBill(file: File): Promise<Blob> {
   const bmp = await createImageBitmap(file).catch(() => null);
   if (!bmp) return file;
   const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
-  const canvas = Object.assign(document.createElement("canvas"), { width: Math.round(bmp.width * scale), height: Math.round(bmp.height * scale) });
+  const canvas = Object.assign(document.createElement("canvas"), {
+    width: Math.round(bmp.width * scale),
+    height: Math.round(bmp.height * scale),
+  });
   const ctx = canvas.getContext("2d");
   if (!ctx) return file;
   ctx.fillStyle = "#fff";
@@ -583,7 +727,18 @@ function newDraft(bank: string, content: string): BillDraft {
   try {
     name = localStorage.getItem("tcw-guest-name") ?? "";
   } catch {}
-  return { requestId: newRequestId(), file: null, preview: "", senderName: name, senderBank: bank, senderAccount: "", transferAt: "", amount: "", content, txnCode: "" };
+  return {
+    requestId: newRequestId(),
+    file: null,
+    preview: "",
+    senderName: name,
+    senderBank: bank,
+    senderAccount: "",
+    transferAt: "",
+    amount: "",
+    content,
+    txnCode: "",
+  };
 }
 
 const fmtAmount = (raw: string) => {
@@ -653,7 +808,9 @@ function BillForm({ gift, draft, setDraft, onReview }: { gift: GiftAccount; draf
         />
         {draft.preview && <span className="text-xs text-[var(--primary)] underline">Đổi ảnh khác</span>}
       </label>
-      <p className="rounded-xl bg-[var(--surface)] p-2 text-left text-xs text-[var(--muted)]">Hệ thống chưa tự đọc chữ trên ảnh: bạn nhập các thông tin có trên bill. Trường nào bill không có thì để trống.</p>
+      <p className="rounded-xl bg-[var(--surface)] p-2 text-left text-xs text-[var(--muted)]">
+        Hệ thống chưa tự đọc chữ trên ảnh: bạn nhập các thông tin có trên bill. Trường nào bill không có thì để trống.
+      </p>
       <BillField label="Tên người gửi *">
         <input value={draft.senderName} onChange={(e) => set("senderName", e.target.value)} maxLength={80} autoComplete="name" placeholder="Vd: Anh Nam & chị Lan" className={inputCls} />
       </BillField>
@@ -663,7 +820,15 @@ function BillForm({ gift, draft, setDraft, onReview }: { gift: GiftAccount; draf
           <input value={draft.senderBank} onChange={(e) => set("senderBank", e.target.value)} maxLength={60} className={inputCls} />
         </BillField>
         <BillField label="STK gửi">
-          <input value={draft.senderAccount} onChange={(e) => set("senderAccount", e.target.value.replace(/[^\d\s]/g, ""))} inputMode="numeric" autoComplete="off" maxLength={30} placeholder="Chỉ lưu 4 số cuối" className={`${inputCls} tabular-nums`} />
+          <input
+            value={draft.senderAccount}
+            onChange={(e) => set("senderAccount", e.target.value.replace(/[^\d\s]/g, ""))}
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={30}
+            placeholder="Chỉ lưu 4 số cuối"
+            className={`${inputCls} tabular-nums`}
+          />
         </BillField>
         <BillField label="Ngày giờ chuyển">
           <input type="datetime-local" value={draft.transferAt} onChange={(e) => set("transferAt", e.target.value)} className={inputCls} />
@@ -721,7 +886,12 @@ function ReviewPanel({ gift, draft, sending, error, onBack, onSend }: { gift: Gi
         </p>
       )}
       <div className="grid grid-cols-2 gap-2">
-        <button type="button" onClick={onBack} disabled={sending} className="min-h-12 cursor-pointer rounded-full border border-[var(--primary)]/40 font-semibold text-[var(--primary)] disabled:opacity-50">
+        <button
+          type="button"
+          onClick={onBack}
+          disabled={sending}
+          className="min-h-12 cursor-pointer rounded-full border border-[var(--primary)]/40 font-semibold text-[var(--primary)] disabled:opacity-50"
+        >
           Quay lại
         </button>
         <button type="button" onClick={onSend} disabled={sending} className="min-h-12 cursor-pointer rounded-full bg-[var(--primary)] font-semibold text-[var(--on-primary)] disabled:opacity-60">
