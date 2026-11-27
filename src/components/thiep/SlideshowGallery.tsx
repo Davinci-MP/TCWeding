@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { DEMO_COUPLE } from "@/lib/invitation";
 import { SLIDE_DEMO_PHOTOS, SLIDE_MOTIONS, SLIDE_SCRIPTS, SLIDE_STYLES, type SlideStyle } from "@/lib/thiep";
 import { Icon } from "@/templates/icons";
 import { patchDraft } from "./draftStore";
@@ -154,7 +155,7 @@ function PreviewCard({ s, names, onPlay, onPick }: { s: SlideStyle; names: strin
 }
 
 /** Mục Slideshow tiệc cưới trên trang chủ: lọc theo kịch bản / chuyển cảnh, xem toàn màn hình, chọn mẫu để đặt làm. */
-export function SlideshowGallery({ names = "Minh Quân & Thanh Hà" }: { names?: string }) {
+export function SlideshowGallery({ names = DEMO_COUPLE.pair }: { names?: string }) {
   const [script, setScript] = useState("");
   const [motion, setMotion] = useState("");
   const [count, setCount] = useState(8);

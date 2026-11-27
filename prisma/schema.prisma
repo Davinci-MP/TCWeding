@@ -125,10 +125,35 @@ model OrderMessage {
 // Cấu hình mẫu thiệp do admin chỉnh (bật/tắt, premium, thứ tự).
 // Giao diện của mẫu nằm trong code: src/templates/registry.ts
 model TemplateConfig {
-  id        String  @id
-  isActive  Boolean @default(true)
-  isPremium Boolean @default(false)
-  sortOrder Int     @default(0)
+  id           String  @id
+  isActive     Boolean @default(true)
+  isPremium    Boolean @default(false)
+  sortOrder    Int     @default(0)
+  /// Ảnh bìa riêng của mẫu trong kho (đặt vào ô ảnh bìa của phần đầu thiệp khi render thumbnail). Trống = ảnh demo mặc định.
+  coverUrl     String  @default("")
+  /// Cách căn ảnh bìa (JSON ImgFrame, src/lib/imageFrame.ts).
+  coverFrame   String  @default("")
+  /// Các ảnh bìa trước đó để khôi phục (JSON [{url, frame, at}], mới nhất trước, tối đa 10).
+  coverHistory String  @default("[]")
+  /// Bản giới thiệu đã duyệt đang dùng cho "Xem mẫu" (TemplateShowcase.id). Trống = bản demo mặc định.
+  showcaseId   String  @default("")
+}
+
+/// Bản giới thiệu của một mẫu, tạo từ thiệp admin làm hộ: chỉ lấy THIẾT KẾ (mẫu, màu, font, hiệu ứng, phần hiển thị),
+/// nội dung dựng từ dữ liệu demo + ảnh studio được phép công khai. Không chứa tên thật, ảnh riêng, địa chỉ, bản đồ,
+/// khách mời, lời chúc, STK / VietQR / bill của khách.
+model TemplateShowcase {
+  id                 String   @id @default(cuid())
+  templateId         String
+  /// Thiệp gốc (chỉ để admin truy vết, không bao giờ trả ra trang công khai).
+  sourceInvitationId String   @default("")
+  /// JSON InvitationData đã làm sạch.
+  data               String
+  status             String   @default("DRAFT") // DRAFT | PUBLISHED
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([templateId])
 }
 
 // Cài đặt chung của hệ thống do admin chỉnh (bảng giá…). value là JSON.

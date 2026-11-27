@@ -280,14 +280,28 @@ export const DEMO_PHOTOS = {
 export type DemoPhotoKey = keyof typeof DEMO_PHOTOS;
 const P = (k: DemoPhotoKey, w?: number) => unsplash(DEMO_PHOTOS[k], w);
 
+/**
+ * Tên demo dùng chung cho MỌI mẫu thiệp (ảnh xem thử, bản demo, slideshow, bản giới thiệu, mẫu thêm sau này).
+ * Đổi ở đây là đổi toàn bộ. Thiệp khách hàng không dùng hằng này (lấy tên trong dữ liệu của chính thiệp).
+ */
+export const DEMO_COUPLE = {
+  groom: "Thành Công",
+  bride: "Võ Thùy",
+  /** Khi hiện chung: chú rể trước. */
+  pair: "Thành Công & Võ Thùy",
+  /** Tên chủ tài khoản minh hoạ (không dấu, viết hoa như trên app ngân hàng). */
+  groomAccount: "THANH CONG",
+  brideAccount: "VO THUY",
+} as const;
+
 /** Dữ liệu mẫu để xem trước các mẫu thiệp. `cover` cho phép mỗi mẫu dùng ảnh bìa riêng. */
 export function demoInvitationData(cover: DemoPhotoKey = "coupleClose"): InvitationData {
   const d = defaultInvitationData();
   return {
     ...d,
     groom: {
-      name: "Minh Quân",
-      fullName: "Nguyễn Minh Quân",
+      name: DEMO_COUPLE.groom,
+      fullName: DEMO_COUPLE.groom,
       father: "Ông Nguyễn Văn Hùng",
       mother: "Bà Trần Thị Lan",
       address: "Phường Ngọc Hà, Ba Đình, Hà Nội",
@@ -295,8 +309,8 @@ export function demoInvitationData(cover: DemoPhotoKey = "coupleClose"): Invitat
       photo: P("coupleLaugh", 800),
     },
     bride: {
-      name: "Thu Hà",
-      fullName: "Lê Thu Hà",
+      name: DEMO_COUPLE.bride,
+      fullName: DEMO_COUPLE.bride,
       father: "Ông Lê Văn Phúc",
       mother: "Bà Phạm Thị Mai",
       address: "Phường Hàng Bạc, Hoàn Kiếm, Hà Nội",
@@ -376,8 +390,8 @@ export function demoInvitationData(cover: DemoPhotoKey = "coupleClose"): Invitat
       { id: "f3", q: "Nên đến lúc mấy giờ?", a: "Bạn có thể đến từ 10:30 để chụp ảnh cùng cô dâu chú rể trước khi làm lễ." },
     ],
     gifts: [
-      { id: "b1", label: "Mừng cưới chú rể", bankCode: "VCB", bankName: "Vietcombank", accountNumber: "0123456789", accountName: "NGUYEN MINH QUAN", qrImage: "" },
-      { id: "b2", label: "Mừng cưới cô dâu", bankCode: "TCB", bankName: "Techcombank", accountNumber: "1903456789", accountName: "LE THU HA", qrImage: "" },
+      { id: "b1", label: "Mừng cưới chú rể", bankCode: "VCB", bankName: "Vietcombank", accountNumber: "0123456789", accountName: DEMO_COUPLE.groomAccount, qrImage: "" },
+      { id: "b2", label: "Mừng cưới cô dâu", bankCode: "TCB", bankName: "Techcombank", accountNumber: "1903456789", accountName: DEMO_COUPLE.brideAccount, qrImage: "" },
     ],
     thankYouPhoto: P("coupleSunset", 1600),
     closingText: "Sự hiện diện của bạn là món quà ý nghĩa nhất với chúng mình. Hẹn gặp bạn trong ngày vui!",

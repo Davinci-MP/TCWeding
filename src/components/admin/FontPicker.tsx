@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { DEMO_COUPLE } from "@/lib/invitation";
 import { FONT_KIND_LABEL, FONTS, fontFamily, googleFontsUrl, type FontKind } from "@/lib/fonts";
 
 /** Tải CSS Google Fonts của một font để xem trước (mỗi font chỉ tải một lần). */
@@ -36,7 +37,7 @@ type Props = {
 };
 
 /** Chọn font từ danh sách có hỗ trợ tiếng Việt, kèm dòng chữ xem trước bằng chính font đó. */
-export function FontPicker({ label, value, defaultValue = "", onChange, name, kinds = ["serif", "sans", "script"], defaultLabel, defaultFont = "", sample = "Minh Khang & Bảo Ngọc — Trân trọng kính mời", hint, compact }: Props) {
+export function FontPicker({ label, value, defaultValue = "", onChange, name, kinds = ["serif", "sans", "script"], defaultLabel, defaultFont = "", sample = `${DEMO_COUPLE.pair} — Trân trọng kính mời`, hint, compact }: Props) {
   const [inner, setInner] = useState(defaultValue);
   const current = value ?? inner;
   const preview = current || defaultFont;

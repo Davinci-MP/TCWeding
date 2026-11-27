@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { DEMO_COUPLE } from "@/lib/invitation";
 import { getTrackUrl } from "@/templates/music/synth";
 import { TRACKS } from "@/templates/music/tracks";
 import { downloadBlob, ensureFonts, pickVideoFormat, recordCanvas, slugifyVi } from "@/lib/videoRecorder";
@@ -279,11 +280,11 @@ export function SlideshowStudio({ library }: { library: LibraryTrack[] }) {
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
               <span className="label">Chú rể</span>
-              <input className="input" value={text.groom} onChange={setField("groom")} maxLength={40} placeholder="Minh Khang" />
+              <input className="input" value={text.groom} onChange={setField("groom")} maxLength={40} placeholder={DEMO_COUPLE.groom} />
             </label>
             <label className="block">
               <span className="label">Cô dâu</span>
-              <input className="input" value={text.bride} onChange={setField("bride")} maxLength={40} placeholder="Thu Trang" />
+              <input className="input" value={text.bride} onChange={setField("bride")} maxLength={40} placeholder={DEMO_COUPLE.bride} />
             </label>
           </div>
           <label className="block">
