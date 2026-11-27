@@ -34,6 +34,7 @@ model Invitation {
   updatedAt  DateTime @updatedAt
   rsvps      Rsvp[]
   wishes     Wish[]
+  gifts      GiftRecord[]
   order      Order?
 
   @@index([userId])
@@ -199,4 +200,43 @@ model TemplateFavorite {
 
   @@unique([visitorId, templateId])
   @@index([templateId])
+}
+
+/// Tiền mừng online khách tự báo (gửi bill). Chủ thiệp đối chiếu với app ngân hàng rồi xác nhận / từ chối.
+/// Chỉ dòng CONFIRMED được cộng vào tổng.
+model GiftRecord {
+  id                  String     @id @default(cuid())
+  invitationId        String
+  invitation          Invitation @relation(fields: [invitationId], references: [id], onDelete: Cascade)
+  /// Mã yêu cầu do trình duyệt tạo khi mở form: gửi lại (mất mạng, bấm 2 lần) không sinh dòng trùng
+  requestId           String
+  /// Mã link ngắn /b/<code> để xem bill (chỉ chủ thiệp / người quản lý thiệp mở được)
+  code                String     @unique
+  side                String     @default("") // GROOM | BRIDE | ""
+  giftAccountId       String     @default("")
+  receiverLabel       String     @default("") // vd "Nhà gái · Vietcombank · LE THU HA"
+  senderName          String
+  senderBank          String     @default("")
+  senderAccountMasked String     @default("") // chỉ lưu dạng đã che, vd ••••6789
+  transferAt          String     @default("") // ngày giờ trên bill (khách nhập), có thể trống
+  content             String     @default("")
+  amount              Int?
+  txnCode             String     @default("")
+  status              String     @default("PENDING") // PENDING | CONFIRMED | REJECTED
+  reviewedAt          DateTime?
+  bill                GiftBill?
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+
+  @@unique([invitationId, requestId])
+  @@index([invitationId, createdAt])
+}
+
+/// Ảnh bill lưu trong database (không đưa lên kho ảnh công khai) — chỉ phát qua /b/<code>/anh sau khi kiểm quyền.
+model GiftBill {
+  recordId  String     @id
+  record    GiftRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  mime      String
+  data      Bytes
+  createdAt DateTime   @default(now())
 }

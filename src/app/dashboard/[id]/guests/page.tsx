@@ -4,6 +4,8 @@ import { deleteRsvpAction, setWishHiddenAction } from "@/app/actions/invitations
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { getOwnedInvitation, requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { GiftTable } from "@/components/gifts/GiftTable";
+import { giftRows } from "@/lib/giftTable";
 
 export const metadata = { title: "Khách mời & lời chúc" };
 
@@ -17,9 +19,10 @@ export default async function GuestsPage({ params }: { params: Promise<{ id: str
   const user = await requireUser();
   const inv = await getOwnedInvitation((await params).id, user);
   if (!inv) notFound();
-  const [rsvps, wishes] = await Promise.all([
+  const [rsvps, wishes, gifts] = await Promise.all([
     db.rsvp.findMany({ where: { invitationId: inv.id }, orderBy: { createdAt: "desc" } }),
     db.wish.findMany({ where: { invitationId: inv.id }, orderBy: { createdAt: "desc" } }),
+    giftRows(inv.id),
   ]);
   const yes = rsvps.filter((r) => r.attending === "YES");
   const stats = [
@@ -54,6 +57,10 @@ export default async function GuestsPage({ params }: { params: Promise<{ id: str
             <div className="text-sm text-zinc-500">{l}</div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-10">
+        <GiftTable rows={gifts} back={`/dashboard/${inv.id}/guests`} csvHref={`/api/gifts/${inv.id}/csv`} />
       </div>
 
       <h2 className="mt-10 text-xl font-semibold">Xác nhận tham dự</h2>

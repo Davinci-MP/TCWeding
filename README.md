@@ -201,6 +201,16 @@ Một trang `/thiep`, điều hướng bằng `#` giống quocanhwedding.com/thi
 - **Thiệp:** tên cô dâu chú rể ở đầu thiệp tự thu nhỏ cho vừa màn hình điện thoại (`src/templates/fit.ts`). Trong trình soạn thiệp (tab Giao diện › Kiểu chữ) chọn font tiêu đề / viết tay / nội dung (danh sách font tiếng Việt ở `src/lib/fonts.ts`), cỡ chữ tên và cỡ chữ nội dung.
 - **Kiểu chữ riêng từng ô:** trong trình soạn thiệp, bấm vào chữ trên bản xem trước (hoặc nút **Aa** cạnh ô nhập) để chỉnh font và cỡ chữ (10–96 px) chỉ cho ô đó, ví dụ tên cô dâu, lời mời, địa điểm từng sự kiện. Nút **Dùng mặc định của mẫu** bỏ thiết lập riêng của ô. Dữ liệu lưu trong `fieldStyles` theo ID ổn định của ô (`src/lib/fieldTypo.ts`); trong mẫu, phần tử hiển thị ô mang `data-tf` (component `F` ở `src/templates/parts.tsx`). Ô chưa chỉnh dùng kiểu chữ chung ở trên; server chỉ nhận font trong danh sách và cỡ chữ trong giới hạn. Trên màn hình hẹp hơn 360px chữ tự co theo bề ngang.
 
+### Mừng cưới online (chưa nối API ngân hàng)
+
+- **Khách:** ở Hộp mừng cưới chọn tab **Nhà trai / Nhà gái** → **Mừng cưới ngay** → chọn app ngân hàng của mình. Thiệp mở app bằng deep link chính thức của VietQR (`dl.vietqr.io/pay`, danh sách app ở `src/lib/bankApps.ts`). App có ⚡ (MB Bank, VietinBank iPay, BIDV, ACB ONE, OCB OMNI) điền sẵn số tài khoản, ngân hàng nhận, nội dung; app khác chỉ mở lên. Số tiền khách tự nhập. Luôn có mã VietQR, **Lưu mã QR**, sao chép số tài khoản và nội dung.
+- **Quay lại thiệp:** hỏi “Bạn đã chuyển khoản chưa?” một lần cho mỗi lượt mở app (kể cả khi trang bị tải lại). Nút **Tôi đã chuyển khoản** luôn có trong hộp. “Mừng tại đám cưới” không tạo dòng nào.
+- **Gửi bill:** ảnh được nén trên máy khách, lưu trong database (bảng `GiftBill`, không đưa lên kho ảnh công khai). Chưa có OCR: khách nhập tay, trường nào bill không có thì để trống. STK người gửi chỉ lưu 4 số cuối. Gửi lại cùng yêu cầu (mất mạng) không tạo dòng trùng.
+- **Chủ thiệp:** bảng **Tiền mừng online** ở trang Khách mời của thiệp (`/dashboard/<id>/guests`) và trang đơn của cô dâu chú rể (`/don/<token>`). Dòng mới luôn **Chờ xác nhận**; đối chiếu với app ngân hàng rồi bấm **Xác nhận / Từ chối**. Chỉ dòng đã xác nhận được cộng vào tổng. **Xuất CSV** có cột ID bản ghi.
+- **Link bill `/b/<mã>`:** chỉ mở được bởi admin, tài khoản sở hữu thiệp, hoặc người đã mở link đơn của thiệp (cookie ký số, `src/lib/auth.ts`).
+- Chưa có đồng bộ Google Sheets.
+- Khi đưa lên Turso: chạy `npm run turso:push` để tạo bảng `GiftRecord`, `GiftBill`.
+
 ### Studio: bộ sưu tập, ghép album, bảng giá, về tôi, đặt lịch
 
 | Trang khách xem | Admin quản lý |
