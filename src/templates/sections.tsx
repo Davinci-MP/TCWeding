@@ -86,7 +86,7 @@ function ClassicCouple({ tpl, data }: P) {
       <div className="grid gap-16 @2xl:grid-cols-2 @2xl:gap-10 @4xl:gap-24">
         {people.map(({ role, p }, i) => (
           <Reveal key={role} variant={i ? "right" : "left"} className={`text-center ${i ? "@2xl:mt-24" : ""}`}>
-            <Frame shape={tpl.frame} src={p.photo} alt={`${role} ${p.name}`} caption={p.name} className="mx-auto w-[78%] max-w-[340px]" />
+            <Frame fk={p === data.groom ? "groom.photo" : "bride.photo"} shape={tpl.frame} src={p.photo} alt={`${role} ${p.name}`} caption={p.name} className="mx-auto w-[78%] max-w-[340px]" />
             <p className="mt-10 text-[11px] uppercase tracking-[0.4em] text-[var(--muted)]">{role}</p>
             <h3 className="tpl-script mt-1 text-5xl text-[var(--primary)]">{p.name}</h3>
             {p.bio && <p className="mx-auto mt-4 max-w-xs leading-relaxed text-[var(--muted)]"><F f={p === data.groom ? "groom.bio" : "bride.bio"}>{p.bio}</F></p>}
@@ -250,7 +250,7 @@ function ClassicStory({ tpl, data }: P) {
               <Reveal variant={flip ? "right" : "left"} className={flip ? "@3xl:order-2" : ""}>
                 <div className="relative overflow-hidden rounded-[1.75rem]">
                   <Parallax speed={0.08}>
-                    <Img src={st.photo} alt={st.title} className="aspect-[4/3] w-full" />
+                    <Img fk={`story.${st.id}`} src={st.photo} alt={st.title} className="aspect-[4/3] w-full" />
                   </Parallax>
                 </div>
               </Reveal>
@@ -273,7 +273,7 @@ export function FeaturePhoto({ src, title, subtitle, position }: { src: string; 
   return (
     <section className="relative flex h-[78svh] items-center justify-center overflow-hidden text-center text-white" aria-label={title}>
       <Parallax speed={0.18} className="absolute inset-0">
-        <Img src={src} alt="" className="h-full w-full" position={position} />
+        <Img src={src} alt="" className="h-full w-full" position={position} fk="feature" />
       </Parallax>
       <div className="absolute inset-0 bg-black/35" aria-hidden />
       <Reveal variant="blur" className="relative px-6">
@@ -338,7 +338,7 @@ export function ThankYou({ data, monogram }: P & { monogram: string }) {
   return (
     <footer className="relative flex min-h-[90svh] items-end justify-center overflow-hidden pb-28 text-center text-white">
       <Parallax speed={0.12} className="absolute inset-0">
-        <Img src={src} alt="" className="h-full w-full" position={pos} />
+        <Img src={src} alt="" className="h-full w-full" position={pos} fk={data.thankYouPhoto ? "thanks" : undefined} />
       </Parallax>
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10" aria-hidden />
       <Reveal variant="blur" className="relative max-w-lg px-6">

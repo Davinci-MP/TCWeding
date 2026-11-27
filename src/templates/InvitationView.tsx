@@ -9,7 +9,7 @@ import { Hero } from "./heroes";
 import type { IconName } from "./icons";
 import { Faq, FloatingDock, Gallery, GateFold, MusicButton, RsvpForm, useMusic, Wishes, type WishItem } from "./interactive";
 import { FallingEffect, isImmersive, Marquee, ModeContext, ScrollProgress, type ViewMode } from "./motion";
-import { formatDate, Section, SectionTitle, TplContext } from "./parts";
+import { FramesContext, formatDate, Section, SectionTitle, TplContext } from "./parts";
 import { resolveMusic } from "./music/tracks";
 import { useFitHeroNames } from "./fit";
 import { accessiblePrimary } from "./palettes";
@@ -78,6 +78,7 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
   // Ảnh thu nhỏ trong kho mẫu: chỉ cần phần đầu thiệp
   if (mode === "thumb") {
     return (
+      <FramesContext.Provider value={data.frames ?? {}}>
       <ModeContext.Provider value="thumb">
         <div ref={rootRef} style={style} className="tpl-root @container bg-[var(--bg)] text-[var(--text)]">
           <link rel="stylesheet" href={fontUrl(tpl)} precedence="default" />
@@ -86,6 +87,7 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
           <Hero tpl={tpl} data={data} />
         </div>
       </ModeContext.Provider>
+      </FramesContext.Provider>
     );
   }
 
@@ -101,6 +103,7 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
   ).filter((d) => d.show);
 
   return (
+    <FramesContext.Provider value={data.frames ?? {}}>
     <ModeContext.Provider value={mode}>
     <TplContext.Provider value={tpl}>
       <div ref={rootRef} style={style} data-text-scale={textScaled} data-gate={opened ? "open" : "closed"} className="tpl-root @container min-h-full overflow-x-clip bg-[var(--bg)] text-[var(--text)] antialiased">
@@ -208,5 +211,6 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
       </div>
     </TplContext.Provider>
     </ModeContext.Provider>
+    </FramesContext.Provider>
   );
 }

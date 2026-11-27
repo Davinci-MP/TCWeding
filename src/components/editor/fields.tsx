@@ -137,7 +137,8 @@ export function UploadButton({
   );
 }
 
-export function ImageField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+/** Ô ảnh. onFrame: mở bộ chỉnh ảnh (căn, thu phóng) cho vị trí hiển thị; framed: vị trí đã được căn thủ công. */
+export function ImageField({ label, value, onChange, onFrame, framed }: { label: string; value: string; onChange: (v: string) => void; onFrame?: () => void; framed?: boolean }) {
   return (
     <Field label={label}>
       <div className="flex items-center gap-3">
@@ -151,6 +152,11 @@ export function ImageField({ label, value, onChange }: { label: string; value: s
             <UploadButton accept="image/*" onUploaded={([u]) => onChange(u)}>
               Tải ảnh lên
             </UploadButton>
+            {value && onFrame && (
+              <button type="button" className="btn btn-outline" onClick={onFrame}>
+                Chỉnh ảnh{framed ? " ✓" : ""}
+              </button>
+            )}
             {value && (
               <button type="button" className="btn btn-outline" onClick={() => onChange("")}>
                 Xoá

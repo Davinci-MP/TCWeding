@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { FramedImg } from "@/components/FramedImg";
+import type { ImgFrame } from "@/lib/imageFrame";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/templates/icons";
 import { FlipBook } from "./FlipBook";
@@ -15,7 +17,10 @@ export type SampleCard = {
   ratio: number;
   single: boolean;
   cover: string;
+  coverFrame?: ImgFrame | null;
   pages: string[];
+  /** Cách căn từng trang (cùng thứ tự với pages). */
+  pageFrames?: (ImgFrame | null)[];
 };
 
 /** Lưới album mẫu; bấm một album để lật xem trong hộp thoại. `#<slug>` trên URL mở sẵn album đó. */
@@ -75,8 +80,7 @@ export function SampleGallery({ albums }: { albums: SampleCard[] }) {
                   style={{ aspectRatio: `${a.ratio}` }}
                 >
                   {a.cover && (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={a.cover} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    <FramedImg src={a.cover} frame={a.coverFrame} loading="lazy" className="h-full w-full" />
                   )}
                   <span className="absolute inset-y-0 left-0 w-3 bg-gradient-to-r from-black/30 to-transparent" aria-hidden />
                 </div>
@@ -107,7 +111,7 @@ export function SampleGallery({ albums }: { albums: SampleCard[] }) {
             </button>
           </div>
           <div className="flex flex-1 flex-col justify-center overflow-y-auto px-4 pb-6 sm:px-10">
-            <FlipBook pages={open.pages} ratio={open.ratio} title={open.title} single={open.single} />
+            <FlipBook pages={open.pages} frames={open.pageFrames} ratio={open.ratio} title={open.title} single={open.single} />
           </div>
           <div className="flex flex-wrap items-center justify-center gap-3 border-t border-white/10 px-4 py-4">
             <p className="text-sm text-white/60">Muốn album như thế này bằng ảnh của hai bạn?</p>

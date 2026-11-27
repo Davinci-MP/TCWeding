@@ -4,7 +4,7 @@ import { deleteAlbumAction, updateAlbumAction } from "@/app/actions/studio";
 import { AlbumPhotos } from "@/components/admin/AlbumPhotos";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { db } from "@/lib/db";
-import { ALBUM_CATEGORIES, ALBUM_SIZE_GROUPS, SAMPLE_STYLES, sizeLabel } from "@/lib/studio";
+import { ALBUM_CATEGORIES, ALBUM_SIZE_GROUPS, SAMPLE_STYLES, sizeLabel , sizeRatio, albumFrames } from "@/lib/studio";
 
 export const metadata = { title: "Sửa album" };
 
@@ -42,7 +42,14 @@ export default async function AdminAlbumEdit({ params, searchParams }: { params:
             ? `Mỗi ảnh là một trang album, lật theo thứ tự dưới đây; ảnh bìa là trang đầu. Nên dùng ảnh đúng tỉ lệ khổ ${sizeLabel(album.size)}. Thay đổi về ảnh được lưu ngay.`
             : "Ảnh hiện theo thứ tự dưới đây. Thay đổi về ảnh được lưu ngay."}
         </p>
-        <AlbumPhotos albumId={album.id} coverUrl={album.coverUrl} photos={album.photos.map((p) => ({ id: p.id, url: p.url, width: p.width, height: p.height }))} />
+        <AlbumPhotos
+          albumId={album.id}
+          coverUrl={album.coverUrl}
+          kind={sample ? "SAMPLE" : "COLLECTION"}
+          ratio={sizeRatio(album.size)}
+          frames={albumFrames(album.frames)}
+          photos={album.photos.map((p) => ({ id: p.id, url: p.url, width: p.width, height: p.height }))}
+        />
       </section>
 
       <form action={updateAlbumAction} className="card mt-6 space-y-4 p-5">

@@ -56,7 +56,7 @@ export function EditorialCouple({ tpl, data }: P) {
             <Reveal variant={i ? "right" : "left"} className={`@3xl:col-span-7 ${i ? "@3xl:order-2" : ""}`}>
               <div className="overflow-hidden">
                 <Parallax speed={0.06}>
-                  <Img src={p.photo} alt={`${role} ${p.name}`} className="aspect-[4/3] w-full grayscale-[.15]" />
+                  <Img fk={p === data.groom ? "groom.photo" : "bride.photo"} src={p.photo} alt={`${role} ${p.name}`} className="aspect-[4/3] w-full grayscale-[.15]" />
                 </Parallax>
               </div>
             </Reveal>
@@ -123,7 +123,7 @@ export function EditorialStory({ tpl, data }: P) {
               <p className="mt-2 text-sm uppercase tracking-[0.25em] text-[var(--muted)]"><F f={`story.${st.id}.date`}>{st.date}</F></p>
             </div>
             <div className="@3xl:col-span-8">
-              <Img src={st.photo} alt={st.title} className="aspect-[16/9] w-full" />
+              <Img fk={`story.${st.id}`} src={st.photo} alt={st.title} className="aspect-[16/9] w-full" />
               <p className="mt-5 max-w-xl leading-loose text-[var(--muted)]"><F f={`story.${st.id}.content`}>{st.content}</F></p>
             </div>
           </Reveal>
@@ -147,7 +147,7 @@ export function RomanticCouple({ tpl, data }: P) {
               i ? "-ml-10 rotate-3" : "-rotate-3"
             }`}
           >
-            <Img src={p.photo} alt={`${role} ${p.name}`} className="h-full w-full" />
+            <Img fk={p === data.groom ? "groom.photo" : "bride.photo"} src={p.photo} alt={`${role} ${p.name}`} className="h-full w-full" />
           </div>
         ))}
         <span className="tpl-script absolute bottom-2 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-[var(--primary)] text-3xl text-[var(--on-primary)] shadow-lg">
@@ -228,7 +228,7 @@ export function RomanticStory({ tpl, data }: P) {
         {data.story.map((st, i) => (
           <Reveal as="li" key={st.id} delay={i * 80} variant="zoom" className="relative">
             <div className="mx-auto h-40 w-40 overflow-hidden rounded-full border-[6px] border-[var(--bg)] shadow-lg ring-1 ring-[var(--primary)]/30">
-              <Img src={st.photo} alt={st.title} className="h-full w-full" />
+              <Img fk={`story.${st.id}`} src={st.photo} alt={st.title} className="h-full w-full" />
             </div>
             <div className="relative mt-4 rounded-3xl bg-[var(--bg)] px-6 py-5">
               <span className="inline-block rounded-full bg-[var(--primary)] px-4 py-1 text-xs text-[var(--on-primary)]"><F f={`story.${st.id}.date`}>{st.date}</F></span>
@@ -252,7 +252,7 @@ export function HeritageCouple({ tpl, data }: P) {
         {people(data).map(({ role, p, son }, i) => (
           <Reveal key={role} variant={i ? "right" : "left"}>
             <article className="h-full border-[3px] border-double border-[var(--primary)]/50 p-6 text-center">
-              <Frame shape={tpl.frame} src={p.photo} alt={`${role} ${p.name}`} caption={p.name} className="mx-auto w-[70%] max-w-[260px]" />
+              <Frame fk={p === data.groom ? "groom.photo" : "bride.photo"} shape={tpl.frame} src={p.photo} alt={`${role} ${p.name}`} caption={p.name} className="mx-auto w-[70%] max-w-[260px]" />
               <p className="mt-8 text-[11px] uppercase tracking-[0.45em] text-[var(--primary)]">{role}</p>
               <h3 className="tpl-heading mt-2 text-3xl uppercase tracking-[0.12em]"><F f={p === data.groom ? "groom.fullName" : "bride.fullName"}>{p.fullName || p.name}</F></h3>
               {(p.father || p.mother) && (
@@ -332,7 +332,7 @@ export function HeritageStory({ tpl, data }: P) {
         {data.story.map((st, i) => (
           <Reveal key={st.id} delay={i * 120} className="text-center">
             <div className="border-[3px] border-double border-[var(--primary)]/50 p-2">
-              <Img src={st.photo} alt={st.title} className="aspect-[4/5] w-full" />
+              <Img fk={`story.${st.id}`} src={st.photo} alt={st.title} className="aspect-[4/5] w-full" />
             </div>
             <p className="mt-5 text-[11px] uppercase tracking-[0.4em] text-[var(--primary)]"><F f={`story.${st.id}.date`}>{st.date}</F></p>
             <h3 className="tpl-heading mt-2 text-2xl uppercase tracking-[0.1em]"><F f={`story.${st.id}.title`}>{st.title}</F></h3>

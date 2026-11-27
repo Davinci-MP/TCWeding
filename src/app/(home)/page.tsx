@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FramedImg } from "@/components/FramedImg";
 import Link from "next/link";
 import { AlbumCard } from "@/components/studio/AlbumCard";
 import { ContactBlock } from "@/components/studio/Contact";
@@ -56,7 +57,7 @@ export default async function StudioHome() {
       <section className="relative isolate flex min-h-[calc(100svh-4rem)] items-end overflow-hidden bg-[#1d1a17] text-white">
         {heroImage && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={heroImage} alt="" fetchPriority="high" className="tpl-kenburns absolute inset-0 -z-10 h-full w-full object-cover" />
+          <FramedImg src={heroImage} frame={studio.heroImage ? studio.frames.hero : null} fetchPriority="high" className="tpl-kenburns absolute inset-0 -z-10 h-full w-full" />
         )}
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#1d1a17]/90 via-[#1d1a17]/35 to-[#1d1a17]/10" aria-hidden />
         <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[#1d1a17]/55 via-[#1d1a17]/10 to-transparent" aria-hidden />
@@ -105,7 +106,7 @@ export default async function StudioHome() {
           {introImage && (
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={introImage} alt="" loading="lazy" className="aspect-[4/5] w-full object-cover" />
+              <FramedImg src={introImage} frame={studio.introImage ? studio.frames.intro : null} loading="lazy" className="aspect-[4/5] w-full" />
               <span className="absolute -bottom-4 -right-4 -z-0 hidden h-full w-full border border-[#7b2d26]/30 lg:block" aria-hidden style={{ zIndex: -1 }} />
             </div>
           )}
@@ -174,7 +175,7 @@ export default async function StudioHome() {
                 <article key={i} className="group">
                   {s.image && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.image} alt="" loading="lazy" className="mb-6 aspect-[3/2] w-full object-cover" />
+                    <FramedImg src={s.image} frame={studio.frames[`service.${i}`]} loading="lazy" className="mb-6 aspect-[3/2] w-full" />
                   )}
                   <h3 className="font-serif-display border-t border-[#1d1a17]/20 pt-5 text-3xl text-[#1d1a17]">{s.title}</h3>
                   {s.body && <p className="mt-3 leading-relaxed text-zinc-600">{s.body}</p>}
@@ -294,7 +295,7 @@ export default async function StudioHome() {
                     <div className="aspect-[4/3] overflow-hidden bg-white/5">
                       {a.cover && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={a.cover.url} alt="" loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.04]" />
+                        <FramedImg src={a.cover.url} frame={a.frames.tile} loading="lazy" className="h-full w-full transition duration-700 group-hover:scale-[1.04]" />
                       )}
                     </div>
                     <p className="mt-4 text-[11px] uppercase tracking-[0.28em] text-white/50">{[sampleStyleLabel(a.category), sizeLabel(a.size)].filter(Boolean).join(" · ")}</p>

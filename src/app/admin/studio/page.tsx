@@ -2,6 +2,7 @@ import Link from "next/link";
 import { saveStudioAction } from "@/app/actions/studio";
 import { FontPicker } from "@/components/admin/FontPicker";
 import { ImageInput } from "@/components/admin/ImageInput";
+import { SITE_TARGETS } from "@/lib/frameTargets";
 import { getStudio } from "@/lib/studio";
 import { BODY_SIZE_LABEL, TITLE_SIZE_LABEL } from "@/lib/typo";
 
@@ -80,6 +81,9 @@ export default async function AdminStudio({ searchParams }: { searchParams: Prom
             name="heroImage"
             label="Ảnh nền"
             defaultValue={s.heroImage}
+            frameName="frames.hero"
+            frame={s.frames.hero ?? null}
+            targets={SITE_TARGETS.hero}
             hint="Ảnh ngang, chủ thể ở giữa hoặc lệch phải (chữ nằm góc trái dưới). Để trống: dùng ảnh bìa album nổi bật đầu tiên."
           />
         </fieldset>
@@ -92,7 +96,7 @@ export default async function AdminStudio({ searchParams }: { searchParams: Prom
             <span className="block text-xs text-zinc-500">Cách một dòng trống để xuống đoạn mới.</span>
             <textarea name="introBody" defaultValue={s.introBody} maxLength={2000} rows={5} className="input mt-1" />
           </label>
-          <ImageInput name="introImage" label="Ảnh" aspect="aspect-[4/5]" defaultValue={s.introImage} hint="Ảnh dọc 4:5. Để trống: dùng bìa một album khác." />
+          <ImageInput name="introImage" label="Ảnh" aspect="aspect-[4/5]" defaultValue={s.introImage} frameName="frames.intro" frame={s.frames.intro ?? null} targets={SITE_TARGETS.intro} hint="Ảnh dọc 4:5. Để trống: dùng bìa một album khác." />
           <div>
             <p className="text-sm font-medium">Con số nổi bật</p>
             <p className="text-xs text-zinc-500">Chỉ điền số thật, ví dụ “500+” và “cặp đôi đã chụp”. Để trống cả ba thì phần này được ẩn.</p>
@@ -120,7 +124,7 @@ export default async function AdminStudio({ searchParams }: { searchParams: Prom
                   <span className="font-medium">Mô tả</span>
                   <textarea name={`services.${i}.body`} defaultValue={sv.body} maxLength={300} rows={4} className="input mt-1" />
                 </label>
-                <ImageInput name={`services.${i}.image`} label="Ảnh (không bắt buộc)" defaultValue={sv.image} />
+                <ImageInput name={`services.${i}.image`} label="Ảnh (không bắt buộc)" defaultValue={sv.image} frameName={`frames.service.${i}`} frame={s.frames[`service.${i}`] ?? null} targets={SITE_TARGETS.service} />
               </div>
             ))}
           </div>

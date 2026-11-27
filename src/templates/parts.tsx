@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { FrameShape, LayoutFamily, Ornament, TemplateDef } from "./registry";
+import { frameAttrs, type FrameMap } from "@/lib/imageFrame";
 import { Reveal } from "./motion";
 
 /** Đánh dấu một ô nội dung để áp kiểu chữ riêng của ô (font/cỡ chữ, xem src/lib/fieldTypo.ts). */
@@ -161,6 +162,8 @@ export function OrnamentMark({ type, className = "" }: { type: Ornament; classNa
 
 /** Mẫu đang hiển thị — để các thành phần con chọn đúng hệ bố cục. */
 export const TplContext = createContext<TemplateDef | null>(null);
+/** Cách căn ảnh thủ công của thiệp (data.frames, khoá theo vị trí). Img đọc theo prop fk. */
+export const FramesContext = createContext<FrameMap>({});
 export const useLayout = (): LayoutFamily => useContext(TplContext)?.layout ?? "classic";
 
 /** Tiêu đề mục — mỗi hệ bố cục có cách trình bày riêng. */
@@ -383,7 +386,11 @@ export function Section({
   );
 }
 
-/** Ảnh: hiện mờ dần khi tải xong, có nền giữ chỗ để tránh giật layout. */
+/**
+ * Ảnh: hiện mờ dần khi tải xong, có nền giữ chỗ để tránh giật layout.
+ * fk: khoá vị trí trong data.frames (cách căn thủ công). Có thiết lập → khung .tcw-frame (thu phóng, lấp đầy /
+ * hiện toàn bộ, căn riêng trên điện thoại); chưa có → như cũ (object-cover + position).
+ */
 export function Img({
   src,
   alt,
@@ -391,6 +398,7 @@ export function Img({
   eager,
   position,
   style,
+  fk,
 }: {
   src: string;
   alt: string;
@@ -398,7 +406,10 @@ export function Img({
   eager?: boolean;
   position?: string;
   style?: CSSProperties;
+  fk?: string;
 }) {
+  const frames = useContext(FramesContext);
+  const frame = fk ? frames[fk] : undefined;
   const [loaded, setLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement | null>(null);
   // Ảnh trong HTML có sẵn (SSR) có thể tải xong trước khi React gắn onLoad: kiểm tra lại sau khi mount để ảnh không bị
@@ -413,11 +424,37 @@ export function Img({
         <span className="text-xs">Chưa có ảnh</span>
       </div>
     );
+  const imgEl = (extra?: { className?: string; style?: CSSProperties; fk?: string }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
+      data-fk={extra?.fk}
+      loading={eager ? "eager" : "lazy"}
+      decoding="async"
+      onLoad={() => setLoaded(true)}
+      ref={(el) => {
+        imgRef.current = el;
+        if (el?.complete && el.naturalWidth > 0 && !loaded) setLoaded(true);
+      }}
+      style={extra?.style}
+      className={extra?.className}
+    />
+  );
+  if (frame) {
+    const a = frameAttrs(frame, "container");
+    return (
+      <span data-fk={fk} className={`tcw-frame bg-[var(--accent)] ${className}`} style={{ ...style, ...a.style }} data-m={a["data-m"]}>
+        {imgEl({ className: `transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"}` })}
+      </span>
+    );
+  }
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={alt}
+      data-fk={fk}
       loading={eager ? "eager" : "lazy"}
       decoding="async"
       onLoad={() => setLoaded(true)}
@@ -438,17 +475,19 @@ export function Frame({
   alt,
   className = "",
   caption,
+  fk,
 }: {
   shape: FrameShape;
   src: string;
   alt: string;
   className?: string;
   caption?: string;
+  fk?: string;
 }) {
   if (shape === "polaroid")
     return (
       <figure className={`bg-white p-3 pb-12 shadow-[0_18px_40px_-18px_rgba(0,0,0,.35)] ${className}`}>
-        <Img src={src} alt={alt} className="aspect-[4/5] w-full" />
+        <Img fk={fk} src={src} alt={alt} className="aspect-[4/5] w-full" />
         {caption && <figcaption className="tpl-script mt-3 text-center text-xl text-[var(--muted)]">{caption}</figcaption>}
       </figure>
     );
@@ -469,7 +508,7 @@ export function Frame({
         aria-hidden
       />
       <div className={`relative overflow-hidden ${clip[shape]}`} style={octa}>
-        <Img src={src} alt={alt} className={`w-full transition duration-[1.2s] hover:scale-105 ${shape === "circle" ? "aspect-square" : "aspect-[3/4]"}`} />
+        <Img fk={fk} src={src} alt={alt} className={`w-full transition duration-[1.2s] hover:scale-105 ${shape === "circle" ? "aspect-square" : "aspect-[3/4]"}`} />
       </div>
     </div>
   );

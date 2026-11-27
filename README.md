@@ -256,6 +256,14 @@ Cả hai dựng video ngay trong trình duyệt, ảnh không tải lên máy ch
 
 Chỉ tài khoản quyền admin đăng nhập được. Nếu mất mật khẩu admin: đặt `ADMIN_EMAIL` (email chưa có) và `ADMIN_PASSWORD` mới trong `.env`, chạy `NODE_ENV=production npm run db:seed` để tạo admin mới, rồi hạ quyền tài khoản cũ ở `/admin/users`. Chạy seed lại không đổi mật khẩu của tài khoản đã có.
 
+### Chỉnh ảnh thủ công
+
+- Nút **Chỉnh ảnh** cạnh ảnh đã tải lên: kéo bằng chuột / ngón tay, lăn chuột hoặc chụm hai ngón để thu phóng, **Lấp đầy khung** / **Hiện toàn bộ ảnh**, **Căn riêng trên điện thoại**, **Đặt lại**, **Áp dụng**. Hai khung xem trước (máy tính, điện thoại) đúng tỉ lệ và góc bo của chỗ hiển thị. Ảnh gốc không bị cắt.
+- **Trình sửa thiệp** (cả thiệp làm hộ): ảnh bìa, ảnh tràn giữa thiệp, ảnh nền lời cảm ơn, ảnh cô dâu / chú rể, ảnh chuyện tình, từng ảnh album. Khung xem trước đo đúng mẫu đang chọn (điện thoại từ khung xem trước, máy tính từ bản thiệp ẩn rộng 1280px); khung điện thoại cập nhật ngay khi kéo. Lưu trong `data.frames` theo khoá vị trí (`cover`, `story.<id>`, `gallery:<url>`…) — đổi thứ tự album không mất cách căn.
+- **Quản trị website**: trang chủ (ảnh nền, ảnh giới thiệu, ảnh dịch vụ), Về tôi (chân dung) — lưu kèm nút Lưu; album: bìa ở thẻ album / đầu trang album / ô album mẫu / bìa sách, từng trang album mẫu (lưu ngay, cột `Album.frames`).
+- Không áp dụng: ảnh QR mừng cưới (cắt sẽ hỏng mã), bill chuyển khoản và ảnh khách gửi theo đơn (giữ ảnh gốc), ảnh trong lưới bộ sưu tập (hiện nguyên khung hình, không cắt).
+- Khi đưa lên Turso: `npm run turso:push` để thêm cột `Album.frames`.
+
 ### Kiểm tra kho mẫu (QA)
 
 - Trang `/dev/mau/<id mẫu>?data=long|empty` hiển thị trọn thiệp với dữ liệu thử (tên / địa chỉ dài có dấu, OCB + STK số 0 đầu, thiếu ảnh / bản đồ) và tự đo tràn khung. Chỉ chạy ở `npm run dev` hoặc khi server bật `TCW_QA=1`; website thật trả 404.

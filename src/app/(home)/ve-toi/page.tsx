@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FramedImg } from "@/components/FramedImg";
 import Link from "next/link";
 import { AlbumCard } from "@/components/studio/AlbumCard";
 import { socialLinks } from "@/components/studio/Contact";
@@ -66,7 +67,7 @@ export default async function AboutPage() {
           </div>
           {photo && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={photo} alt={a.name} className="aspect-[4/5] w-full object-cover" />
+            <FramedImg src={photo} alt={a.name} frame={a.photo ? a.frames.portrait : null} className="aspect-[4/5] w-full" />
           )}
         </div>
       </section>

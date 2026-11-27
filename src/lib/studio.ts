@@ -1,4 +1,5 @@
 import "server-only";
+import { cleanFrames, type FrameMap } from "@/lib/imageFrame";
 import { db } from "@/lib/db";
 import { findFont } from "@/lib/fonts";
 import { isBodySize, isTitleSize, type BodySize, type TitleSize } from "@/lib/typo";
@@ -179,6 +180,8 @@ export type StudioContent = {
   /** Chỉ hiện các con số có đủ giá trị và nhãn — không tự điền số giả. */
   stats: StudioStat[];
   services: StudioService[];
+  /** Cách căn ảnh thủ công theo vị trí: "hero", "intro", "service.<i>" (src/lib/imageFrame.ts). */
+  frames: FrameMap;
   contact: {
     area: string;
     phone: string;
@@ -232,6 +235,7 @@ export const STUDIO_DEFAULTS: StudioContent = {
     { title: "Thiệp mời online", body: "Thiệp cưới gửi bằng một đường link: khách xác nhận tham dự, xem bản đồ và gửi lời chúc ngay trên điện thoại.", image: "" },
     { title: "Album & ảnh in", body: "Thiết kế và in album cưới, ảnh phóng lớn treo tường từ chính bộ ảnh của hai bạn.", image: "" },
   ],
+  frames: {},
   contact: { area: "", phone: "", email: "", address: "", hours: "", zalo: "", facebook: "", instagram: "", tiktok: "" },
 };
 
@@ -254,6 +258,7 @@ export async function getStudio(): Promise<StudioContent> {
       faqs: d.faqs.map((x, i) => (Array.isArray(s.faqs) ? { q: "", a: "", ...(s.faqs[i] as Partial<StudioFaq> | undefined) } : x)),
       contact: { ...d.contact, ...s.contact },
       typo: cleanTypo(s.typo),
+      frames: cleanFrames(s.frames),
     };
   } catch {
     return STUDIO_DEFAULTS;
@@ -275,6 +280,16 @@ export function contactLinks(c: StudioContent["contact"]) {
   };
 }
 
+/** Bảng cách căn ảnh của album (cột Album.frames). */
+export function albumFrames(json: string | null | undefined): FrameMap {
+  if (!json) return {};
+  try {
+    return cleanFrames(JSON.parse(json));
+  } catch {
+    return {};
+  }
+}
+
 const coverOf = (a: { coverUrl: string; photos: { url: string; width: number; height: number }[] }) => {
   const p = a.coverUrl ? a.photos.find((x) => x.url === a.coverUrl) ?? { url: a.coverUrl, width: 0, height: 0 } : a.photos[0];
   return p ?? null;
@@ -288,14 +303,14 @@ export async function listPublishedAlbums(opts: { category?: string; take?: numb
     take: opts.take,
     include: { photos: { orderBy: { sortOrder: "asc" }, select: { url: true, width: true, height: true } } },
   });
-  return rows.map(({ photos, ...a }) => ({ ...a, cover: coverOf({ coverUrl: a.coverUrl, photos }), photoCount: photos.length }));
+  return rows.map(({ photos, ...a }) => ({ ...a, frames: albumFrames(a.frames), cover: coverOf({ coverUrl: a.coverUrl, photos }), photoCount: photos.length }));
 }
 export type AlbumCard = Awaited<ReturnType<typeof listPublishedAlbums>>[number];
 
 export async function getPublishedAlbum(slug: string) {
   const a = await db.album.findUnique({ where: { slug }, include: { photos: { orderBy: { sortOrder: "asc" } } } });
   if (!a || a.status !== "PUBLISHED" || a.kind !== "COLLECTION") return null;
-  return { ...a, cover: coverOf(a) };
+  return { ...a, frames: albumFrames(a.frames), cover: coverOf(a) };
 }
 
 /** Album mẫu đã xuất bản, lọc theo phong cách / khổ. */
@@ -305,7 +320,7 @@ export async function listSampleAlbums(opts: { style?: string; size?: string } =
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     include: { photos: { orderBy: { sortOrder: "asc" }, select: { id: true, url: true, width: true, height: true } } },
   });
-  return rows.map(({ photos, ...a }) => ({ ...a, photos, cover: coverOf({ coverUrl: a.coverUrl, photos }), photoCount: photos.length }));
+  return rows.map(({ photos, ...a }) => ({ ...a, frames: albumFrames(a.frames), photos, cover: coverOf({ coverUrl: a.coverUrl, photos }), photoCount: photos.length }));
 }
 export type SampleAlbum = Awaited<ReturnType<typeof listSampleAlbums>>[number];
 

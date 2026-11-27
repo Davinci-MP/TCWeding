@@ -328,7 +328,7 @@ export function Gallery({ images }: { images: string[] }) {
               aria-label={`Xem ảnh ${i + 1} trên ${n}`}
               className="group relative aspect-[3/4] w-[72%] shrink-0 cursor-zoom-in snap-center overflow-hidden rounded-2xl @2xl:w-[38%]"
             >
-              <Img src={src} alt="" className="h-full w-full transition duration-[1.4s] group-hover:scale-105" />
+              <Img fk={`gallery:${src}`} src={src} alt="" className="h-full w-full transition duration-[1.4s] group-hover:scale-105" />
               <span className="absolute bottom-3 left-3 rounded-full bg-black/35 px-3 py-1 text-xs text-white backdrop-blur-sm">
                 {String(i + 1).padStart(2, "0")} / {String(n).padStart(2, "0")}
               </span>
@@ -356,7 +356,7 @@ export function Gallery({ images }: { images: string[] }) {
               aria-label={`Xem ảnh ${i + 7} trên ${n}`}
               className={`group cursor-zoom-in overflow-hidden rounded-xl ${i % 5 === 0 ? "col-span-2 row-span-2" : ""}`}
             >
-              <Img src={src} alt="" className="aspect-square h-full w-full transition duration-[1.4s] group-hover:scale-105" />
+              <Img fk={`gallery:${src}`} src={src} alt="" className="aspect-square h-full w-full transition duration-[1.4s] group-hover:scale-105" />
             </button>
           ))}
         </div>
@@ -412,7 +412,7 @@ function AltGallery({ layout, images, onOpen }: { layout: LayoutFamily; images: 
           const span = i % 7 === 0 ? "col-span-2 row-span-2" : i % 7 === 3 ? "row-span-2" : i % 7 === 5 ? "col-span-2" : "";
           return (
             <button key={src + i} type="button" onClick={() => onOpen(i)} aria-label={label(i)} className={`group relative cursor-zoom-in overflow-hidden ${span}`}>
-              <Img src={src} alt="" className="h-full w-full transition duration-[1.4s] group-hover:scale-105" />
+              <Img fk={`gallery:${src}`} src={src} alt="" className="h-full w-full transition duration-[1.4s] group-hover:scale-105" />
               <span className="absolute left-2 top-2 text-[10px] font-semibold tracking-[0.3em] text-white mix-blend-difference">
                 {String(i + 1).padStart(2, "0")}
               </span>
@@ -434,7 +434,7 @@ function AltGallery({ layout, images, onOpen }: { layout: LayoutFamily; images: 
             style={{ transform: `rotate(${[-3, 2, -1.5, 3, -2, 1][i % 6]}deg)` }}
             className="cursor-zoom-in bg-white p-2 pb-6 shadow-[0_15px_35px_-18px_rgba(0,0,0,.4)] transition duration-500 hover:z-10 hover:!rotate-0 hover:scale-105"
           >
-            <Img src={src} alt="" className="aspect-square w-full" />
+            <Img fk={`gallery:${src}`} src={src} alt="" className="aspect-square w-full" />
           </button>
         ))}
       </div>
@@ -447,7 +447,7 @@ function AltGallery({ layout, images, onOpen }: { layout: LayoutFamily; images: 
       <div className="columns-2 gap-3 @3xl:columns-3 @3xl:gap-4">
         {images.map((src, i) => (
           <button key={src + i} type="button" onClick={() => onOpen(i)} aria-label={label(i)} className="group mb-3 block w-full cursor-zoom-in overflow-hidden rounded-[1.5rem] @3xl:mb-4">
-            <Img src={src} alt="" className={`w-full transition duration-[1.4s] group-hover:scale-105 ${["aspect-[3/4]", "aspect-square", "aspect-[4/5]", "aspect-[3/5]", "aspect-[5/4]"][i % 5]}`} />
+            <Img fk={`gallery:${src}`} src={src} alt="" className={`w-full transition duration-[1.4s] group-hover:scale-105 ${["aspect-[3/4]", "aspect-square", "aspect-[4/5]", "aspect-[3/5]", "aspect-[5/4]"][i % 5]}`} />
           </button>
         ))}
       </div>
@@ -465,7 +465,7 @@ function AltGallery({ layout, images, onOpen }: { layout: LayoutFamily; images: 
             <div className="space-y-2">
               {idx.map((i) => (
                 <button key={i} type="button" onClick={() => onOpen(i)} aria-label={label(i)} className="block w-full cursor-zoom-in">
-                  <Img src={images[i]} alt="" className="aspect-[4/3] w-full" />
+                  <Img fk={`gallery:${images[i]}`} src={images[i]} alt="" className="aspect-[4/3] w-full" />
                 </button>
               ))}
             </div>
@@ -488,7 +488,7 @@ function AltGallery({ layout, images, onOpen }: { layout: LayoutFamily; images: 
             className={`group cursor-zoom-in text-left ${i % 2 ? "translate-y-12 @3xl:translate-y-24" : ""} ${i % 3 === 0 ? "" : "px-4 @3xl:px-10"}`}
           >
             <div className="overflow-hidden">
-              <Img src={src} alt="" className={`w-full transition duration-[1.6s] group-hover:scale-[1.03] ${i % 3 === 0 ? "aspect-[3/4]" : "aspect-square"}`} />
+              <Img fk={`gallery:${src}`} src={src} alt="" className={`w-full transition duration-[1.6s] group-hover:scale-[1.03] ${i % 3 === 0 ? "aspect-[3/4]" : "aspect-square"}`} />
             </div>
             <span className="mt-2 block text-[10px] tracking-[0.4em] text-[var(--muted)]">— {String(i + 1).padStart(2, "0")}</span>
           </button>
@@ -508,7 +508,7 @@ function AltGallery({ layout, images, onOpen }: { layout: LayoutFamily; images: 
           className="group cursor-zoom-in border-[3px] border-double border-[var(--primary)]/40 p-1.5 transition hover:border-[var(--primary)]"
         >
           <div className="overflow-hidden">
-            <Img src={src} alt="" className="aspect-[4/5] w-full transition duration-[1.4s] group-hover:scale-105" />
+            <Img fk={`gallery:${src}`} src={src} alt="" className="aspect-[4/5] w-full transition duration-[1.4s] group-hover:scale-105" />
           </div>
         </button>
       ))}
@@ -523,7 +523,7 @@ function SpotlightGallery({ images, onOpen }: { images: string[]; onOpen: (i: nu
   return (
     <div>
       <button type="button" onClick={() => onOpen(cur)} aria-label={`Phóng to ảnh ${cur + 1} trên ${n}`} className="group relative block w-full cursor-zoom-in overflow-hidden border border-[var(--primary)]/40 p-2">
-        <Img key={cur} src={images[cur]} alt="" className="tpl-rise aspect-[4/5] w-full @3xl:aspect-[16/10]" />
+        <Img key={cur} fk={`gallery:${images[cur]}`} src={images[cur]} alt="" className="tpl-rise aspect-[4/5] w-full @3xl:aspect-[16/10]" />
         <span className="absolute bottom-5 right-5 text-xs tracking-[0.4em] text-white drop-shadow">
           {String(cur + 1).padStart(2, "0")} / {String(n).padStart(2, "0")}
         </span>
@@ -538,7 +538,7 @@ function SpotlightGallery({ images, onOpen }: { images: string[]; onOpen: (i: nu
             aria-current={i === cur}
             className={`h-16 w-16 shrink-0 cursor-pointer overflow-hidden transition @3xl:h-20 @3xl:w-20 ${i === cur ? "opacity-100 ring-1 ring-[var(--primary)] ring-offset-2 ring-offset-[var(--bg)]" : "opacity-45 hover:opacity-80"}`}
           >
-            <Img src={src} alt="" className="h-full w-full" />
+            <Img fk={`gallery:${src}`} src={src} alt="" className="h-full w-full" />
           </button>
         ))}
       </div>

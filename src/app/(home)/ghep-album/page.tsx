@@ -17,10 +17,12 @@ export default async function SampleAlbums({ searchParams }: { searchParams: Pro
   const usedSizes = new Set(all.map((a) => a.size));
 
   const cards: SampleCard[] = albums.map((a) => {
-    const pages = a.photos.map((p) => p.url);
     const cover = a.cover?.url ?? "";
-    // Ảnh bìa luôn là trang đầu tiên của album.
-    const ordered = cover ? [cover, ...pages.filter((u) => u !== cover)] : pages;
+    // Ảnh bìa luôn là trang đầu tiên của album. Mỗi trang mang cách căn riêng theo id ảnh (page:<id>).
+    const coverPhoto = a.photos.find((p) => p.url === cover);
+    const orderedPhotos = coverPhoto ? [coverPhoto, ...a.photos.filter((p) => p !== coverPhoto)] : a.photos;
+    const ordered = cover && !coverPhoto ? [cover, ...a.photos.map((p) => p.url)] : orderedPhotos.map((p) => p.url);
+    const pageFrames = (cover && !coverPhoto ? [null, ...a.photos] : orderedPhotos).map((p) => (p ? (a.frames[`page:${p.id}`] ?? null) : null));
     return {
       id: a.id,
       slug: a.slug,
@@ -31,7 +33,9 @@ export default async function SampleAlbums({ searchParams }: { searchParams: Pro
       ratio: sizeRatio(a.size),
       single: a.category === "anh-phong",
       cover,
+      coverFrame: a.frames.book ?? null,
       pages: ordered,
+      pageFrames,
     };
   });
 
