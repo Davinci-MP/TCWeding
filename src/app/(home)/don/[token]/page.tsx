@@ -7,6 +7,9 @@ import { CopyLink } from "@/components/order/CopyLink";
 import { Messages } from "@/components/order/Messages";
 import { PhotoUploader } from "@/components/order/PhotoUploader";
 import { db } from "@/lib/db";
+import { GiftTable } from "@/components/gifts/GiftTable";
+import { GrantAccess } from "@/components/gifts/GrantAccess";
+import { giftRows } from "@/lib/giftTable";
 import { BANKS } from "@/lib/invitation";
 import { isOpen, MAX_ORDER_PHOTOS, money, ORDER_STATUS, ORDER_STEPS, paymentQrUrl, settingsError, viDate, type OrderStatus } from "@/lib/orders";
 import { getOrderSettings } from "@/lib/settings";
@@ -27,6 +30,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ token:
       messages: { orderBy: { createdAt: "asc" } },
       invitation: {
         select: {
+          id: true,
           slug: true,
           rsvps: { orderBy: { createdAt: "desc" }, take: 500 },
           wishes: { where: { hidden: false }, orderBy: { createdAt: "desc" }, take: 200 },
@@ -43,6 +47,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ token:
   const payNow = status === "NEW" && !o.depositPaidAt ? o.deposit : status === "APPROVED" && !o.finalPaidAt ? remaining : 0;
   const claimed = status === "NEW" ? o.depositClaimedAt : o.finalClaimedAt;
   const hidden = <input type="hidden" name="token" value={token} />;
+  const gifts = o.invitation ? await giftRows(o.invitation.id) : [];
 
   return (
     <section className="bg-[#f6f2ec] px-4 py-12">
@@ -201,6 +206,13 @@ export default async function OrderDetail({ params }: { params: Promise<{ token:
                 ))}
               </ul>
             )}
+          </div>
+        )}
+
+        {o.invitation && (status === "DONE" || gifts.length > 0) && (
+          <div className="card">
+            <GrantAccess token={token} />
+            <GiftTable rows={gifts} back={`/don/${token}`} csvHref={`/api/gifts/${o.invitation.id}/csv`} />
           </div>
         )}
 

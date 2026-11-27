@@ -7,11 +7,12 @@ import { initials, type InvitationData } from "@/lib/invitation";
 import { fontUrl, getTemplateDef } from "./registry";
 import { Hero } from "./heroes";
 import type { IconName } from "./icons";
-import { Faq, FloatingDock, Gallery, GateFold, GiftBox, MusicButton, RsvpForm, useMusic, Wishes, type WishItem } from "./interactive";
+import { Faq, FloatingDock, Gallery, GateFold, MusicButton, RsvpForm, useMusic, Wishes, type WishItem } from "./interactive";
 import { FallingEffect, isImmersive, Marquee, ModeContext, ScrollProgress, type ViewMode } from "./motion";
 import { formatDate, Section, SectionTitle, TplContext } from "./parts";
 import { resolveMusic } from "./music/tracks";
 import { useFitHeroNames } from "./fit";
+import { GiftBox } from "./GiftFlow";
 import { CalendarSection, Couple, DressCode, Events, Families, FeaturePhoto, QuoteSection, Schedule, Story, ThankYou, VideoSection } from "./sections";
 
 type Props = {
@@ -171,7 +172,7 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
         {s.gift && data.gifts.length > 0 && (
           <Section id="mung-cuoi">
             <SectionTitle tpl={tpl} eyebrow="Wedding gift" title="Hộp mừng cưới" intro="Sự hiện diện của bạn đã là món quà lớn nhất. Nếu muốn gửi thêm lời chúc phúc, bạn có thể dùng thông tin dưới đây." />
-            <GiftBox gifts={data.gifts} />
+            <GiftBox gifts={data.gifts} slug={slug} mode={mode} groomName={data.groom.name} brideName={data.bride.name} />
           </Section>
         )}
 

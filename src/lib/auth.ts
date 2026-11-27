@@ -69,3 +69,39 @@ export async function getOwnedInvitation(id: string, user: SessionUser) {
   if (inv.userId !== user.id && user.role !== "ADMIN") return null;
   return inv;
 }
+
+/* ---------------- Quyền quản lý thiệp cho cô dâu chú rể (khách đặt thiệp không có tài khoản) ---------------- */
+// Người mở link đơn /don/<token> được cấp cookie ký số chứa id thiệp của đơn đó, để xem bill tiền mừng (/b/<mã>)
+// và tải bảng tiền mừng mà không cần tài khoản.
+const MGR_COOKIE = "tcw_mgr";
+const MGR_MAX_AGE = 60 * 60 * 24 * 180;
+
+async function readManaged(): Promise<string[]> {
+  const raw = (await cookies()).get(MGR_COOKIE)?.value;
+  if (!raw) return [];
+  try {
+    const { payload } = await jwtVerify(raw, secret());
+    return Array.isArray(payload.inv) ? payload.inv.filter((x): x is string => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Gọi trong Route Handler / Server Action sau khi đã kiểm token đơn hợp lệ. */
+export async function grantInvitationAccess(invitationId: string) {
+  const list = await readManaged();
+  if (list.includes(invitationId)) return;
+  const token = await new SignJWT({ inv: [invitationId, ...list].slice(0, 20) })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${MGR_MAX_AGE}s`)
+    .sign(secret());
+  (await cookies()).set(MGR_COOKIE, token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: MGR_MAX_AGE });
+}
+
+/** Chủ thiệp (tài khoản sở hữu), admin, hoặc người đã mở link đơn của thiệp. */
+export async function canManageInvitation(invitationId: string, ownerId: string) {
+  const user = await getCurrentUser();
+  if (user && (user.role === "ADMIN" || user.id === ownerId)) return true;
+  return (await readManaged()).includes(invitationId);
+}

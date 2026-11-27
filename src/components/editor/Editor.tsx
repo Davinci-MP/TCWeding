@@ -447,7 +447,16 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                 <p className="text-sm text-zinc-500">Chọn ngân hàng để hệ thống tự tạo mã VietQR, hoặc tải ảnh QR của bạn lên.</p>
                 {data.gifts.map((g: GiftAccount, i) => (
                   <ListItem key={g.id} title={g.label || `Tài khoản ${i + 1}`} onRemove={() => removeFrom("gifts", i)}>
-                    <TextInput label="Tiêu đề" value={g.label} placeholder="Mừng cưới chú rể" onChange={(v) => updateList("gifts", i, { label: v })} />
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="Bên nhận" hint="Khách chọn tab Nhà trai / Nhà gái khi mừng cưới">
+                        <select className="input" value={g.side ?? ""} onChange={(e) => updateList("gifts", i, { side: e.target.value as GiftAccount["side"] })}>
+                          <option value="">Tự đoán theo tiêu đề</option>
+                          <option value="groom">Nhà trai</option>
+                          <option value="bride">Nhà gái</option>
+                        </select>
+                      </Field>
+                      <TextInput label="Tiêu đề" value={g.label} placeholder="Mừng cưới chú rể" onChange={(v) => updateList("gifts", i, { label: v })} />
+                    </div>
                     <Field label="Ngân hàng">
                       <select
                         className="input"

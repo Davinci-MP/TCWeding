@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { giftQrUrl, type GiftAccount } from "@/lib/invitation";
 import { Icon, type IconName } from "./icons";
 import { isImmersive, Marquee, useMode, type ViewMode } from "./motion";
 import { Img, useLayout } from "./parts";
@@ -277,43 +276,7 @@ const SAMPLE_WISHES: WishItem[] = [
 ];
 
 /* ---------------- Hộp mừng cưới ---------------- */
-export function GiftBox({ gifts }: { gifts: GiftAccount[] }) {
-  const [copied, setCopied] = useState("");
-  if (gifts.length === 0) return null;
-  return (
-    <div className={`mx-auto grid gap-6 ${gifts.length > 1 ? "max-w-3xl @2xl:grid-cols-2" : "max-w-sm"}`}>
-      {gifts.map((g) => {
-        const qr = giftQrUrl(g);
-        return (
-          <div key={g.id} className="rounded-3xl border border-[var(--primary)]/20 bg-[var(--surface)] p-7 text-center shadow-[0_20px_60px_-30px_rgba(0,0,0,.3)]">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--primary)]">{g.label}</p>
-            {qr && (
-              <div className="mx-auto mt-5 w-48 rounded-2xl bg-white p-3 shadow-inner">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={qr} alt={`Mã QR chuyển khoản ${g.bankName}`} className="aspect-square w-full object-contain" loading="lazy" />
-              </div>
-            )}
-            <p className="mt-5 text-sm text-[var(--muted)]">{g.bankName}</p>
-            <p className="tpl-heading mt-1 text-2xl tracking-[0.12em] tabular-nums">{g.accountNumber}</p>
-            <p className="mt-1 text-sm uppercase tracking-wider">{g.accountName}</p>
-            <button
-              type="button"
-              className="mt-4 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-4 text-sm text-[var(--primary)] transition hover:bg-[var(--primary)]/10"
-              onClick={() => {
-                navigator.clipboard?.writeText(g.accountNumber);
-                setCopied(g.id);
-                setTimeout(() => setCopied(""), 1800);
-              }}
-            >
-              <Icon name={copied === g.id ? "check" : "copy"} size={16} />
-              <span aria-live="polite">{copied === g.id ? "Đã sao chép số tài khoản" : "Sao chép số tài khoản"}</span>
-            </button>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+// Hộp mừng cưới: xem GiftFlow.tsx
 
 /* ---------------- Album: dải ảnh trượt + lưới + xem toàn màn hình ---------------- */
 export function Gallery({ images }: { images: string[] }) {
@@ -774,6 +737,17 @@ export function GateFold({
 }) {
   const [phase, setPhase] = useState<"closed" | "opening" | "gone">("closed");
   const mode = useMode();
+  // Khách quay lại từ app ngân hàng (trang bị tải lại): bỏ qua bìa thiệp để về thẳng Hộp mừng cưới
+  const openRef = useRef(onOpen);
+  openRef.current = onOpen;
+  useEffect(() => {
+    const skip = () => {
+      setPhase("gone");
+      openRef.current();
+    };
+    window.addEventListener("tcw:skip-gate", skip);
+    return () => window.removeEventListener("tcw:skip-gate", skip);
+  }, []);
   if (phase === "gone" || !isImmersive(mode)) return null;
 
   const open = () => {

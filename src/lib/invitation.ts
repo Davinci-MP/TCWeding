@@ -34,6 +34,8 @@ export type GiftAccount = {
   accountNumber: string;
   accountName: string;
   qrImage: string;
+  /** Bên nhận: "groom" nhà trai, "bride" nhà gái, "" = suy ra từ tiêu đề (thiệp cũ). */
+  side?: "groom" | "bride" | "";
 };
 
 export type EffectKind = "" | "petals" | "hearts" | "snow" | "stars" | "leaves" | "gold" | "none";
@@ -383,10 +385,10 @@ export function demoInvitationData(cover: DemoPhotoKey = "coupleClose"): Invitat
   };
 }
 
-export function giftQrUrl(g: GiftAccount) {
+export function giftQrUrl(g: GiftAccount, addInfo = "Mung cuoi") {
   if (g.qrImage) return g.qrImage;
   if (!g.bankCode || !g.accountNumber) return "";
-  const q = new URLSearchParams({ accountName: g.accountName, addInfo: "Mung cuoi" });
+  const q = new URLSearchParams({ accountName: g.accountName, addInfo });
   return `https://img.vietqr.io/image/${g.bankCode}-${g.accountNumber}-compact.png?${q}`;
 }
 
