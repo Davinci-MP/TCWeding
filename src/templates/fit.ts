@@ -21,6 +21,8 @@ export function useFitHeroNames(rootRef: RefObject<HTMLElement | null>, scale: n
       const maxH = Math.max(150, viewH * 0.28);
       hero.querySelectorAll<HTMLElement>("h1").forEach((h) => {
         h.style.zoom = "";
+        // tên có cỡ chữ riêng (fieldTypoCss) bỏ qua hệ số "Cỡ chữ tên" chung, chỉ giữ phần tự co
+        h.style.setProperty("--tf-zoom", String(scale));
         let z = scale;
         const apply = () => (h.style.zoom = z === 1 ? "" : String(z));
         apply();

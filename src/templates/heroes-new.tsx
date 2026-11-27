@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import type { InvitationData } from "@/lib/invitation";
 import type { TemplateDef } from "./registry";
 import { Icon } from "./icons";
-import { formatDate, Img } from "./parts";
+import { F, formatDate, Img } from "./parts";
 
 type Props = { tpl: TemplateDef; data: InvitationData; guestName?: string };
 const d = (ms: number): CSSProperties => ({ animationDelay: `${ms}ms` });
@@ -59,17 +59,17 @@ export function CinemaHero({ data, guestName }: Props) {
           <div className="tpl-rise mx-auto my-6 h-px w-24 bg-[var(--primary)]" style={d(200)} />
           <h1 className="tpl-heading">
             <span className="tpl-rise block text-5xl uppercase tracking-[0.25em] @3xl:text-7xl" style={d(400)}>
-              {g}
+              <F f="groom.name">{g}</F>
             </span>
             <span className="tpl-script tpl-rise my-2 block text-5xl text-[var(--primary)]" style={d(700)}>
               &
             </span>
             <span className="tpl-rise block text-5xl uppercase tracking-[0.25em] @3xl:text-7xl" style={d(1000)}>
-              {b}
+              <F f="bride.name">{b}</F>
             </span>
           </h1>
           {date && (
-            <p className="tpl-rise mt-8 text-xs uppercase tracking-[0.6em]" style={d(1300)}>
+            <p data-tf="weddingDate" className="tpl-rise mt-8 text-xs uppercase tracking-[0.6em]" style={d(1300)}>
               Công chiếu · {date.day}.{date.month}.{date.year}
             </p>
           )}
@@ -130,12 +130,12 @@ export function MagazineHero({ data, guestName }: Props) {
             Độc quyền
           </p>
           <h1 className="tpl-heading tpl-rise mt-2 text-6xl italic leading-[0.9] @3xl:text-8xl" style={d(950)}>
-            {g}
-            <br />& {b}
+            <F f="groom.name">{g}</F>
+            <br />& <F f="bride.name">{b}</F>
           </h1>
           <div className="mt-6 flex items-end justify-between gap-4">
             <div>
-              <p className="tpl-rise text-sm opacity-90" style={d(1100)}>
+              <p data-tf="weddingDate" className="tpl-rise text-sm opacity-90" style={d(1100)}>
                 {date ? `${date.weekday}, ${date.day}.${date.month}.${date.year}` : ""}
               </p>
               {guestName && (
@@ -199,7 +199,7 @@ export function BlossomHero({ data, guestName }: Props) {
         囍
       </div>
       <p className="tpl-rise relative mt-5 text-[11px] uppercase tracking-[0.5em] text-[var(--primary)]" style={d(150)}>
-        {data.headline}
+        <F f="headline">{data.headline}</F>
       </p>
       <div className="relative mx-auto mt-8 h-64 w-64 @3xl:h-80 @3xl:w-80">
         <div className="absolute -inset-3 rounded-full border-2 border-[var(--primary)]/70" aria-hidden />
@@ -207,10 +207,10 @@ export function BlossomHero({ data, guestName }: Props) {
         <KenBurns src={data.coverPhoto} className="h-full w-full rounded-full" position={data.photoPos.cover} />
       </div>
       <h1 className="tpl-script tpl-rise relative mt-10 text-6xl leading-tight text-[var(--primary)]" style={d(400)}>
-        {g} <span className="text-4xl">&</span> {b}
+        <F f="groom.name">{g}</F> <span className="text-4xl">&</span> <F f="bride.name">{b}</F>
       </h1>
       {date && (
-        <p className="tpl-heading tpl-rise relative mt-4 text-xl" style={d(700)}>
+        <p data-tf="weddingDate" className="tpl-heading tpl-rise relative mt-4 text-xl" style={d(700)}>
           {date.weekday} · {date.short}
         </p>
       )}
@@ -239,7 +239,7 @@ export function WatercolorHero({ data, guestName }: Props) {
       {blob("color-mix(in srgb, var(--primary) 35%, transparent)", "-left-20 -top-16 h-80 w-80")}
       {blob("#f6c9d3aa", "-right-24 top-40 h-96 w-96")}
       {blob("#cfe3d4aa", "-bottom-20 left-10 h-72 w-72")}
-      <p className="tpl-heading tpl-rise relative text-2xl italic text-[var(--muted)]">{data.headline}</p>
+      <p className="tpl-heading tpl-rise relative text-2xl italic text-[var(--muted)]"><F f="headline">{data.headline}</F></p>
       <div className="relative mx-auto mt-8 w-[76%] max-w-[380px]">
         <div
           className="absolute -inset-4 opacity-60"
@@ -251,12 +251,12 @@ export function WatercolorHero({ data, guestName }: Props) {
         </div>
       </div>
       <h1 className="tpl-script tpl-rise relative mt-10 text-7xl leading-[1.05] text-[var(--primary)] @3xl:text-8xl" style={d(400)}>
-        {g}
+        <F f="groom.name">{g}</F>
         <br />
-        <span className="text-5xl">&</span> {b}
+        <span className="text-5xl">&</span> <F f="bride.name">{b}</F>
       </h1>
       {date && (
-        <p className="tpl-heading tpl-rise relative mt-5 text-2xl italic" style={d(700)}>
+        <p data-tf="weddingDate" className="tpl-heading tpl-rise relative mt-5 text-2xl italic" style={d(700)}>
           {date.weekday}, ngày {date.day} tháng {date.month} năm {date.year}
         </p>
       )}

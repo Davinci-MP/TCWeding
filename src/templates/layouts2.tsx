@@ -7,7 +7,7 @@ import type { TemplateDef } from "./registry";
 import { Icon } from "./icons";
 import { TplLink } from "./interactive";
 import { Parallax, Reveal } from "./motion";
-import { formatDate, Img, Section, SectionTitle } from "./parts";
+import { F, formatDate, Img, Section, SectionTitle } from "./parts";
 
 type P = { tpl: TemplateDef; data: InvitationData };
 
@@ -55,9 +55,9 @@ export function LuxeCouple({ tpl, data }: P) {
               </div>
             </div>
             <p className="mt-6 text-center text-[10px] uppercase tracking-[0.5em] text-[var(--primary)]">{role}</p>
-            <h3 className="tpl-heading mt-2 text-center text-xl uppercase tracking-[0.1em] @3xl:text-4xl">{p.fullName || p.name}</h3>
-            {parents(p, son) && <p className="mt-3 text-center text-xs leading-relaxed text-[var(--muted)] @3xl:text-sm">{parents(p, son)}</p>}
-            {p.bio && <p className="mx-auto mt-3 hidden max-w-xs text-center text-sm leading-loose text-[var(--muted)] @2xl:block">{p.bio}</p>}
+            <h3 className="tpl-heading mt-2 text-center text-xl uppercase tracking-[0.1em] @3xl:text-4xl"><F f={p === data.groom ? "groom.fullName" : "bride.fullName"}>{p.fullName || p.name}</F></h3>
+            {parents(p, son) && <p className="mt-3 text-center text-xs leading-relaxed text-[var(--muted)] @3xl:text-sm"><F f={p === data.groom ? "groom.parents" : "bride.parents"}>{parents(p, son)}</F></p>}
+            {p.bio && <p className="mx-auto mt-3 hidden max-w-xs text-center text-sm leading-loose text-[var(--muted)] @2xl:block"><F f={p === data.groom ? "groom.bio" : "bride.bio"}>{p.bio}</F></p>}
           </Reveal>
         ))}
         <span className="tpl-script absolute left-1/2 top-[38%] flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full border border-[var(--primary)] bg-[var(--bg)] text-3xl text-[var(--primary)] @3xl:h-24 @3xl:w-24 @3xl:text-5xl">
@@ -89,7 +89,7 @@ export function LuxeEvents({ tpl, data }: P) {
                 </div>
                 <div className="absolute inset-0 bg-black/65" aria-hidden />
                 <div className="relative m-3 border border-[var(--primary)]/70 px-6 py-14 @3xl:m-5 @3xl:py-20">
-                  <p className="text-[10px] uppercase tracking-[0.6em] text-[var(--primary)]">{ev.title}</p>
+                  <p className="text-[10px] uppercase tracking-[0.6em] text-[var(--primary)]"><F f={`event.${ev.id}.title`}>{ev.title}</F></p>
                   {dt && (
                     <div className="mt-6 flex items-center justify-center gap-5 @3xl:gap-8">
                       <span className="w-20 text-right text-xs uppercase tracking-[0.3em] opacity-80 @3xl:w-28">{dt.weekday}</span>
@@ -102,9 +102,9 @@ export function LuxeEvents({ tpl, data }: P) {
                     </div>
                   )}
                   {dt && <p className="tpl-heading mt-6 text-2xl italic">vào lúc {dt.time}</p>}
-                  {ev.lunarDate && <p className="mt-1 text-sm opacity-75">{ev.lunarDate}</p>}
-                  {ev.venue && <p className="mt-6 text-lg uppercase tracking-[0.2em]">{ev.venue}</p>}
-                  {ev.address && <p className="mx-auto mt-1 max-w-md text-sm opacity-75">{ev.address}</p>}
+                  {ev.lunarDate && <p className="mt-1 text-sm opacity-75"><F f={`event.${ev.id}.lunarDate`}>{ev.lunarDate}</F></p>}
+                  {ev.venue && <p className="mt-6 text-lg uppercase tracking-[0.2em]"><F f={`event.${ev.id}.venue`}>{ev.venue}</F></p>}
+                  {ev.address && <p className="mx-auto mt-1 max-w-md text-sm opacity-75"><F f={`event.${ev.id}.address`}>{ev.address}</F></p>}
                   <div className="mt-8">
                     <EventLinks ev={ev} data={data} center />
                   </div>
@@ -131,9 +131,9 @@ export function LuxeStory({ tpl, data }: P) {
               <Img src={st.photo} alt={st.title} className="aspect-[3/4] w-full transition duration-[1.4s] hover:scale-105" />
             </div>
             <div className="mt-5 border-t border-[var(--primary)]/40 pt-5">
-              <p className="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)]">{st.date}</p>
-              <h3 className="tpl-heading mt-2 text-2xl italic">{st.title}</h3>
-              <p className="mt-3 text-sm leading-loose text-[var(--muted)]">{st.content}</p>
+              <p className="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)]"><F f={`story.${st.id}.date`}>{st.date}</F></p>
+              <h3 className="tpl-heading mt-2 text-2xl italic"><F f={`story.${st.id}.title`}>{st.title}</F></h3>
+              <p className="mt-3 text-sm leading-loose text-[var(--muted)]"><F f={`story.${st.id}.content`}>{st.content}</F></p>
             </div>
           </Reveal>
         ))}
@@ -158,8 +158,8 @@ export function ModernCouple({ tpl, data }: P) {
         <Reveal delay={100} className={`${tile} col-span-2 flex flex-col justify-between @3xl:col-span-2`}>
           <p className="text-xs font-semibold text-[var(--muted)]">Chú rể</p>
           <div>
-            <h3 className="tpl-heading mt-6 text-4xl font-bold leading-none tracking-tight @3xl:text-5xl">{g.fullName || g.name}</h3>
-            {g.bio && <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">{g.bio}</p>}
+            <h3 className="tpl-heading mt-6 text-4xl font-bold leading-none tracking-tight @3xl:text-5xl"><F f={"groom.fullName"}>{g.fullName || g.name}</F></h3>
+            {g.bio && <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]"><F f="groom.bio">{g.bio}</F></p>}
           </div>
         </Reveal>
         <Reveal delay={150} className="flex aspect-square items-center justify-center rounded-[1.75rem] bg-[var(--primary)] text-[var(--on-primary)]">
@@ -171,8 +171,8 @@ export function ModernCouple({ tpl, data }: P) {
         <Reveal delay={250} className={`${tile} col-span-2 flex flex-col justify-between @3xl:col-span-2`}>
           <p className="text-xs font-semibold text-[var(--muted)]">Cô dâu</p>
           <div>
-            <h3 className="tpl-heading mt-6 text-4xl font-bold leading-none tracking-tight @3xl:text-5xl">{b.fullName || b.name}</h3>
-            {b.bio && <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]">{b.bio}</p>}
+            <h3 className="tpl-heading mt-6 text-4xl font-bold leading-none tracking-tight @3xl:text-5xl"><F f={"bride.fullName"}>{b.fullName || b.name}</F></h3>
+            {b.bio && <p className="mt-4 text-sm leading-relaxed text-[var(--muted)]"><F f="bride.bio">{b.bio}</F></p>}
           </div>
         </Reveal>
         <Reveal delay={300} className="col-span-2 overflow-hidden rounded-[1.75rem]">
@@ -204,10 +204,10 @@ export function ModernEvents({ tpl, data }: P) {
                 <p className="tpl-heading text-4xl font-bold tabular-nums">{dt?.time ?? "--:--"}</p>
               </div>
               <div className={`${tile} !p-5 @3xl:col-auto`}>
-                <h3 className="tpl-heading text-2xl font-bold">{ev.title}</h3>
-                {ev.venue && <p className="mt-1 font-medium">{ev.venue}</p>}
-                {ev.address && <p className="text-sm text-[var(--muted)]">{ev.address}</p>}
-                {ev.lunarDate && <p className="mt-1 text-xs text-[var(--muted)]">{ev.lunarDate}</p>}
+                <h3 className="tpl-heading text-2xl font-bold"><F f={`event.${ev.id}.title`}>{ev.title}</F></h3>
+                {ev.venue && <p className="mt-1 font-medium"><F f={`event.${ev.id}.venue`}>{ev.venue}</F></p>}
+                {ev.address && <p className="text-sm text-[var(--muted)]"><F f={`event.${ev.id}.address`}>{ev.address}</F></p>}
+                {ev.lunarDate && <p className="mt-1 text-xs text-[var(--muted)]"><F f={`event.${ev.id}.lunarDate`}>{ev.lunarDate}</F></p>}
                 <div className="mt-4">
                   <EventLinks ev={ev} data={data} />
                 </div>
@@ -235,9 +235,9 @@ export function ModernStory({ tpl, data }: P) {
           >
             <Img src={st.photo} alt={st.title} className="aspect-[16/10] w-full @2xl:aspect-auto @2xl:h-full" />
             <div className="flex flex-col justify-center p-7 @3xl:p-12">
-              <span className="w-fit rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-semibold">{st.date}</span>
-              <h3 className="tpl-heading mt-4 text-3xl font-bold leading-tight tracking-tight @3xl:text-4xl">{st.title}</h3>
-              <p className="mt-3 leading-relaxed text-[var(--muted)]">{st.content}</p>
+              <span className="w-fit rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-semibold"><F f={`story.${st.id}.date`}>{st.date}</F></span>
+              <h3 className="tpl-heading mt-4 text-3xl font-bold leading-tight tracking-tight @3xl:text-4xl"><F f={`story.${st.id}.title`}>{st.title}</F></h3>
+              <p className="mt-3 leading-relaxed text-[var(--muted)]"><F f={`story.${st.id}.content`}>{st.content}</F></p>
             </div>
           </article>
         ))}
@@ -271,8 +271,8 @@ export function JournalCouple({ tpl, data }: P) {
               <p className="tpl-script mt-2 text-center text-2xl text-[var(--muted)]">{role.toLowerCase()} nè</p>
             </div>
             <div className={`relative mx-auto -mt-6 w-[76%] bg-[var(--surface)] px-5 py-4 shadow-md ${i ? "-rotate-1" : "rotate-1"}`}>
-              <h3 className="tpl-heading text-3xl text-[var(--primary)]">{p.fullName || p.name}</h3>
-              {p.bio && <p className="mt-2 leading-relaxed">{p.bio}</p>}
+              <h3 className="tpl-heading text-3xl text-[var(--primary)]"><F f={p === data.groom ? "groom.fullName" : "bride.fullName"}>{p.fullName || p.name}</F></h3>
+              {p.bio && <p className="mt-2 leading-relaxed"><F f={p === data.groom ? "groom.bio" : "bride.bio"}>{p.bio}</F></p>}
             </div>
           </Reveal>
         ))}
@@ -298,21 +298,21 @@ export function JournalEvents({ tpl, data }: P) {
                 style={{ backgroundImage: "repeating-linear-gradient(to bottom, transparent 0 27px, color-mix(in srgb, var(--primary) 18%, transparent) 27px 28px)" }}
               >
                 <span className="absolute left-1/2 top-3 h-4 w-4 -translate-x-1/2 rounded-full bg-[var(--primary)] shadow-[inset_-2px_-2px_0_rgba(0,0,0,.25)]" aria-hidden />
-                <h3 className="tpl-heading text-3xl text-[var(--primary)]">{ev.title}</h3>
+                <h3 className="tpl-heading text-3xl text-[var(--primary)]"><F f={`event.${ev.id}.title`}>{ev.title}</F></h3>
                 {dt && (
                   <p className="mt-3 text-lg leading-7">
                     <Icon name="clock" size={16} className="mr-2 inline" />
                     {dt.time} · {dt.weekday}, {dt.day}/{dt.month}/{dt.year}
                   </p>
                 )}
-                {ev.lunarDate && <p className="leading-7 text-[var(--muted)]">({ev.lunarDate})</p>}
+                {ev.lunarDate && <p className="leading-7 text-[var(--muted)]">(<F f={`event.${ev.id}.lunarDate`}>{ev.lunarDate}</F>)</p>}
                 {ev.venue && (
                   <p className="mt-2 text-lg leading-7">
                     <Icon name="pin" size={16} className="mr-2 inline" />
-                    {ev.venue}
+                    <F f={`event.${ev.id}.venue`}>{ev.venue}</F>
                   </p>
                 )}
-                {ev.address && <p className="leading-7 text-[var(--muted)]">{ev.address}</p>}
+                {ev.address && <p className="leading-7 text-[var(--muted)]"><F f={`event.${ev.id}.address`}>{ev.address}</F></p>}
                 <div className="mt-5">
                   <EventLinks ev={ev} data={data} />
                 </div>
@@ -335,11 +335,11 @@ export function JournalStory({ tpl, data }: P) {
         {data.story.map((st, i) => (
           <Reveal key={st.id} className="grid grid-cols-[4.5rem_1fr] gap-5 @2xl:grid-cols-[6rem_1fr_16rem] @2xl:items-start">
             <div className="flex aspect-square -rotate-12 items-center justify-center rounded-full border-2 border-dashed border-[var(--primary)] p-1 text-center text-[11px] font-semibold uppercase leading-tight text-[var(--primary)]">
-              {st.date}
+              <F f={`story.${st.id}.date`}>{st.date}</F>
             </div>
             <div>
-              <h3 className="tpl-heading text-3xl">{st.title}</h3>
-              <p className="mt-2 text-lg leading-8">{st.content}</p>
+              <h3 className="tpl-heading text-3xl"><F f={`story.${st.id}.title`}>{st.title}</F></h3>
+              <p className="mt-2 text-lg leading-8"><F f={`story.${st.id}.content`}>{st.content}</F></p>
             </div>
             <div className={`relative col-span-2 mx-auto w-[70%] bg-white p-2 shadow-md @2xl:col-span-1 @2xl:w-full ${i % 2 ? "rotate-3" : "-rotate-3"}`}>
               <Tape className="-top-2 -left-4 rotate-[-30deg] !w-16" />
@@ -367,14 +367,14 @@ export function ZenCouple({ tpl, data }: P) {
                 <Img src={p.photo} alt={`${role} ${p.name}`} className="aspect-[3/4] w-full" />
               </div>
               <h3 className="tpl-heading pb-1 text-3xl font-light leading-none @3xl:text-5xl" style={{ writingMode: "vertical-rl" }}>
-                {p.fullName || p.name}
+                <F f={p === data.groom ? "groom.fullName" : "bride.fullName"}>{p.fullName || p.name}</F>
               </h3>
             </div>
             <div className={`mt-5 flex items-start gap-3 ${i ? "flex-row-reverse text-right" : ""}`}>
               <span className="mt-1 h-2 w-2 shrink-0 bg-[var(--primary)]" aria-hidden />
               <div>
                 <p className="text-[10px] uppercase tracking-[0.4em] text-[var(--muted)]">{role}</p>
-                {parents(p, son) && <p className="mt-1 max-w-xs text-sm leading-relaxed text-[var(--muted)]">{parents(p, son)}</p>}
+                {parents(p, son) && <p className="mt-1 max-w-xs text-sm leading-relaxed text-[var(--muted)]"><F f={p === data.groom ? "groom.parents" : "bride.parents"}>{parents(p, son)}</F></p>}
               </div>
             </div>
           </Reveal>
@@ -406,11 +406,11 @@ export function ZenEvents({ tpl, data }: P) {
                 <p className="text-[10px] uppercase tracking-[0.5em] text-[var(--muted)]">
                   {dt ? `Tháng ${dt.month} · ${dt.year} · ${dt.weekday}` : ""}
                 </p>
-                <h3 className="tpl-heading mt-2 text-3xl font-light @3xl:text-4xl">{ev.title}</h3>
+                <h3 className="tpl-heading mt-2 text-3xl font-light @3xl:text-4xl"><F f={`event.${ev.id}.title`}>{ev.title}</F></h3>
                 {dt && <p className="mt-1 text-lg">{dt.time}</p>}
-                {ev.lunarDate && <p className="text-sm text-[var(--muted)]">{ev.lunarDate}</p>}
-                {ev.venue && <p className="mt-4">{ev.venue}</p>}
-                {ev.address && <p className="text-sm text-[var(--muted)]">{ev.address}</p>}
+                {ev.lunarDate && <p className="text-sm text-[var(--muted)]"><F f={`event.${ev.id}.lunarDate`}>{ev.lunarDate}</F></p>}
+                {ev.venue && <p className="mt-4"><F f={`event.${ev.id}.venue`}>{ev.venue}</F></p>}
+                {ev.address && <p className="text-sm text-[var(--muted)]"><F f={`event.${ev.id}.address`}>{ev.address}</F></p>}
                 <div className="mt-5">
                   <EventLinks ev={ev} data={data} />
                 </div>
@@ -434,13 +434,13 @@ export function ZenStory({ tpl, data }: P) {
           <Reveal key={st.id} variant="blur" className={`grid items-end gap-6 @3xl:grid-cols-12 @3xl:gap-10`}>
             <div className={`flex gap-4 @3xl:col-span-7 ${i % 2 ? "@3xl:order-2 @3xl:col-start-6" : ""}`}>
               <p className="shrink-0 text-[10px] uppercase tracking-[0.5em] text-[var(--primary)]" style={{ writingMode: "vertical-rl" }}>
-                {st.date}
+                <F f={`story.${st.id}.date`}>{st.date}</F>
               </p>
               <Img src={st.photo} alt={st.title} className="aspect-[4/3] w-full" />
             </div>
             <div className={`@3xl:col-span-4 ${i % 2 ? "@3xl:order-1 @3xl:col-start-1" : ""}`}>
-              <h3 className="tpl-heading text-3xl font-light">{st.title}</h3>
-              <p className="mt-4 text-sm leading-loose text-[var(--muted)]">{st.content}</p>
+              <h3 className="tpl-heading text-3xl font-light"><F f={`story.${st.id}.title`}>{st.title}</F></h3>
+              <p className="mt-4 text-sm leading-loose text-[var(--muted)]"><F f={`story.${st.id}.content`}>{st.content}</F></p>
             </div>
           </Reveal>
         ))}

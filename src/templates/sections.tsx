@@ -6,7 +6,7 @@ import type { TemplateDef } from "./registry";
 import { Icon } from "./icons";
 import { Countdown, TplLink } from "./interactive";
 import { isImmersive, Parallax, Reveal, useMode } from "./motion";
-import { formatDate, Frame, Img, OrnamentMark, Section, SectionTitle } from "./parts";
+import { F, formatDate, Frame, Img, OrnamentMark, Section, SectionTitle } from "./parts";
 import { JournalCouple, JournalEvents, JournalStory, LuxeCouple, LuxeEvents, LuxeStory, ModernCouple, ModernEvents, ModernStory, ZenCouple, ZenEvents, ZenStory } from "./layouts2";
 import { EditorialCouple, EditorialEvents, EditorialStory, HeritageCouple, HeritageEvents, HeritageStory, RomanticCouple, RomanticEvents, RomanticStory } from "./layouts";
 
@@ -21,10 +21,10 @@ export function QuoteSection({ tpl, data }: P) {
         <span className="tpl-heading block text-8xl leading-none text-[var(--primary)] opacity-40" aria-hidden>
           “
         </span>
-        <blockquote className="tpl-heading -mt-6 text-2xl italic leading-relaxed @3xl:text-3xl" style={{ textWrap: "balance" }}>
+        <blockquote data-tf="quote.text" className="tpl-heading -mt-6 text-2xl italic leading-relaxed @3xl:text-3xl" style={{ textWrap: "balance" }}>
           {data.quote.text}
         </blockquote>
-        {data.quote.author && <p className="mt-6 text-xs uppercase tracking-[0.35em] text-[var(--muted)]">{data.quote.author}</p>}
+        {data.quote.author && <p data-tf="quote.author" className="mt-6 text-xs uppercase tracking-[0.35em] text-[var(--muted)]">{data.quote.author}</p>}
         <OrnamentMark type={tpl.ornament} className="mt-8" />
       </Reveal>
     </Section>
@@ -43,11 +43,11 @@ export function Families({ tpl, data }: P) {
         {sides.map(({ label, p }, i) => (
           <Reveal key={label} variant={i ? "right" : "left"}>
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-[var(--primary)]">{label}</p>
-            <div className="tpl-heading mt-4 space-y-1 text-xl">
+            <div data-tf={p === data.groom ? "groom.parents" : "bride.parents"} className="tpl-heading mt-4 space-y-1 text-xl">
               {p.father && <p>{p.father}</p>}
               {p.mother && <p>{p.mother}</p>}
             </div>
-            {p.address && <p className="mt-2 text-sm text-[var(--muted)]">{p.address}</p>}
+            {p.address && <p className="mt-2 text-sm text-[var(--muted)]"><F f={p === data.groom ? "groom.address" : "bride.address"}>{p.address}</F></p>}
           </Reveal>
         ))}
       </div>
@@ -57,18 +57,18 @@ export function Families({ tpl, data }: P) {
           <div>
             <p className="text-[11px] uppercase tracking-[0.35em] text-[var(--muted)]">Chú rể</p>
             <p className={`tpl-heading mt-2 text-4xl @3xl:text-5xl ${tpl.headingUppercase ? "uppercase tracking-[0.12em]" : ""}`}>
-              {data.groom.fullName || data.groom.name}
+              <F f="groom.fullName">{data.groom.fullName || data.groom.name}</F>
             </p>
           </div>
           <p className="tpl-script text-6xl text-[var(--primary)]">&</p>
           <div>
             <p className="text-[11px] uppercase tracking-[0.35em] text-[var(--muted)]">Cô dâu</p>
             <p className={`tpl-heading mt-2 text-4xl @3xl:text-5xl ${tpl.headingUppercase ? "uppercase tracking-[0.12em]" : ""}`}>
-              {data.bride.fullName || data.bride.name}
+              <F f="bride.fullName">{data.bride.fullName || data.bride.name}</F>
             </p>
           </div>
         </div>
-        <p className="mx-auto mt-10 max-w-xl whitespace-pre-line leading-loose text-[var(--muted)]">{data.invitationText}</p>
+        <p data-tf="invitationText" className="mx-auto mt-10 max-w-xl whitespace-pre-line leading-loose text-[var(--muted)]">{data.invitationText}</p>
       </Reveal>
     </Section>
   );
@@ -89,7 +89,7 @@ function ClassicCouple({ tpl, data }: P) {
             <Frame shape={tpl.frame} src={p.photo} alt={`${role} ${p.name}`} caption={p.name} className="mx-auto w-[78%] max-w-[340px]" />
             <p className="mt-10 text-[11px] uppercase tracking-[0.4em] text-[var(--muted)]">{role}</p>
             <h3 className="tpl-script mt-1 text-5xl text-[var(--primary)]">{p.name}</h3>
-            {p.bio && <p className="mx-auto mt-4 max-w-xs leading-relaxed text-[var(--muted)]">{p.bio}</p>}
+            {p.bio && <p className="mx-auto mt-4 max-w-xs leading-relaxed text-[var(--muted)]"><F f={p === data.groom ? "groom.bio" : "bride.bio"}>{p.bio}</F></p>}
           </Reveal>
         ))}
       </div>
@@ -165,7 +165,7 @@ function ClassicEvents({ tpl, data }: P) {
             <Reveal key={ev.id} delay={i * 120} variant="up">
               <article className="flex h-full flex-col overflow-hidden rounded-[2rem] border border-[var(--primary)]/20 bg-[var(--surface)] shadow-[0_30px_60px_-40px_rgba(0,0,0,.35)]">
                 <div className="px-7 pb-6 pt-9 text-center">
-                  <p className="text-[11px] uppercase tracking-[0.45em] text-[var(--primary)]">{ev.title}</p>
+                  <p className="text-[11px] uppercase tracking-[0.45em] text-[var(--primary)]"><F f={`event.${ev.id}.title`}>{ev.title}</F></p>
                   {dt && (
                     <>
                       <p className="tpl-heading mt-5 text-6xl tabular-nums">{dt.time}</p>
@@ -174,13 +174,13 @@ function ClassicEvents({ tpl, data }: P) {
                       </p>
                     </>
                   )}
-                  {ev.lunarDate && <p className="mt-1 text-sm italic text-[var(--muted)]">{ev.lunarDate}</p>}
+                  {ev.lunarDate && <p className="mt-1 text-sm italic text-[var(--muted)]"><F f={`event.${ev.id}.lunarDate`}>{ev.lunarDate}</F></p>}
                   <div className="mx-auto my-6 h-px w-16 bg-[var(--primary)]/40" />
-                  {ev.venue && <h3 className="tpl-heading text-2xl">{ev.venue}</h3>}
+                  {ev.venue && <h3 className="tpl-heading text-2xl"><F f={`event.${ev.id}.venue`}>{ev.venue}</F></h3>}
                   {ev.address && (
                     <p className="mt-2 flex items-start justify-center gap-1.5 text-sm text-[var(--muted)]">
                       <Icon name="pin" size={16} className="mt-0.5 shrink-0" />
-                      {ev.address}
+                      <F f={`event.${ev.id}.address`}>{ev.address}</F>
                     </p>
                   )}
                   <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -223,11 +223,11 @@ export function Schedule({ tpl, data }: P) {
         <span className="absolute bottom-2 left-[5.25rem] top-2 w-px bg-[var(--primary)]/30" aria-hidden />
         {data.schedule.map((s, i) => (
           <Reveal as="li" key={s.id} delay={i * 100} variant="left" className="relative grid grid-cols-[4.5rem_1.5rem_1fr] items-start gap-3 pb-10 last:pb-0">
-            <span className="tpl-heading pt-0.5 text-right text-2xl tabular-nums text-[var(--primary)]">{s.time}</span>
+            <span className="tpl-heading pt-0.5 text-right text-2xl tabular-nums text-[var(--primary)]"><F f={`schedule.${s.id}.time`}>{s.time}</F></span>
             <span className="mt-2.5 h-3 w-3 justify-self-center rounded-full border-2 border-[var(--primary)] bg-[var(--surface)]" aria-hidden />
             <div>
-              <h3 className="tpl-heading text-xl">{s.title}</h3>
-              {s.description && <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">{s.description}</p>}
+              <h3 className="tpl-heading text-xl"><F f={`schedule.${s.id}.title`}>{s.title}</F></h3>
+              {s.description && <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]"><F f={`schedule.${s.id}.description`}>{s.description}</F></p>}
             </div>
           </Reveal>
         ))}
@@ -255,9 +255,9 @@ function ClassicStory({ tpl, data }: P) {
                 </div>
               </Reveal>
               <Reveal variant="up" delay={150} className={`text-center @3xl:text-left ${flip ? "@3xl:order-1 @3xl:text-right" : ""}`}>
-                <p className="text-[11px] uppercase tracking-[0.4em] text-[var(--primary)]">{st.date}</p>
-                <h3 className="tpl-heading mt-3 text-3xl @3xl:text-4xl">{st.title}</h3>
-                <p className="mt-4 leading-loose text-[var(--muted)]">{st.content}</p>
+                <p className="text-[11px] uppercase tracking-[0.4em] text-[var(--primary)]"><F f={`story.${st.id}.date`}>{st.date}</F></p>
+                <h3 className="tpl-heading mt-3 text-3xl @3xl:text-4xl"><F f={`story.${st.id}.title`}>{st.title}</F></h3>
+                <p className="mt-4 leading-loose text-[var(--muted)]"><F f={`story.${st.id}.content`}>{st.content}</F></p>
               </Reveal>
             </div>
           );
@@ -343,7 +343,7 @@ export function ThankYou({ data, monogram }: P & { monogram: string }) {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-black/10" aria-hidden />
       <Reveal variant="blur" className="relative max-w-lg px-6">
         <p className="tpl-script text-7xl @3xl:text-8xl">Thank you</p>
-        <p className="mx-auto mt-6 leading-relaxed opacity-90">{data.closingText}</p>
+        <p data-tf="closingText" className="mx-auto mt-6 leading-relaxed opacity-90">{data.closingText}</p>
         <div className="mx-auto mt-10 flex h-16 w-16 items-center justify-center rounded-full border border-white/60">
           <span className="tpl-script text-2xl">{monogram}</span>
         </div>
