@@ -42,11 +42,30 @@ function writePending(slug: string, p: Pending | null) {
   } catch {}
 }
 
-function copy(text: string) {
-  return navigator.clipboard?.writeText(text).then(
-    () => true,
-    () => false,
-  ) ?? Promise.resolve(false);
+/** Sao chép: dùng Clipboard API; trang http hoặc trình duyệt trong app (Zalo, Facebook…) không có API này thì chép bằng ô ẩn. */
+function copyFallback(text: string) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.setAttribute("readonly", "");
+  ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;font-size:16px";
+  document.body.appendChild(ta);
+  ta.select();
+  ta.setSelectionRange(0, text.length);
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {}
+  ta.remove();
+  return ok;
+}
+async function copy(text: string) {
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {}
+  }
+  return copyFallback(text);
 }
 
 function sideTitle(g: GiftAccount) {
