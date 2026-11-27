@@ -74,23 +74,19 @@ export function appOpenUrl(app: BankApp, platform: Platform, fallbackUrl: string
 }
 
 /**
- * Yêu cầu điền sẵn của VietQR cho app có autofill: gọi dl.vietqr.io/pay (ba = SO_TAI_KHOAN@ma_ngan_hang, tn, bn) để
- * VietQR ghi nhận thông tin người nhận; app ngân hàng mở lên sẽ tự lấy về (link mở app không chứa dữ liệu chuyển khoản).
- * Không truyền số tiền: khách tự nhập. App không có autofill trả "".
+ * Link "Web Call App" công bố tại https://www.vietqr.io/deeplink (bảng tham số): dl.vietqr.io/pay với
+ *   app = app gửi tiền của KHÁCH (mb, icb, bidv, acb, ocb…),
+ *   ba  = SO_TAI_KHOAN@ma_ngan_hang của bên NHẬN (vd 0123456789@ocb),
+ *   am  = số tiền (tài liệu ghi BẮT BUỘC), tn = nội dung, bn = tên chủ TK nhận, url = trang quay về.
+ * Mở bằng chính thẻ <a> khách chạm vào. App có autofill tự điền thông tin này khi mở.
+ * Trả "" khi app không có autofill trên thiết bị, thiếu ngân hàng / STK, hoặc chưa có số tiền (không gán số tiền mặc định).
  */
-export function autofillClaimUrl(app: BankApp, platform: Platform, to: { bankCode: string; accountNumber: string; accountName: string; content: string }) {
-  if (appSupport(app, platform) !== 2 || !to.bankCode || !to.accountNumber) return "";
-  const q = new URLSearchParams({ app: app.id, ba: `${to.accountNumber}@${to.bankCode.toLowerCase()}` });
-  if (to.content) q.set("tn", to.content);
+export function webCallAppUrl(app: BankApp, platform: Platform, to: { bankCode: string; accountNumber: string; accountName: string; content: string; amount: number; returnUrl: string }) {
+  const acc = to.accountNumber.replace(/s+/g, "");
+  if (appSupport(app, platform) !== 2 || !to.bankCode || !acc || !(to.amount > 0)) return "";
+  const q = new URLSearchParams({ app: app.id, ba: `${acc}@${to.bankCode.toLowerCase()}`, am: String(Math.round(to.amount)), tn: to.content });
   if (to.accountName) q.set("bn", to.accountName);
+  if (to.returnUrl) q.set("url", to.returnUrl);
   // giữ "@" nguyên dạng như ví dụ chính thức (ba=113366668888@vcb)
   return `https://dl.vietqr.io/pay?${q.toString().replace("%40", "@")}`;
-}
-
-/** Gửi yêu cầu điền sẵn ở chế độ nền (không chờ, không đọc kết quả) để không làm chậm việc mở app. */
-export function sendAutofillClaim(url: string) {
-  if (!url) return;
-  try {
-    void fetch(url, { mode: "no-cors", keepalive: true, credentials: "omit", referrerPolicy: "no-referrer", cache: "no-store" }).catch(() => {});
-  } catch {}
 }

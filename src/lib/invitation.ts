@@ -1,6 +1,7 @@
 // Kiểu dữ liệu nội dung thiệp + giá trị mặc định. Dùng được cả client lẫn server.
 
 import { cleanFieldStyles, type FieldStyles } from "./fieldTypo";
+import { findBank, VN_BANKS } from "./vnBanks";
 
 export type Person = {
   name: string; // tên gọi ngắn hiển thị lớn, vd "Minh Anh"
@@ -29,7 +30,9 @@ export type FaqItem = { id: string; q: string; a: string };
 export type GiftAccount = {
   id: string;
   label: string; // "Mừng cưới chú rể"
-  bankCode: string; // mã VietQR, vd VCB. Để trống nếu tự tải ảnh QR
+  bankCode: string; // mã VietQR chuẩn (src/lib/vnBanks.ts), vd VCB, OCB. Trống = chưa chọn ngân hàng trong danh sách
+  /** Mã BIN NAPAS 6 số của ngân hàng nhận (lưu kèm mã VietQR khi chọn trong danh sách). */
+  bankBin?: string;
   bankName: string;
   accountNumber: string;
   accountName: string;
@@ -135,20 +138,8 @@ export const EFFECT_LABELS: Record<Exclude<EffectKind, "">, string> = {
   none: "Không hiệu ứng",
 };
 
-export const BANKS: { code: string; name: string }[] = [
-  { code: "VCB", name: "Vietcombank" },
-  { code: "TCB", name: "Techcombank" },
-  { code: "MB", name: "MB Bank" },
-  { code: "ACB", name: "ACB" },
-  { code: "BIDV", name: "BIDV" },
-  { code: "ICB", name: "VietinBank" },
-  { code: "VPB", name: "VPBank" },
-  { code: "TPB", name: "TPBank" },
-  { code: "VBA", name: "Agribank" },
-  { code: "STB", name: "Sacombank" },
-  { code: "VIB", name: "VIB" },
-  { code: "SHB", name: "SHB" },
-];
+/** Ngân hàng cho phần thanh toán đơn đặt thiệp: cùng danh mục VietQR với tài khoản mừng cưới. */
+export const BANKS: { code: string; name: string }[] = VN_BANKS.map((b) => ({ code: b.code, name: b.short || b.name }));
 
 export function uid() {
   return Math.random().toString(36).slice(2, 10);
@@ -385,11 +376,26 @@ export function demoInvitationData(cover: DemoPhotoKey = "coupleClose"): Invitat
   };
 }
 
+/**
+ * Ảnh VietQR (img.vietqr.io) — một nguồn duy nhất cho QR hiển thị trên thiệp và QR tải về (/api/qr), nên hai mã luôn
+ * cùng thông tin chuyển khoản. Trả "" khi ngân hàng không có trong danh mục hoặc STK sai dạng. STK là chuỗi (giữ số 0 đầu).
+ */
+export function vietQrImageUrl(bankCode: string, accountNumber: string, accountName: string, addInfo: string) {
+  const bank = findBank(bankCode);
+  const acc = accountNumber.replace(/s+/g, "");
+  if (!bank || !/^[0-9A-Za-z]{4,30}$/.test(acc)) return "";
+  const q = new URLSearchParams({ accountName: accountName.trim().slice(0, 60), addInfo: addInfo.trim().slice(0, 60) });
+  return `https://img.vietqr.io/image/${bank.code}-${acc}-compact.png?${q}`;
+}
+
+/**
+ * QR của tài khoản mừng cưới: ảnh QR tự tải lên (thiệp cũ) được giữ; không có thì tự tạo VietQR khi đã chọn ngân hàng
+ * trong danh mục, có STK và tên chủ tài khoản.
+ */
 export function giftQrUrl(g: GiftAccount, addInfo = "Mung cuoi") {
   if (g.qrImage) return g.qrImage;
-  if (!g.bankCode || !g.accountNumber) return "";
-  const q = new URLSearchParams({ accountName: g.accountName, addInfo });
-  return `https://img.vietqr.io/image/${g.bankCode}-${g.accountNumber}-compact.png?${q}`;
+  if (!g.accountName.trim()) return "";
+  return vietQrImageUrl(g.bankCode, g.accountNumber, g.accountName, addInfo);
 }
 
 /** Lấy ID video YouTube từ link (youtu.be, watch?v=, shorts, embed). */

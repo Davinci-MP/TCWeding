@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  BANKS,
   mapEmbedUrl,
+  giftQrUrl,
   EFFECT_LABELS,
   NAME_SCALE_RANGE,
   TEXT_SCALE_RANGE,
@@ -26,6 +26,8 @@ import { FontPicker } from "@/components/admin/FontPicker";
 import { fontName } from "@/lib/fonts";
 import { PHOTO_SPECS, PhotoField } from "./PhotoField";
 import { FieldTypoBar, FieldTypoContext, useMeasuredField } from "./FieldTypo";
+import { BankSelect } from "./BankSelect";
+import { findBank } from "@/lib/vnBanks";
 import { clampFieldSize, fieldLabel, setFieldStyle, type FieldStyle } from "@/lib/fieldTypo";
 import type { LibraryTrack } from "@/lib/settings";
 
@@ -445,7 +447,7 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
 
             {tab === "gift" && (
               <>
-                <p className="text-sm text-zinc-500">Chọn ngân hàng để hệ thống tự tạo mã VietQR, hoặc tải ảnh QR của bạn lên.</p>
+                <p className="text-sm text-zinc-500">Chọn ngân hàng nhận trong danh sách, nhập số tài khoản và tên chủ tài khoản: thiệp tự tạo mã VietQR, không cần tải ảnh QR.</p>
                 {data.gifts.map((g: GiftAccount, i) => (
                   <ListItem key={g.id} title={g.label || `Tài khoản ${i + 1}`} onRemove={() => removeFrom("gifts", i)}>
                     <div className="grid grid-cols-2 gap-3">
@@ -458,31 +460,13 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                       </Field>
                       <TextInput tf={`gift.${g.id}.label`} label="Tiêu đề" value={g.label} placeholder="Mừng cưới chú rể" onChange={(v) => updateList("gifts", i, { label: v })} />
                     </div>
-                    <Field label="Ngân hàng">
-                      <select
-                        className="input"
-                        value={g.bankCode}
-                        onChange={(e) => {
-                          const b = BANKS.find((x) => x.code === e.target.value);
-                          updateList("gifts", i, { bankCode: e.target.value, bankName: b?.name ?? g.bankName });
-                        }}
-                      >
-                        <option value="">— Khác (tự nhập tên, tải ảnh QR) —</option>
-                        {BANKS.map((b) => (
-                          <option key={b.code} value={b.code}>
-                            {b.name}
-                          </option>
-                        ))}
-                      </select>
-                    </Field>
-                    {!g.bankCode && (
-                      <TextInput tf={`gift.${g.id}.bankName`} label="Tên ngân hàng" value={g.bankName} onChange={(v) => updateList("gifts", i, { bankName: v })} />
-                    )}
+                    <BankSelect value={g} onChange={(v) => updateList("gifts", i, v)} />
                     <div className="grid grid-cols-2 gap-3">
-                      <TextInput tf={`gift.${g.id}.accountNumber`} label="Số tài khoản" value={g.accountNumber} onChange={(v) => updateList("gifts", i, { accountNumber: v.replace(/\s/g, "") })} />
+                      <TextInput tf={`gift.${g.id}.accountNumber`} label="Số tài khoản" value={g.accountNumber} onChange={(v) => updateList("gifts", i, { accountNumber: v.replace(/s/g, "") })} />
                       <TextInput tf={`gift.${g.id}.accountName`} label="Chủ tài khoản" value={g.accountName} onChange={(v) => updateList("gifts", i, { accountName: v.toUpperCase() })} />
                     </div>
-                    <ImageField label="Ảnh QR (tuỳ chọn)" value={g.qrImage} onChange={(v) => updateList("gifts", i, { qrImage: v })} />
+                    <GiftQrStatus gift={g} />
+                    <ImageField label="Ảnh QR riêng (không bắt buộc, thay cho VietQR tự tạo)" value={g.qrImage} onChange={(v) => updateList("gifts", i, { qrImage: v })} />
                   </ListItem>
                 ))}
                 <button
@@ -609,6 +593,14 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
     </div>
     </FieldTypoContext.Provider>
   );
+}
+
+/** Trạng thái mã VietQR của một tài khoản mừng cưới (thiếu gì thì nói rõ). */
+function GiftQrStatus({ gift }: { gift: GiftAccount }) {
+  if (gift.qrImage) return <p className="text-xs text-zinc-500">Đang dùng ảnh QR riêng đã tải lên. Xoá ảnh để dùng VietQR tự tạo.</p>;
+  const missing = [!findBank(gift.bankCode) && "chọn ngân hàng trong danh sách", !/^[0-9A-Za-z]{4,30}$/.test(gift.accountNumber) && "số tài khoản", !gift.accountName.trim() && "tên chủ tài khoản"].filter(Boolean);
+  if (!missing.length || giftQrUrl(gift)) return <p className="text-xs font-medium text-emerald-700">✓ Đã tự tạo mã VietQR — xem ở bản xem trước, mục Hộp mừng cưới.</p>;
+  return <p className="text-xs text-amber-700">Cần {missing.join(", ")} để tạo mã VietQR.</p>;
 }
 
 function PublishTab({
