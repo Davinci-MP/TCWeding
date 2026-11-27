@@ -131,16 +131,43 @@ export function ScrollProgress() {
 }
 
 /* ---------------- Chữ chạy vô tận ---------------- */
-export function Marquee({ children, duration = 40, className = "" }: { children: ReactNode; duration?: number; className?: string }) {
+/**
+ * Dải chữ chạy. Trên điện thoại:
+ * - không dừng khi chạm (trạng thái :hover bị "dính" sau khi chạm trên iOS/Android từng làm dải chữ đứng im);
+ * - khởi động lại animation khi quay lại thiệp từ app khác (Safari có lúc để animation đứng sau khi trang bị ẩn).
+ * Khi bật giảm chuyển động: hiện bản tĩnh đầy đủ (staticContent, mặc định là nội dung một lần, cuộn ngang được).
+ */
+export function Marquee({ children, duration = 40, className = "", staticContent }: { children: ReactNode; duration?: number; className?: string; staticContent?: ReactNode }) {
+  const track = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = track.current;
+    if (!el) return;
+    const restart = () => {
+      if (document.visibilityState !== "visible") return;
+      el.style.animation = "none";
+      void el.offsetWidth; // ép trình duyệt tính lại trước khi gắn animation lại
+      el.style.animation = "";
+    };
+    const onShow = () => restart();
+    document.addEventListener("visibilitychange", restart);
+    window.addEventListener("pageshow", onShow);
+    return () => {
+      document.removeEventListener("visibilitychange", restart);
+      window.removeEventListener("pageshow", onShow);
+    };
+  }, []);
   return (
-    <div className={`overflow-hidden ${className}`}>
-      <div className="tpl-marquee flex w-max" style={{ "--marquee-duration": `${duration}s` } as CSSProperties}>
-        <div className="flex shrink-0">{children}</div>
-        <div className="flex shrink-0" aria-hidden>
-          {children}
+    <>
+      <div className={`tpl-marquee-wrap overflow-hidden ${className}`}>
+        <div ref={track} className="tpl-marquee flex w-max" style={{ "--marquee-duration": `${duration}s` } as CSSProperties}>
+          <div className="flex shrink-0">{children}</div>
+          <div className="flex shrink-0" aria-hidden>
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+      <div className={`tpl-marquee-static ${staticContent ? "" : "tpl-noscroll overflow-x-auto"} ${className}`}>{staticContent ?? <div className="flex w-max">{children}</div>}</div>
+    </>
   );
 }
 

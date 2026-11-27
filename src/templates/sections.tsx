@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { googleCalendarUrl, safeUrl, youtubeId, type InvitationData } from "@/lib/invitation";
+import { googleCalendarUrl, safeUrl, youtubeId, type InvitationData, mapEmbedUrl } from "@/lib/invitation";
 import type { TemplateDef } from "./registry";
 import { Icon } from "./icons";
 import { Countdown, TplLink } from "./interactive";
@@ -196,12 +196,12 @@ function ClassicEvents({ tpl, data }: P) {
                     )}
                   </div>
                 </div>
-                {ev.address && isImmersive(mode) && (
+                {mapEmbedUrl(ev) && mode !== "thumb" && (
                   <iframe
                     title={`Bản đồ ${ev.title}`}
                     className="mt-auto h-52 w-full border-0 grayscale-[.4]"
                     loading="lazy"
-                    src={`https://www.google.com/maps?q=${encodeURIComponent(ev.address)}&output=embed`}
+                    src={mapEmbedUrl(ev)}
                   />
                 )}
               </article>

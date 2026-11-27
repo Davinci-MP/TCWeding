@@ -195,6 +195,10 @@ Một trang `/thiep`, điều hướng bằng `#` giống quocanhwedding.com/thi
 
 - Web không tự đối soát ngân hàng. Ai có link đơn đều xem được đơn; khách mất link thì admin sao chép lại ở trang chi tiết đơn.
 
+### Bản đồ sự kiện
+
+Mỗi sự kiện chỉ hiện bản đồ khi đã nhập **Link Google Maps** hợp lệ (toạ độ trong link được dùng nếu có, không thì dùng địa chỉ). Để trống / xoá link thì không có khối bản đồ; tên địa điểm, địa chỉ, giờ vẫn hiện.
+
 ### Kiểu chữ và nội dung dài
 
 - **Website:** tiêu đề tự chọn cỡ theo độ dài câu (câu dài không còn chiếm cả màn hình), từ quá dài tự xuống dòng. Chỉnh font và cỡ chữ ở Nội dung trang chủ › Kiểu chữ toàn website.
@@ -205,6 +209,8 @@ Một trang `/thiep`, điều hướng bằng `#` giống quocanhwedding.com/thi
 
 - **Khách:** ở Hộp mừng cưới chọn tab **Nhà trai / Nhà gái** → **Mừng cưới ngay** → chọn app ngân hàng của mình. Thiệp mở app bằng deep link chính thức của VietQR (`dl.vietqr.io/pay`, danh sách app ở `src/lib/bankApps.ts`). App có ⚡ (MB Bank, VietinBank iPay, BIDV, ACB ONE, OCB OMNI) điền sẵn số tài khoản, ngân hàng nhận, nội dung; app khác chỉ mở lên. Số tiền khách tự nhập. Luôn có mã VietQR, **Lưu mã QR**, sao chép số tài khoản và nội dung.
 - **Quay lại thiệp:** hỏi “Bạn đã chuyển khoản chưa?” một lần cho mỗi lượt mở app (kể cả khi trang bị tải lại). Nút **Tôi đã chuyển khoản** luôn có trong hộp. “Mừng tại đám cưới” không tạo dòng nào.
+- **Popup “Mừng Cưới”:** có nút Quay lại ở mỗi bước (giữ bên nhận, dữ liệu đã điền và ảnh đã chọn trong lần mở popup) và bước **Xem lại** trước khi **Gửi bill**. Form: Ngân hàng gửi → STK gửi → Ngày giờ chuyển → Số tiền (hai cột trên màn rộng, một cột trên điện thoại), rồi Mã giao dịch (không bắt buộc).
+- **STK nhận:** chữ số thẳng hàng, đều nhau (lining + tabular), nhóm 4 số; chỉnh font / cỡ riêng như các ô khác (bấm vào STK trên bản xem trước).
 - **Gửi bill:** ảnh được nén trên máy khách, lưu trong database (bảng `GiftBill`, không đưa lên kho ảnh công khai). Chưa có OCR: khách nhập tay, trường nào bill không có thì để trống. STK người gửi chỉ lưu 4 số cuối. Gửi lại cùng yêu cầu (mất mạng) không tạo dòng trùng.
 - **Chủ thiệp:** bảng **Tiền mừng online** ở trang Khách mời của thiệp (`/dashboard/<id>/guests`) và trang đơn của cô dâu chú rể (`/don/<token>`). Dòng mới luôn **Chờ xác nhận**; đối chiếu với app ngân hàng rồi bấm **Xác nhận / Từ chối**. Chỉ dòng đã xác nhận được cộng vào tổng. **Xuất CSV** có cột ID bản ghi.
 - **Link bill `/b/<mã>`:** chỉ mở được bởi admin, tài khoản sở hữu thiệp, hoặc người đã mở link đơn của thiệp (cookie ký số, `src/lib/auth.ts`).
