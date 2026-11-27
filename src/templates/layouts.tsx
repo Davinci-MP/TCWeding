@@ -3,7 +3,7 @@
 // Biến thể bố cục cho các mục bên trong thiệp: Tạp chí (editorial), Lãng mạn (romantic), Di sản (heritage).
 // Bố cục Cổ điển (classic) nằm trong sections.tsx.
 
-import { googleCalendarUrl, safeUrl, type InvitationData, type WeddingEvent } from "@/lib/invitation";
+import { googleCalendarUrl, safeUrl, type InvitationData, type WeddingEvent, mapEmbedUrl } from "@/lib/invitation";
 import type { TemplateDef } from "./registry";
 import { Icon } from "./icons";
 import { TplLink } from "./interactive";
@@ -201,12 +201,12 @@ export function RomanticEvents({ tpl, data }: P) {
                 <div className="mt-6 flex justify-center">
                   <EventLinks ev={ev} data={data} />
                 </div>
-                {ev.address && isImmersive(mode) && (
+                {mapEmbedUrl(ev) && mode !== "thumb" && (
                   <iframe
                     title={`Bản đồ ${ev.title}`}
                     className="mt-6 h-44 w-full rounded-3xl border-0"
                     loading="lazy"
-                    src={`https://www.google.com/maps?q=${encodeURIComponent(ev.address)}&output=embed`}
+                    src={mapEmbedUrl(ev)}
                   />
                 )}
               </article>

@@ -91,6 +91,7 @@ type LabelData = {
   story: { id: string; title: string }[];
   schedule: { id: string; title: string }[];
   faqs: { id: string; q: string }[];
+  gifts: { id: string; label: string }[];
 };
 
 const SINGLE: Record<string, string> = {
@@ -117,6 +118,7 @@ const PART: Record<string, Record<string, string>> = {
   story: { date: "thời gian", title: "tiêu đề", content: "nội dung" },
   schedule: { time: "giờ", title: "hoạt động", description: "mô tả" },
   faq: { q: "câu hỏi", a: "trả lời" },
+  gift: { label: "tiêu đề", bankName: "tên ngân hàng", accountNumber: "số tài khoản", accountName: "chủ tài khoản" },
 };
 
 export function fieldLabel(id: string, data: LabelData) {
@@ -124,10 +126,10 @@ export function fieldLabel(id: string, data: LabelData) {
   const [kind, itemId, part] = id.split(".");
   const partLabel = PART[kind]?.[part];
   if (!partLabel) return id;
-  const list = { event: data.events, story: data.story, schedule: data.schedule, faq: data.faqs }[kind] ?? [];
+  const list = { event: data.events, story: data.story, schedule: data.schedule, faq: data.faqs, gift: data.gifts }[kind] ?? [];
   const i = list.findIndex((x) => x.id === itemId);
-  const item = list[i] as { title?: string; q?: string } | undefined;
-  const name = { event: "Sự kiện", story: "Chuyện tình", schedule: "Lịch trình", faq: "Hỏi đáp" }[kind];
-  const title = item?.title || item?.q || (i >= 0 ? `${name} ${i + 1}` : name);
+  const item = list[i] as { title?: string; q?: string; label?: string } | undefined;
+  const name = { event: "Sự kiện", story: "Chuyện tình", schedule: "Lịch trình", faq: "Hỏi đáp", gift: "Tài khoản mừng cưới" }[kind];
+  const title = item?.title || item?.q || item?.label || (i >= 0 ? `${name} ${i + 1}` : name);
   return `${title} · ${partLabel}`;
 }

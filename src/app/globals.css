@@ -110,9 +110,25 @@ html {
 }
 .tpl-marquee {
   animation: marquee var(--marquee-duration, 40s) linear infinite;
+  will-change: transform;
+  backface-visibility: hidden;
 }
-.tpl-marquee:hover {
-  animation-play-state: paused;
+/* Chỉ dừng khi rê chuột thật (desktop). Trên màn cảm ứng, :hover bị "dính" sau khi chạm làm chữ đứng im. */
+@media (hover: hover) and (pointer: fine) {
+  .tpl-marquee:hover {
+    animation-play-state: paused;
+  }
+}
+.tpl-marquee-static {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tpl-marquee-wrap {
+    display: none;
+  }
+  .tpl-marquee-static {
+    display: block;
+  }
 }
 @keyframes cue {
   0%,
@@ -324,4 +340,46 @@ html[data-fullview] [data-site-chrome] {
     outline-offset: 3px;
     cursor: pointer;
   }
+}
+
+/* STK trong Hộp mừng cưới: font nội dung của mẫu với chữ số thẳng hàng, đều nhau (nhiều font tiêu đề như
+   Cormorant dùng chữ số kiểu cổ lên xuống không đều). Cỡ chữ co theo bề ngang thiệp để số dài vẫn đọc rõ. */
+.tpl-digits {
+  font-family: var(--f-body);
+  font-variant-numeric: lining-nums tabular-nums;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-size: clamp(1.2rem, 6.4cqi, 1.6rem);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+
+/* Form gửi bill: ô ngày giờ trên iOS / Android cao bằng các ô khác và không rộng hơn cột */
+.tpl-gift-input {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.tpl-gift-input[type="datetime-local"] {
+  display: block;
+  line-height: 3rem;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.tpl-gift-input::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.5em;
+}
+.tpl-gift-input::-webkit-datetime-edit {
+  padding: 0;
+}
+@media (min-width: 640px) {
+  /* hai cột trên màn rộng: thu gọn ô ngày giờ để đủ chỗ cả phần giờ (điện thoại giữ 16px để iOS không phóng to) */
+  .tpl-gift-input[type="datetime-local"] {
+    font-size: 0.9375rem;
+    padding-left: 0.625rem;
+    padding-right: 0.375rem;
+  }
+}
+.tpl-gift-input::-webkit-calendar-picker-indicator {
+  margin-left: 2px;
 }

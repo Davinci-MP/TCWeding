@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BANKS,
+  mapEmbedUrl,
   EFFECT_LABELS,
   NAME_SCALE_RANGE,
   TEXT_SCALE_RANGE,
@@ -296,8 +297,8 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                     <TextInput label="Thời gian" type="datetime-local" value={ev.date} onChange={(v) => updateList("events", i, { date: v })} />
                     <TextInput tf={`event.${ev.id}.lunarDate`} label="Ngày âm lịch" value={ev.lunarDate} placeholder="Nhằm ngày … tháng … năm …" onChange={(v) => updateList("events", i, { lunarDate: v })} />
                     <TextInput tf={`event.${ev.id}.venue`} label="Địa điểm" value={ev.venue} placeholder="Nhà hàng / Tư gia" onChange={(v) => updateList("events", i, { venue: v })} />
-                    <TextInput tf={`event.${ev.id}.address`} label="Địa chỉ" value={ev.address} onChange={(v) => updateList("events", i, { address: v })} hint="Bản đồ Google tự hiển thị theo địa chỉ" />
-                    <TextInput label="Link Google Maps (tuỳ chọn)" value={ev.mapUrl} onChange={(v) => updateList("events", i, { mapUrl: v })} />
+                    <TextInput tf={`event.${ev.id}.address`} label="Địa chỉ" value={ev.address} onChange={(v) => updateList("events", i, { address: v })} />
+                    <TextInput label="Link Google Maps (tuỳ chọn)" value={ev.mapUrl} onChange={(v) => updateList("events", i, { mapUrl: v })} placeholder="https://maps.app.goo.gl/…" hint={ev.mapUrl.trim() && !mapEmbedUrl(ev) ? "Link chưa đúng dạng Google Maps nên thiệp chưa hiện bản đồ." : "Có link: thiệp hiện bản đồ và nút chỉ đường. Để trống: không hiện bản đồ."} />
                   </ListItem>
                 ))}
                 <button
@@ -455,7 +456,7 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                           <option value="bride">Nhà gái</option>
                         </select>
                       </Field>
-                      <TextInput label="Tiêu đề" value={g.label} placeholder="Mừng cưới chú rể" onChange={(v) => updateList("gifts", i, { label: v })} />
+                      <TextInput tf={`gift.${g.id}.label`} label="Tiêu đề" value={g.label} placeholder="Mừng cưới chú rể" onChange={(v) => updateList("gifts", i, { label: v })} />
                     </div>
                     <Field label="Ngân hàng">
                       <select
@@ -475,11 +476,11 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                       </select>
                     </Field>
                     {!g.bankCode && (
-                      <TextInput label="Tên ngân hàng" value={g.bankName} onChange={(v) => updateList("gifts", i, { bankName: v })} />
+                      <TextInput tf={`gift.${g.id}.bankName`} label="Tên ngân hàng" value={g.bankName} onChange={(v) => updateList("gifts", i, { bankName: v })} />
                     )}
                     <div className="grid grid-cols-2 gap-3">
-                      <TextInput label="Số tài khoản" value={g.accountNumber} onChange={(v) => updateList("gifts", i, { accountNumber: v.replace(/\s/g, "") })} />
-                      <TextInput label="Chủ tài khoản" value={g.accountName} onChange={(v) => updateList("gifts", i, { accountName: v.toUpperCase() })} />
+                      <TextInput tf={`gift.${g.id}.accountNumber`} label="Số tài khoản" value={g.accountNumber} onChange={(v) => updateList("gifts", i, { accountNumber: v.replace(/\s/g, "") })} />
+                      <TextInput tf={`gift.${g.id}.accountName`} label="Chủ tài khoản" value={g.accountName} onChange={(v) => updateList("gifts", i, { accountName: v.toUpperCase() })} />
                     </div>
                     <ImageField label="Ảnh QR (tuỳ chọn)" value={g.qrImage} onChange={(v) => updateList("gifts", i, { qrImage: v })} />
                   </ListItem>

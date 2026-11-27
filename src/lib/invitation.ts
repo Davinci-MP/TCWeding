@@ -431,3 +431,25 @@ export function safeUrl(url: string) {
 }
 
 export const SLUG_RE = /^[a-z0-9](?:[a-z0-9-]{1,58}[a-z0-9])$/;
+
+/**
+ * Bản đồ nhúng của một sự kiện — chỉ khi đã nhập link bản đồ hợp lệ (Google Maps). Để trống / xoá link
+ * thì không có bản đồ (địa chỉ dạng chữ vẫn hiển thị). Toạ độ / từ khoá lấy từ link nếu có, không thì
+ * dùng địa chỉ hoặc tên địa điểm.
+ */
+export function mapEmbedUrl(ev: Pick<WeddingEvent, "mapUrl" | "address" | "venue">) {
+  const link = safeUrl(ev.mapUrl ?? "");
+  if (!link) return "";
+  let u: URL;
+  try {
+    u = new URL(link);
+  } catch {
+    return "";
+  }
+  const host = u.hostname.replace(/^www\./, "");
+  const isMaps = /^(maps\.)?google\.[a-z.]+$/.test(host) && (host.startsWith("maps.") || u.pathname.startsWith("/maps")) || host === "maps.app.goo.gl" || (host === "goo.gl" && u.pathname.startsWith("/maps"));
+  if (!isMaps) return "";
+  const at = /@(-?\d{1,3}\.\d+),(-?\d{1,3}\.\d+)/.exec(u.pathname);
+  const q = at ? `${at[1]},${at[2]}` : u.searchParams.get("q") || u.searchParams.get("query") || u.searchParams.get("ll") || ev.address || ev.venue;
+  return q ? `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed` : "";
+}

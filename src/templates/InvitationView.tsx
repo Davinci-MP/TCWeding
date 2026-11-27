@@ -126,7 +126,16 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
 
         {/* Dải chữ chạy */}
         <div className="border-y border-[var(--primary)]/20 py-4 text-[var(--primary)]">
-          <Marquee duration={36}>
+          <Marquee
+            duration={36}
+            staticContent={
+              <p className="tpl-heading px-5 text-center text-lg uppercase leading-relaxed tracking-[0.3em]">
+                {data.groom.name} & {data.bride.name}
+                {date ? ` ✦ ${date.short}` : ""}
+                {data.headline ? ` ✦ ${data.headline}` : ""}
+              </p>
+            }
+          >
             {Array.from({ length: 4 }).map((_, i) => (
               <span key={i} className="tpl-heading flex items-center gap-8 pr-8 text-lg uppercase tracking-[0.35em] whitespace-nowrap">
                 <span>
