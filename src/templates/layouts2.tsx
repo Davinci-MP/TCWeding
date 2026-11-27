@@ -19,18 +19,18 @@ const visibleEvents = (data: InvitationData) => data.events.filter((e) => e.titl
 const parents = (p: InvitationData["groom"], son: string) =>
   p.father || p.mother ? `${son} của ${[p.father, p.mother].filter(Boolean).join(" & ")}` : "";
 
-function EventLinks({ ev, data, center }: { ev: WeddingEvent; data: InvitationData; center?: boolean }) {
+function EventLinks({ ev, data, center, light }: { ev: WeddingEvent; data: InvitationData; center?: boolean; light?: boolean }) {
   const map = safeUrl(ev.mapUrl) || (ev.address ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.address)}` : "");
   const cal = ev.date ? googleCalendarUrl(`${ev.title} · ${data.groom.name} & ${data.bride.name}`, ev.date, ev.address || ev.venue) : "";
   return (
     <div className={`flex flex-wrap gap-2 ${center ? "justify-center" : ""}`}>
       {map && (
-        <TplLink href={map} icon="nav">
+        <TplLink href={map} icon="nav" light={light}>
           Chỉ đường
         </TplLink>
       )}
       {cal && (
-        <TplLink href={cal} icon="calendar">
+        <TplLink href={cal} icon="calendar" light={light}>
           Thêm vào lịch
         </TplLink>
       )}
@@ -81,7 +81,8 @@ export function LuxeEvents({ tpl, data }: P) {
           const bg = data.gallery[(i * 3 + 1) % Math.max(1, data.gallery.length)] || data.coverPhoto;
           return (
             <Reveal key={ev.id} delay={i * 120} variant="zoom">
-              <article className="relative overflow-hidden text-center text-white">
+              {/* nền tối cố định: ảnh parallax dịch lên không làm hở đáy thẻ (nút chữ sáng không chìm vào nền trang khi địa chỉ dài) */}
+              <article className="relative overflow-hidden bg-[#15110f] text-center text-white">
                 <div className="absolute inset-0">
                   <Parallax speed={0.08}>
                     <Img src={bg} alt="" className="h-[140%] w-full" />
@@ -89,7 +90,8 @@ export function LuxeEvents({ tpl, data }: P) {
                 </div>
                 <div className="absolute inset-0 bg-black/65" aria-hidden />
                 <div className="relative m-3 border border-[var(--primary)]/70 px-6 py-14 @3xl:m-5 @3xl:py-20">
-                  <p className="text-[10px] uppercase tracking-[0.6em] text-[var(--primary)]"><F f={`event.${ev.id}.title`}>{ev.title}</F></p>
+                  {/* nhãn sự kiện trên thẻ tối: màu chủ đạo pha sáng để đọc được cả khi màu chủ đạo đậm (navy, đỏ đô…) */}
+                  <p className="text-[10px] uppercase tracking-[0.6em] text-[color-mix(in_srgb,var(--primary)_55%,white)]"><F f={`event.${ev.id}.title`}>{ev.title}</F></p>
                   {dt && (
                     <div className="mt-6 flex items-center justify-center gap-5 @3xl:gap-8">
                       <span className="w-20 text-right text-xs uppercase tracking-[0.3em] opacity-80 @3xl:w-28">{dt.weekday}</span>
@@ -106,7 +108,7 @@ export function LuxeEvents({ tpl, data }: P) {
                   {ev.venue && <p className="mt-6 text-lg uppercase tracking-[0.2em]"><F f={`event.${ev.id}.venue`}>{ev.venue}</F></p>}
                   {ev.address && <p className="mx-auto mt-1 max-w-md text-sm opacity-75"><F f={`event.${ev.id}.address`}>{ev.address}</F></p>}
                   <div className="mt-8">
-                    <EventLinks ev={ev} data={data} center />
+                    <EventLinks ev={ev} data={data} center light />
                   </div>
                 </div>
               </article>
@@ -404,7 +406,11 @@ export function ZenEvents({ tpl, data }: P) {
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.5em] text-[var(--muted)]">
-                  {dt ? `Tháng ${dt.month} · ${dt.year} · ${dt.weekday}` : ""}
+                  {dt ? (
+                    <>
+                      <span className="whitespace-nowrap">Tháng {dt.month} · {dt.year}</span> · <span className="whitespace-nowrap">{dt.weekday}</span>
+                    </>
+                  ) : null}
                 </p>
                 <h3 className="tpl-heading mt-2 text-3xl font-light @3xl:text-4xl"><F f={`event.${ev.id}.title`}>{ev.title}</F></h3>
                 {dt && <p className="mt-1 text-lg">{dt.time}</p>}

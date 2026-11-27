@@ -12,6 +12,7 @@ import { FallingEffect, isImmersive, Marquee, ModeContext, ScrollProgress, type 
 import { formatDate, Section, SectionTitle, TplContext } from "./parts";
 import { resolveMusic } from "./music/tracks";
 import { useFitHeroNames } from "./fit";
+import { accessiblePrimary } from "./palettes";
 import { GiftBox } from "./GiftFlow";
 import { CalendarSection, Couple, DressCode, Events, Families, FeaturePhoto, QuoteSection, Schedule, Story, ThankYou, VideoSection } from "./sections";
 
@@ -45,7 +46,8 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
   const fieldFonts = useMemo(() => (fieldStyles ? fieldFontsUrl(fieldStyles) : ""), [fieldStyles]);
   useFitHeroNames(rootRef, data.nameScale || 1, mode === "thumb", [templateId, data.groom.name, data.bride.name, tpl.fonts.heading, tpl.fonts.script, fieldCss]);
   const c = tpl.colors;
-  const primary = data.primaryColor || c.primary;
+  // màu chủ đạo + chữ trên nút luôn đủ tương phản (WCAG) với mọi bảng màu / màu tự chọn
+  const { primary, onPrimary } = useMemo(() => accessiblePrimary(data.primaryColor || c.primary, c.bg, c.onPrimary, c.text), [data.primaryColor, c.primary, c.bg, c.onPrimary, c.text]);
   const [opened, setOpened] = useState(!isImmersive(mode));
   // trong trình soạn thảo đã có trình nghe thử riêng
   const music = useMusic(mode === "live" || mode === "demo" ? resolveMusic(data, tpl.id) : null);
@@ -61,7 +63,7 @@ export function InvitationView({ templateId, data, slug, mode = "live", guestNam
     "--muted": c.muted,
     "--primary": primary,
     "--accent": c.accent,
-    "--on-primary": c.onPrimary,
+    "--on-primary": onPrimary,
     "--hero-bg": c.heroBg,
     "--hero-text": c.heroText,
     "--f-heading": tpl.fonts.heading,

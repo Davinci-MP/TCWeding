@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type CSSProperties, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { FrameShape, LayoutFamily, Ornament, TemplateDef } from "./registry";
 import { Reveal } from "./motion";
 
@@ -400,6 +400,13 @@ export function Img({
   style?: CSSProperties;
 }) {
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  // Ảnh trong HTML có sẵn (SSR) có thể tải xong trước khi React gắn onLoad: kiểm tra lại sau khi mount để ảnh không bị
+  // kẹt ở opacity 0.
+  useEffect(() => {
+    const el = imgRef.current;
+    if (el?.complete && el.naturalWidth > 0) setLoaded(true);
+  }, [src]);
   if (!src)
     return (
       <div className={`flex items-center justify-center bg-[var(--accent)] text-[var(--muted)] ${className}`}>
@@ -415,7 +422,8 @@ export function Img({
       decoding="async"
       onLoad={() => setLoaded(true)}
       ref={(el) => {
-        if (el?.complete && !loaded) setLoaded(true);
+        imgRef.current = el;
+        if (el?.complete && el.naturalWidth > 0 && !loaded) setLoaded(true);
       }}
       style={position || style ? { objectPosition: position, ...style } : undefined}
       className={`bg-[var(--accent)] object-cover transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"} ${className}`}

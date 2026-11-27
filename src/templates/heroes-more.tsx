@@ -230,9 +230,9 @@ export function TriptychHero({ data, guestName }: Props) {
   const [g, b] = names(data);
     return (
     <header className={`relative flex ${H} flex-col justify-between overflow-hidden bg-[var(--hero-bg)] px-5 pb-10 pt-8 text-[var(--hero-text)] @3xl:px-12`}>
-      <div className="tpl-rise flex items-center justify-between text-xs font-medium">
-        <span><F f="headline">{data.headline}</F></span>
-        <span data-tf="weddingDate" className="tabular-nums">{date?.short}</span>
+      <div className="tpl-rise flex items-start justify-between gap-4 text-xs font-medium">
+        <span className="min-w-0"><F f="headline">{data.headline}</F></span>
+        <span data-tf="weddingDate" className="shrink-0 whitespace-nowrap tabular-nums">{date?.short}</span>
       </div>
       <div className="my-auto grid grid-cols-3 gap-2 py-8 [--g:0.5rem] @3xl:gap-4 @3xl:[--g:1rem]">
         {[0, 1, 2].map((i) => (
@@ -331,9 +331,9 @@ export function TypeHero({ data, guestName }: Props) {
     : {};
   return (
     <header className={`relative flex ${H} flex-col justify-between overflow-hidden bg-[var(--hero-bg)] px-5 py-8 text-[var(--hero-text)] @3xl:px-12`}>
-      <div className="tpl-rise flex justify-between text-[11px] font-semibold uppercase tracking-[0.25em]">
-        <span><F f="headline">{data.headline}</F></span>
-        <span data-tf="weddingDate">{date ? `${date.day}/${date.month}/${date.year}` : ""}</span>
+      <div className="tpl-rise flex items-start justify-between gap-4 text-[11px] font-semibold uppercase tracking-[0.25em]">
+        <span className="min-w-0"><F f="headline">{data.headline}</F></span>
+        <span data-tf="weddingDate" className="shrink-0 whitespace-nowrap">{date ? `${date.day}/${date.month}/${date.year}` : ""}</span>
       </div>
       <h1 className="tpl-heading my-auto break-words py-10 font-black uppercase leading-[1.08] tracking-tighter">
         <span className="tpl-rise block text-[23cqw] @3xl:text-[15rem]" style={{ ...fill, ...d(150) }}>
