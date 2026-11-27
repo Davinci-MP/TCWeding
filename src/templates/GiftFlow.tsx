@@ -6,7 +6,7 @@
 // Việc khách quay lại trang chỉ để gợi mở popup; trạng thái tiền chỉ đổi khi chủ thiệp xác nhận.
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { appOpenUrl, appSupport, autofillClaimUrl, BANK_APPS, bankAppLogo, detectPlatform, sendAutofillClaim, type BankApp, type Platform } from "@/lib/bankApps";
+import { appOpenUrl, appSupport, BANK_APPS, bankAppLogo, detectPlatform, webCallAppUrl, type BankApp, type Platform } from "@/lib/bankApps";
 import { BILL_MAX_BYTES, giftContent, giftSide, maskAccount, SIDE_LABEL, type GiftSide } from "@/lib/gifts";
 import { giftQrUrl, type GiftAccount } from "@/lib/invitation";
 import { Icon } from "./icons";
@@ -22,6 +22,7 @@ type Props = {
 
 type Step =
   | { kind: "banks"; gift: GiftAccount }
+  | { kind: "amount"; gift: GiftAccount; app: BankApp }
   | { kind: "qr"; gift: GiftAccount; app?: BankApp; note?: string }
   | { kind: "ask"; gift: GiftAccount; app?: BankApp }
   | { kind: "bill"; gift: GiftAccount; app?: BankApp }
@@ -33,6 +34,8 @@ type Step =
 type Pending = { giftId: string; appId: string; at: number; awaiting: boolean };
 const PENDING_TTL = 3 * 3600_000;
 const FAIL_HASH = "mung-cuoi-chua-cai-";
+/** Link quay về thiệp từ app ngân hàng (tham số url của VietQR): #mung-cuoi-ve-<id tài khoản nhận> → về đúng bên nhận. */
+const BACK_HASH = "mung-cuoi-ve-";
 const keyOf = (slug: string) => `tcw-gift:${slug}`;
 function readPending(slug: string): Pending | null {
   try {
@@ -172,8 +175,29 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
         },
       ]);
     };
+    // App ngân hàng mở lại thiệp qua link quay về (có thể ở trình duyệt khác, không còn sessionStorage)
+    const onBackHash = () => {
+      const h = window.location.hash.slice(1);
+      if (!h.startsWith(BACK_HASH)) return;
+      const g = findGift(h.slice(BACK_HASH.length));
+      history.replaceState(null, "", `${window.location.pathname}${window.location.search}#mung-cuoi`);
+      if (!g) return;
+      const p = readPending(slug);
+      if (p?.awaiting && p.giftId === g.id) {
+        setTimeout(ask, 0);
+        return;
+      }
+      // Link quay về do chính app ngân hàng mở: luôn hỏi (kể cả khi app mở chậm và lượt chờ đã bị huỷ), không hiện trùng
+      setTab(groupOf(g));
+      window.dispatchEvent(new Event("tcw:skip-gate"));
+      setTimeout(() => rootRef.current?.scrollIntoView({ block: "center" }), 300);
+      const app = p && p.giftId === g.id ? BANK_APPS.find((a) => a.id === p.appId) : undefined;
+      setStack((st) => (st.at(-1)?.kind === "ask" ? st : st.at(-1)?.kind === "qr" ? [...st, { kind: "ask", gift: g, app }] : [{ kind: "ask", gift: g, app }]));
+    };
     onFailHash();
+    onBackHash();
     window.addEventListener("hashchange", onFailHash);
+    window.addEventListener("hashchange", onBackHash);
     const onVisible = () => document.visibilityState === "visible" && ask();
     const onShow = (e: PageTransitionEvent) => e.persisted && ask();
     document.addEventListener("visibilitychange", onVisible);
@@ -182,30 +206,43 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("pageshow", onShow);
       window.removeEventListener("hashchange", onFailHash);
+      window.removeEventListener("hashchange", onBackHash);
     };
   }, [live, slug, findGift, groupOf]);
 
-  /** Thông tin bên nhận đang chọn: đổi app gửi không bao giờ đổi STK nhận. */
-  const receiver = (gift: GiftAccount) => ({
-    bankCode: gift.bankCode,
-    accountNumber: gift.accountNumber,
-    accountName: gift.accountName,
-    content,
-  });
+  /** Số tiền khách nhập trước khi mở app có autofill (dùng lại ở form bill). Không có giá trị mặc định. */
+  const [guestAmount, setGuestAmount] = useState("");
+  const amountNum = Number(guestAmount.replace(/\D/g, ""));
+  const here = () => (typeof window === "undefined" ? "" : `${window.location.origin}${window.location.pathname}${window.location.search}`);
   /** Link quay về thiệp khi máy Android chưa cài app (thay cho Play Store). */
-  const fallbackUrl = (app: BankApp) => (typeof window === "undefined" ? "" : `${window.location.origin}${window.location.pathname}${window.location.search}#${FAIL_HASH}${app.id}`);
-  /** Link mở app gắn vào thẻ <a>; trống khi không mở được (máy tính, app không có trên nền tảng, bản xem trước). */
+  const fallbackUrl = (app: BankApp) => `${here()}#${FAIL_HASH}${app.id}`;
+  /** Link mở app trực tiếp (không điền sẵn); trống khi không mở được (máy tính, app không có trên nền tảng, bản xem trước). */
   const openHref = (gift: GiftAccount, app: BankApp) => (live && gift.accountNumber ? appOpenUrl(app, platform, fallbackUrl(app)) : "");
+  /**
+   * Link Web Call App của VietQR cho app có autofill: thông tin của BÊN NHẬN đang chọn (STK, mã ngân hàng nhận, tên, nội dung)
+   * + số tiền khách vừa nhập; app = app gửi của khách. Đổi app gửi không bao giờ đổi STK nhận.
+   */
+  const autofillHref = (gift: GiftAccount, app: BankApp, amount: number) =>
+    live
+      ? webCallAppUrl(app, platform, {
+          bankCode: gift.bankCode,
+          accountNumber: gift.accountNumber,
+          accountName: gift.accountName,
+          content,
+          amount,
+          returnUrl: `${here()}#${BACK_HASH}${gift.id}`,
+        })
+      : "";
 
   /**
-   * Khách chạm vào một app. Việc mở app do chính thẻ <a href> làm (trình duyệt coi là thao tác của khách, không qua trang
-   * trung gian, không chờ API / hẹn giờ). Ở đây chỉ: hiện bước QR, ghi lượt chờ quay lại, gửi yêu cầu điền sẵn ở chế độ nền.
+   * Khách chạm vào một app.
+   * - App có autofill (⚡): sang bước nhập số tiền (VietQR ghi số tiền là bắt buộc); link mở app chuẩn bị sẵn ở bước đó.
+   * - App khác: thẻ <a href> đã mở app ngay trong lần chạm; ở đây chỉ hiện QR và ghi lượt chờ quay lại.
    */
-  const chooseApp = (gift: GiftAccount, app: BankApp | undefined, reopen = false) => {
+  const chooseApp = (gift: GiftAccount, app: BankApp | undefined) => {
     const support = app ? appSupport(app, platform) : 0;
-    const go = (s: Step) => (reopen ? replaceTop(() => s) : push(s));
     if (!app || support === 0 || !gift.bankCode || !gift.accountNumber) {
-      go({
+      push({
         kind: "qr",
         gift,
         app,
@@ -214,37 +251,40 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
           : platform === "desktop"
             ? "Máy tính không mở được app ngân hàng. Hãy quét mã QR bằng app trên điện thoại."
             : !gift.bankCode
-              ? "Tài khoản này chỉ có ảnh QR, hãy quét mã hoặc nhập tay."
+              ? "Tài khoản này chưa chọn ngân hàng nhận trong danh sách, hãy quét mã QR hoặc chuyển theo số tài khoản."
               : `${app.name} chưa có trên loại điện thoại này. Hãy dùng mã QR hoặc sao chép số tài khoản.`,
       });
       return;
     }
-    const ask = platform === "ios" ? " Nếu điện thoại hỏi “Mở trong " + app.name + "?”, chọn Mở." : "";
-    go({
+    if (support === 2) return push({ kind: "amount", gift, app });
+    launched(gift, app, false);
+  };
+
+  /** App đã được mở (bằng thẻ <a> khách vừa chạm): hiện QR + hướng dẫn, ghi lượt chờ quay lại, báo nếu không mở được. */
+  const launched = (gift: GiftAccount, app: BankApp, filled: boolean, reopen = false) => {
+    const askOs = platform === "ios" ? ` Nếu điện thoại hỏi “Mở trong ${app.name}?”, chọn Mở.` : "";
+    const step: Step = {
       kind: "qr",
       gift,
       app,
-      note:
-        support === 2
-          ? `Đang mở ${app.name}.${ask} Trong app, kiểm tra người nhận ${gift.accountName} · ${gift.bankName} · STK ${gift.accountNumber} đã được điền sẵn, tự nhập số tiền rồi xác nhận. Nếu app chưa điền sẵn, dùng mã QR hoặc sao chép bên dưới.`
-          : `Đang mở ${app.name}.${ask} App này không nhận thông tin điền sẵn: trong app, chọn Quét QR → chọn ảnh (biểu tượng thư viện ảnh) → chọn mã QR vừa lưu; hoặc dán số tài khoản và nội dung chuyển khoản bên dưới.`,
-    });
+      note: filled
+        ? `Đang mở ${app.name} qua VietQR.${askOs} Trong app, kiểm tra người nhận ${gift.accountName} · ${gift.bankName} · STK ${gift.accountNumber}, nội dung “${content}”, số tiền ${guestAmount} đ rồi tự xác nhận. Nếu app chỉ mở mà chưa điền sẵn, dùng mã QR hoặc sao chép bên dưới.`
+        : `Đang mở ${app.name}.${askOs} App chỉ được mở lên, chưa điền thông tin người nhận: trong app chọn Quét QR → chọn ảnh (thư viện ảnh) → chọn mã QR vừa lưu, hoặc dán số tài khoản và nội dung bên dưới.`,
+    };
+    if (reopen) replaceTop(() => step);
+    else push(step);
     if (!live) return; // xem trước / demo: không mở app thật
-    writePending(slug, {
-      giftId: gift.id,
-      appId: app.id,
-      at: Date.now(),
-      awaiting: true,
-    });
-    sendAutofillClaim(autofillClaimUrl(app, platform, receiver(gift)));
+    writePending(slug, { giftId: gift.id, appId: app.id, at: Date.now(), awaiting: true });
     let left = false;
     const onHide = () => {
       if (document.visibilityState === "hidden") left = true;
     };
     document.addEventListener("visibilitychange", onHide);
+    window.addEventListener("pagehide", onHide);
     // Sau 3 giây trang vẫn hiển thị → app không mở được (chưa cài, trình duyệt Zalo / Facebook chặn…): bỏ lượt chờ, giữ mã QR
     setTimeout(() => {
       document.removeEventListener("visibilitychange", onHide);
+      window.removeEventListener("pagehide", onHide);
       if (left || document.visibilityState === "hidden") return;
       const p = readPending(slug);
       if (p?.awaiting && p.appId === app.id) writePending(slug, { ...p, awaiting: false });
@@ -298,11 +338,11 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
   if (gifts.length === 0) return null;
   const active = groups.find((g) => g.key === tab) ?? groups[0];
   const startBill = (gift: GiftAccount, app?: BankApp) => {
-    setDraft((d) => d ?? newDraft(app?.name ?? "", content));
+    setDraft((d) => d ?? { ...newDraft(app?.name ?? "", content), amount: guestAmount });
     push({ kind: "bill", gift, app });
   };
   // Bước đầu (chọn ngân hàng / hỏi đã chuyển chưa) "Quay lại" là đóng popup; các bước sau quay về bước trước
-  const canBack = step && (step.kind === "banks" || step.kind === "qr" || step.kind === "bill" || step.kind === "review" || (step.kind === "ask" && stack.length > 1));
+  const canBack = step && (step.kind === "banks" || step.kind === "amount" || step.kind === "qr" || step.kind === "bill" || step.kind === "review" || (step.kind === "ask" && stack.length > 1));
 
   return (
     <div ref={rootRef} className="mx-auto max-w-md">
@@ -341,7 +381,20 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
 
       {step && (
         <Sheet onClose={close} onBack={canBack ? (stack.length > 1 ? back : close) : undefined} heading={STEP_HEADING[step.kind]}>
-          {step.kind === "banks" && <BankPicker gift={step.gift} platform={platform} hrefOf={(a) => openHref(step.gift, a)} onPick={(a) => chooseApp(step.gift, a)} />}
+          {step.kind === "banks" && <BankPicker gift={step.gift} platform={platform} hrefOf={(a) => (appSupport(a, platform) === 2 ? "" : openHref(step.gift, a))} onPick={(a) => chooseApp(step.gift, a)} />}
+          {step.kind === "amount" && (
+            <AmountStep
+              gift={step.gift}
+              app={step.app}
+              content={content}
+              amount={guestAmount}
+              setAmount={setGuestAmount}
+              href={amountNum >= 1000 ? autofillHref(step.gift, step.app, amountNum) : ""}
+              plainHref={openHref(step.gift, step.app)}
+              live={live}
+              onOpen={(filled) => launched(step.gift, step.app, filled)}
+            />
+          )}
           {step.kind === "qr" && (
             <QrPanel
               gift={step.gift}
@@ -349,8 +402,8 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
               note={step.note}
               content={content}
               live={live}
-              reopenHref={step.app ? openHref(step.gift, step.app) : ""}
-              onReopen={step.app && platform !== "desktop" && appSupport(step.app, platform) > 0 ? () => chooseApp(step.gift, step.app, true) : undefined}
+              reopenHref={step.app ? (appSupport(step.app, platform) === 2 && amountNum >= 1000 ? autofillHref(step.gift, step.app, amountNum) : openHref(step.gift, step.app)) : ""}
+              onReopen={step.app && platform !== "desktop" && appSupport(step.app, platform) > 0 ? () => launched(step.gift, step.app!, appSupport(step.app!, platform) === 2 && amountNum >= 1000, true) : undefined}
               onDone={() => push({ kind: "ask", gift: step.gift, app: step.app })}
             />
           )}
@@ -405,6 +458,7 @@ export function GiftBox({ gifts, slug, mode, groomName, brideName }: Props) {
 
 const STEP_HEADING: Record<Step["kind"], string> = {
   banks: "Chọn ngân hàng của bạn",
+  amount: "Số tiền mừng",
   qr: "Chuyển khoản",
   ask: "Bạn đã chuyển khoản chưa?",
   bill: "Gửi bill chuyển khoản",
@@ -438,6 +492,27 @@ function AccountCard({ gift, content, children }: { gift: GiftAccount; content: 
       {children}
     </div>
   );
+}
+
+/** Vẽ ảnh SVG (mã VietQR) lên canvas rồi xuất PNG nền trắng. */
+async function svgToPng(svg: Blob, size: number): Promise<Blob> {
+  const url = URL.createObjectURL(svg);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const canvas = Object.assign(document.createElement("canvas"), { width: size, height: size });
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("canvas");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, size, size);
+    ctx.drawImage(img, 0, 0, size, size);
+    const png = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/png"));
+    if (!png) throw new Error("png");
+    return png;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 /** STK nhận: chữ số đều (lining + tabular), nhóm 4 số để dễ đọc và chỉ xuống dòng giữa các nhóm. */
@@ -502,6 +577,56 @@ function Sheet({ heading, onBack, onClose, children }: { heading: string; onBack
           {children}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ================================ Số tiền (trước khi mở app có autofill) ================================ */
+
+const fmtVnd = (raw: string) => {
+  const d = raw.replace(/\D/g, "").replace(/^0+/, "").slice(0, 12);
+  return d ? Number(d).toLocaleString("vi-VN") : "";
+};
+
+/**
+ * Tài liệu Web Call App của VietQR ghi số tiền (am) là bắt buộc → hỏi khách trước khi mở app có autofill.
+ * Không gán số tiền mặc định. Link mở app được dựng sẵn theo số tiền đang nhập, mở ngay khi chạm.
+ */
+function AmountStep({ gift, app, content, amount, setAmount, href, plainHref, live, onOpen }: { gift: GiftAccount; app: BankApp; content: string; amount: string; setAmount: (v: string) => void; href: string; plainHref: string; live: boolean; onOpen: (filled: boolean) => void }) {
+  const primary = "flex min-h-12 w-full items-center justify-center gap-2 rounded-full px-5 font-semibold";
+  return (
+    <div className="space-y-4">
+      <p className="rounded-2xl bg-[var(--surface)] p-3 text-left text-sm">
+        Chuyển tới <b>{sideTitle(gift)}</b>: {gift.bankName} · STK <span className="tabular-nums">{gift.accountNumber}</span> · {gift.accountName}
+        <br />
+        Nội dung: <b>{content}</b>
+      </p>
+      <label className="flex flex-col gap-1 text-left text-sm">
+        <span className="font-medium">Số tiền bạn muốn mừng (đ)</span>
+        <input
+          inputMode="numeric"
+          autoComplete="off"
+          value={amount}
+          onChange={(e) => setAmount(fmtVnd(e.target.value))}
+          placeholder="Nhập số tiền"
+          className="tpl-gift-input block h-12 w-full min-w-0 rounded-xl border border-[var(--muted)]/30 bg-[var(--surface)] px-3 text-lg tabular-nums text-[var(--text)] outline-none focus:border-[var(--primary)]"
+        />
+        <span className="text-xs text-[var(--muted)]">VietQR cần số tiền để {app.name} điền sẵn lệnh chuyển. Bạn vẫn kiểm tra và tự xác nhận trong app.</span>
+      </label>
+      {href ? (
+        <a href={href} onClick={() => onOpen(true)} className={`${primary} bg-[var(--primary)] text-[var(--on-primary)]`}>
+          Mở {app.name} · điền sẵn
+        </a>
+      ) : (
+        <button type="button" disabled className={`${primary} cursor-not-allowed bg-[var(--primary)]/40 text-[var(--on-primary)]`}>
+          {live ? `Nhập số tiền để mở ${app.name}` : "Bản xem trước: không mở app thật"}
+        </button>
+      )}
+      {plainHref ? (
+        <a href={plainHref} onClick={() => onOpen(false)} className={`${primary} border-2 border-[var(--primary)] text-[var(--primary)]`}>
+          Chỉ mở {app.name} (không điền sẵn)
+        </a>
+      ) : null}
     </div>
   );
 }
@@ -604,10 +729,12 @@ function QrPanel({
     try {
       // mã VietQR: tải qua /api/qr (img.vietqr.io chặn CORS); ảnh QR tự tải lên: tải thẳng
       const src = gift.qrImage || !gift.bankCode ? qr : `/api/qr?${new URLSearchParams({ b: gift.bankCode, a: gift.accountNumber, n: gift.accountName, t: content })}`;
-      const blob = await fetch(src).then((r) => {
+      const raw = await fetch(src).then((r) => {
         if (!r.ok) throw new Error();
         return r.blob();
       });
+      // VietQR trả SVG: chuyển sang PNG để lưu được vào Ảnh và app ngân hàng đọc được
+      const blob = raw.type.includes("svg") ? await svgToPng(raw, 1080) : raw;
       const name = `qr-mung-cuoi-${gift.accountNumber || "tcwedding"}.png`;
       // Điện thoại: mở bảng chia sẻ để chọn "Lưu hình ảnh" (vào thư viện Ảnh — nơi app ngân hàng chọn ảnh QR)
       const file = new File([blob], name, { type: blob.type || "image/png" });
