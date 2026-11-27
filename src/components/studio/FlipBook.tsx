@@ -1,15 +1,17 @@
 "use client";
 
+import { FramedImg } from "@/components/FramedImg";
+import type { ImgFrame } from "@/lib/imageFrame";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/templates/icons";
 
-type Page = { url: string } | null;
+type Page = { url: string; frame?: ImgFrame | null } | null;
 
 /**
  * Album lật trang: bìa đứng một mình bên phải, sau đó từng cặp trang trải đôi, cuối cùng là bìa sau.
  * Lật bằng nút, phím ←/→ hoặc vuốt. Màn hình hẹp (hoặc `single`) hiện từng trang một.
  */
-export function FlipBook({ pages, ratio, title, single = false }: { pages: string[]; ratio: number; title: string; single?: boolean }) {
+export function FlipBook({ pages, frames, ratio, title, single = false }: { pages: string[]; frames?: (ImgFrame | null)[]; ratio: number; title: string; single?: boolean }) {
   const [narrow, setNarrow] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 639px)");
@@ -22,7 +24,7 @@ export function FlipBook({ pages, ratio, title, single = false }: { pages: strin
 
   // Trải đôi: [trống, bìa], [2, 3], [4, 5]… ; trang lẻ cuối đứng bên trái.
   const spreads = useMemo<Page[][]>(() => {
-    const p = pages.map((url) => ({ url }));
+    const p = pages.map((url, i) => ({ url, frame: frames?.[i] ?? null }));
     if (oneUp) return p.map((x) => [x]);
     const out: Page[][] = [[null, p[0] ?? null]];
     for (let i = 1; i < p.length; i += 2) out.push([p[i], p[i + 1] ?? null]);
@@ -73,8 +75,7 @@ export function FlipBook({ pages, ratio, title, single = false }: { pages: strin
 
   const face = (p: Page | undefined, side: "l" | "r" | "one") =>
     p ? (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={p.url} alt="" draggable={false} className="h-full w-full select-none object-cover" />
+      <FramedImg src={p.url} frame={p.frame} className="pointer-events-none h-full w-full select-none" />
     ) : (
       <div className={`h-full w-full ${side === "one" ? "" : "bg-[#efe9e1]"}`} />
     );

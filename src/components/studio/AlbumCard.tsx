@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FramedImg } from "@/components/FramedImg";
 import { categoryLabel, type AlbumCard as Album } from "@/lib/studio";
 
 /** Thẻ album: ảnh bìa + tên + loại · địa điểm · số ảnh. `tall` cho ô lớn ở lưới trang chủ. */
@@ -8,12 +9,11 @@ export function AlbumCard({ album, tall }: { album: Album; tall?: boolean }) {
     <Link href={`/bo-suu-tap/${album.slug}`} className="group block h-full focus-visible:outline-none" aria-label={`${album.title} — ${meta}, ${album.photoCount} ảnh`}>
       <div className={`relative overflow-hidden bg-[#e9e2d8] ${tall ? "aspect-[4/5] lg:aspect-auto lg:h-full lg:min-h-[560px]" : "aspect-[4/5]"}`}>
         {album.cover && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <FramedImg
             src={album.cover.url}
-            alt=""
+            frame={album.frames?.card}
             loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover transition duration-[1.2s] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.04] group-focus-visible:scale-[1.04]"
+            className="absolute inset-0 h-full w-full transition duration-[1.2s] ease-[cubic-bezier(.22,1,.36,1)] group-hover:scale-[1.04] group-focus-visible:scale-[1.04]"
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-black/0 to-black/0" aria-hidden />

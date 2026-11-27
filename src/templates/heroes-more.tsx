@@ -52,7 +52,7 @@ export function MarbleHero({ data, guestName }: Props) {
       <div className="tpl-rise relative -mt-[8cqw] w-[54%] max-w-[300px] @3xl:-mt-16" style={d(300)}>
         <div className="absolute -inset-2.5 rounded-[50%] border border-[var(--primary)]" aria-hidden />
         <div className="absolute -inset-5 rounded-[50%] border border-[var(--primary)]/40" aria-hidden />
-        <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="aspect-[3/4] rounded-[50%] shadow-[0_30px_60px_-30px_rgba(0,0,0,.45)]" />
+        <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="aspect-[3/4] rounded-[50%] shadow-[0_30px_60px_-30px_rgba(0,0,0,.45)]" />
       </div>
       <p className="tpl-rise mt-12 text-[10px] uppercase tracking-[0.6em] text-[var(--primary)]" style={d(600)}>
         <F f="headline">{data.headline}</F>
@@ -84,7 +84,7 @@ export function VelvetHero({ data, guestName }: Props) {
   });
   return (
     <header className={`relative flex ${H} items-end justify-center overflow-hidden bg-[var(--hero-bg)] text-center text-[var(--hero-text)]`}>
-      <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="absolute inset-0" />
+      <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="absolute inset-0" />
       <div className="absolute inset-0 bg-[#6b1426]/45 mix-blend-multiply" aria-hidden />
       <div className="absolute inset-0 bg-gradient-to-t from-[#14080c] via-[#14080c]/40 to-transparent" aria-hidden />
       <div className="relative px-6 pb-16 pt-40">
@@ -153,7 +153,7 @@ export function CrestHero({ data, guestName }: Props) {
   const mono = initials(g, b);
   return (
     <header className={`relative flex ${H} flex-col items-center justify-center overflow-hidden bg-[var(--hero-bg)] px-6 py-16 text-center text-[var(--hero-text)]`}>
-      <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="absolute inset-0 opacity-30 [filter:grayscale(.6)]" />
+      <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="absolute inset-0 opacity-30 [filter:grayscale(.6)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,var(--hero-bg)_75%)]" aria-hidden />
       <div className="relative">
         <div className="tpl-rise relative mx-auto h-56 w-56 text-[#cdb37a] @3xl:h-72 @3xl:w-72">
@@ -201,7 +201,7 @@ export function GeoHero({ data, guestName }: Props) {
           <path d="M50 -3V8M50 92v11M0 24l9 5M100 24l-9 5M0 76l9-5M100 76l-9-5" stroke="currentColor" strokeWidth=".4" />
         </svg>
         <div style={{ clipPath: "polygon(50% 2%, 95% 26%, 95% 74%, 50% 98%, 5% 74%, 5% 26%)" }}>
-          <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="aspect-square w-full" />
+          <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="aspect-square w-full" />
         </div>
       </div>
       <h1 className="tpl-heading tpl-rise mt-12 text-5xl leading-tight @3xl:text-7xl" style={d(800)}>
@@ -245,7 +245,7 @@ export function TriptychHero({ data, guestName }: Props) {
               src={data.coverPhoto}
               alt={i === 1 ? "Ảnh cưới của cô dâu và chú rể" : ""}
               eager
-              position={data.photoPos.cover}
+              fk="cover" position={data.photoPos.cover}
               className="absolute top-0 h-full max-w-none"
               style={{ width: "calc(300% + 2 * var(--g))", left: `calc(${-i} * (100% + var(--g)))` }}
             />
@@ -279,7 +279,7 @@ export function BentoHero({ data, guestName }: Props) {
     <header className={`relative ${H} bg-[var(--hero-bg)] p-3 text-[var(--hero-text)] @3xl:p-5`}>
       <div className="grid h-full min-h-[calc(var(--hero-h,100svh)-1.5rem)] grid-cols-2 grid-rows-[1fr_auto_auto_auto] gap-3 @3xl:min-h-[calc(var(--hero-h,100svh)-2.5rem)] @3xl:grid-cols-4 @3xl:grid-rows-[1fr_1fr]">
         <div className="tpl-rise col-span-2 overflow-hidden rounded-[1.75rem] @3xl:row-span-2">
-          <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="h-full min-h-[44svh] w-full" />
+          <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="h-full min-h-[44svh] w-full" />
         </div>
         <div className={`${t} col-span-2 flex flex-col justify-between bg-[var(--primary)] text-[var(--on-primary)]`} style={d(150)}>
           <p className="text-xs font-semibold"><F f="headline">{data.headline}</F></p>
@@ -374,7 +374,7 @@ export function BoardingHero({ data, guestName }: Props) {
     <header className={`relative flex ${H} flex-col items-center justify-center overflow-hidden bg-[var(--hero-bg)] px-4 py-12 text-[var(--hero-text)]`}>
       <p className="tpl-rise text-xs font-semibold uppercase tracking-[0.35em] text-[var(--primary)]"><F f="headline">{data.headline}</F></p>
       <div className="tpl-rise mt-6 w-full max-w-md overflow-hidden rounded-[1.75rem] bg-[var(--surface)] shadow-[0_40px_80px_-40px_rgba(0,0,0,.45)]" style={d(200)}>
-        <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="aspect-[16/10] w-full" />
+        <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="aspect-[16/10] w-full" />
         <div className="p-6">
           <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--muted)]">
             <span>Boarding pass</span>
@@ -459,7 +459,7 @@ export function ScrapbookHero({ data, guestName }: Props) {
       <div className="relative mx-auto mt-8 h-[min(120cqw,560px)] w-full max-w-[460px]">
         <div className="tpl-rise absolute left-[8%] top-0 w-[70%] -rotate-3 bg-white p-3 pb-10 shadow-[0_20px_40px_-20px_rgba(0,0,0,.45)]" style={d(150)}>
           <TapeStrip className="-top-3 left-1/2 -translate-x-1/2 rotate-[-3deg]" />
-          <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="aspect-[4/5] w-full" />
+          <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="aspect-[4/5] w-full" />
           <p className="tpl-script absolute inset-x-0 bottom-2 text-center text-xl text-[#6b5a48]">ngày đẹp nhất</p>
         </div>
         {small.map((src, i) => (
@@ -508,7 +508,7 @@ export function EnvelopeHero({ data, guestName }: Props) {
           <div className="absolute inset-0 rounded-md bg-[color-mix(in_srgb,var(--primary)_78%,black)]" aria-hidden />
           {/* lá thư */}
           <div className="tpl-letter absolute inset-x-[6%] bottom-[6%] z-10 h-[150%] rounded-sm bg-[var(--surface)] p-4 shadow-lg">
-            <Img src={data.coverPhoto} alt="Ảnh cưới của cô dâu và chú rể" eager position={data.photoPos.cover} className="aspect-[4/3] w-full" />
+            <Img src={data.coverPhoto} alt="Ảnh cưới của cô dâu và chú rể" eager fk="cover" position={data.photoPos.cover} className="aspect-[4/3] w-full" />
             <p className="mt-3 text-[10px] uppercase tracking-[0.45em] text-[var(--muted)]"><F f="headline">{data.headline}</F></p>
           </div>
           {/* túi phong bì */}
@@ -566,7 +566,7 @@ export function HerbariumHero({ data, guestName }: Props) {
       <div className="relative mx-auto max-w-md">
         <p className="tpl-rise text-center text-[10px] uppercase tracking-[0.5em] text-[var(--muted)]">Bộ sưu tập · Mẫu số 01</p>
         <div className="tpl-rise relative mx-auto mt-6 w-[78%] rotate-1" style={d(150)}>
-          <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="aspect-[4/5] w-full shadow-[0_18px_36px_-20px_rgba(0,0,0,.45)]" />
+          <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="aspect-[4/5] w-full shadow-[0_18px_36px_-20px_rgba(0,0,0,.45)]" />
           <span className={`${corner} -left-2 -top-2`} style={{ clipPath: "polygon(0 0,100% 0,0 100%)" }} aria-hidden />
           <span className={`${corner} -right-2 -top-2`} style={{ clipPath: "polygon(0 0,100% 0,100% 100%)" }} aria-hidden />
           <span className={`${corner} -bottom-2 -left-2`} style={{ clipPath: "polygon(0 0,100% 100%,0 100%)" }} aria-hidden />
@@ -621,7 +621,7 @@ export function VinylHero({ data, guestName }: Props) {
           </div>
           {/* bìa */}
           <div className="tpl-rise relative z-10 aspect-square overflow-hidden shadow-[0_30px_60px_-25px_rgba(0,0,0,.7)]">
-            <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="absolute inset-0" />
+            <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="absolute inset-0" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" aria-hidden />
             <p className="absolute bottom-4 left-4 right-4 text-white">
               <span className="block text-[9px] uppercase tracking-[0.4em] opacity-80">The wedding album</span>
@@ -680,7 +680,7 @@ export function InkHero({ data, guestName }: Props) {
       <div className="tpl-rise relative w-[56%] max-w-[300px]" style={d(200)}>
         <div className="mx-[-8%] h-3 rounded-full bg-[#3b2a1d] shadow" aria-hidden />
         <div className="bg-[var(--surface)] px-[9%] pb-[14%] pt-[9%] shadow-[0_30px_50px_-30px_rgba(0,0,0,.5)]">
-          <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="aspect-[2/3] w-full" />
+          <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="aspect-[2/3] w-full" />
         </div>
         <div className="mx-[-8%] h-3 rounded-full bg-[#3b2a1d] shadow" aria-hidden />
         <span className="absolute bottom-[8%] right-[2%] flex h-10 w-10 items-center justify-center bg-[var(--primary)] text-sm font-semibold text-white">
@@ -717,7 +717,7 @@ export function MoonHero({ data, guestName }: Props) {
       <div className="tpl-moon relative w-[70%] max-w-[380px]">
         <div className="absolute -inset-10 rounded-full bg-[#f6efd6]/25 blur-3xl" aria-hidden />
         <div className="relative overflow-hidden rounded-full shadow-[0_0_0_1px_rgba(246,239,214,.4),0_0_80px_10px_rgba(246,239,214,.25)]">
-          <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="aspect-square w-full" />
+          <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="aspect-square w-full" />
         </div>
       </div>
       <svg viewBox="0 0 300 30" className="tpl-rise -mt-8 w-[80%] max-w-md text-[var(--hero-text)]/40" style={d(1200)} fill="none" aria-hidden>
@@ -756,7 +756,7 @@ export function OffsetHero({ data, guestName }: Props) {
       }}
     >
       <div className="absolute right-0 top-[8%] h-[66%] w-[64%] @3xl:w-[58%]">
-        <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="h-full w-full" />
+        <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="h-full w-full" />
       </div>
       <h1
         className="tpl-heading tpl-rise absolute bottom-[8%] left-4 text-[13cqw] font-light leading-[0.9] @3xl:left-12 @3xl:text-8xl"

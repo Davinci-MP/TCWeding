@@ -28,7 +28,7 @@ export function PearlHero({ data, guestName }: Props) {
 
         <div className="tpl-rise mx-auto w-[76%] max-w-[22rem] @3xl:w-full @3xl:max-w-[30rem] @3xl:justify-self-end" style={d(150)}>
           <div className="tpl-pearl-frame relative aspect-[4/5]">
-            <KenBurns src={data.coverPhoto} position={data.photoPos.cover} className="tpl-pearl-photo h-full w-full" />
+            <KenBurns src={data.coverPhoto} fk="cover" position={data.photoPos.cover} className="tpl-pearl-photo h-full w-full" />
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import "server-only";
 import { db } from "@/lib/db";
+import { cleanFrames, type FrameMap } from "@/lib/imageFrame";
 
 /** Trang "Về tôi" (/ve-toi): giới thiệu nhiếp ảnh gia / chủ studio. Admin sửa ở /admin/about. */
 export type AboutItem = { title: string; body: string };
@@ -11,6 +12,8 @@ export type AboutContent = {
   role: string;
   intro: string;
   photo: string;
+  /** Cách căn ảnh thủ công: "portrait" (src/lib/imageFrame.ts). */
+  frames: FrameMap;
   stats: { value: string; label: string }[];
   storyTitle: string;
   storyBody: string;
@@ -31,6 +34,7 @@ export const ABOUT_DEFAULTS: AboutContent = {
   role: "Wedding Photographer & Creative Director",
   intro: "Chúng tôi chụp ảnh cưới, làm thiệp mời online và album in trong cùng một tông màu, để câu chuyện của hai bạn liền mạch từ buổi chụp đến ngày cưới.",
   photo: "",
+  frames: {},
   stats: [
     { value: "", label: "năm kinh nghiệm" },
     { value: "", label: "cặp đôi đã chụp" },
@@ -71,6 +75,7 @@ export async function getAbout(): Promise<AboutContent> {
       stats: d.stats.map((x, i) => ({ ...x, ...(s.stats?.[i] as Partial<typeof x> | undefined) })),
       fields: d.fields.map((x, i) => (Array.isArray(s.fields) ? { title: "", body: "", ...(s.fields[i] as Partial<AboutItem> | undefined) } : x)),
       blocks: d.blocks.map((x, i) => (Array.isArray(s.blocks) ? { eyebrow: "", title: "", body: "", ...(s.blocks[i] as Partial<AboutBlock> | undefined) } : x)),
+      frames: cleanFrames(s.frames),
     };
   } catch {
     return ABOUT_DEFAULTS;

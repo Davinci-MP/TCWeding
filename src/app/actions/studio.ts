@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cleanFrame, cleanFrames, setFrame } from "@/lib/imageFrame";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
@@ -24,6 +25,7 @@ import {
   type FavoritePhoto,
   type StudioContent,
   type StudioPackage,
+  albumFrames,
 } from "@/lib/studio";
 import { deleteUpload, isUploadUrl } from "@/lib/storage";
 
@@ -59,6 +61,19 @@ function refreshPublic(slug?: string) {
   if (slug) revalidatePath(`/bo-suu-tap/${slug}`);
 }
 
+/** Đọc cách căn ảnh gửi kèm form (ô ẩn frames.<khoá>, JSON) → bảng thiết lập đã làm sạch. */
+function readFrames(fd: FormData, keys: string[]) {
+  const raw: Record<string, unknown> = {};
+  for (const k of keys) {
+    const v = String(fd.get(`frames.${k}`) ?? "");
+    if (!v) continue;
+    try {
+      raw[k] = JSON.parse(v);
+    } catch {}
+  }
+  return cleanFrames(raw);
+}
+
 export async function saveStudioAction(fd: FormData) {
   await requireAdmin();
   const str = (k: string, max = 200) => String(fd.get(k) ?? "").replace(/\r\n?/g, "\n").trim().slice(0, max);
@@ -85,6 +100,7 @@ export async function saveStudioAction(fd: FormData) {
     introBody: str("introBody", 2000).replace(/\n{3,}/g, "\n\n"),
     introImage: imageUrl(fd.get("introImage")),
     stats: STUDIO_DEFAULTS.stats.map((_, i) => ({ value: one(`stats.${i}.value`, 20), label: one(`stats.${i}.label`, 60) })),
+    frames: readFrames(fd, ["hero", "intro", ...STUDIO_DEFAULTS.services.map((_, i) => `service.${i}`)]),
     services: STUDIO_DEFAULTS.services.map((_, i) => ({
       title: one(`services.${i}.title`, 60),
       body: one(`services.${i}.body`, 300),
@@ -341,6 +357,13 @@ export async function deleteAlbumPhotoAction(photoId: string) {
   if (!photo) return;
   await db.albumPhoto.delete({ where: { id: photoId } });
   if (photo.album.coverUrl === photo.url) await db.album.update({ where: { id: photo.album.id }, data: { coverUrl: "" } });
+  // bỏ cách căn của trang ảnh đã xoá
+  const a = await db.album.findUnique({ where: { id: photo.album.id }, select: { frames: true } });
+  const fr = albumFrames(a?.frames);
+  if (fr[`page:${photoId}`]) {
+    delete fr[`page:${photoId}`];
+    await db.album.update({ where: { id: photo.album.id }, data: { frames: JSON.stringify(fr) } });
+  }
   await removeUploads([photo.url]);
   refreshPublic(photo.album.slug);
   revalidatePath(`/admin/albums/${photo.album.id}`);
@@ -357,9 +380,29 @@ export async function reorderAlbumPhotosAction(albumId: string, ids: string[]) {
 
 export async function setAlbumCoverAction(albumId: string, url: string) {
   await requireAdmin();
-  const album = await db.album.update({ where: { id: albumId }, data: { coverUrl: imageUrl(url) } });
+  // đổi ảnh bìa → bỏ cách căn của ảnh bìa cũ ở các chỗ hiển thị bìa
+  const cur = await db.album.findUnique({ where: { id: albumId }, select: { frames: true } });
+  const frames = albumFrames(cur?.frames);
+  for (const k of COVER_KEYS) delete frames[k];
+  const album = await db.album.update({ where: { id: albumId }, data: { coverUrl: imageUrl(url), frames: JSON.stringify(frames) } });
   refreshPublic(album.slug);
   revalidatePath(`/admin/albums/${albumId}`);
+}
+
+const COVER_KEYS = ["card", "hero", "tile", "book"] as const;
+
+/** Lưu cách căn một vị trí ảnh của album (chỉ admin). key: card | hero | tile | book | page:<id ảnh của album>. */
+export async function setAlbumFrameAction(albumId: string, key: string, frame: unknown) {
+  await requireAdmin();
+  const album = await db.album.findUnique({ where: { id: albumId }, select: { slug: true, frames: true, photos: { select: { id: true } } } });
+  if (!album) return { ok: false };
+  const isPage = /^page:[\w-]{1,40}$/.test(key) && album.photos.some((p) => `page:${p.id}` === key);
+  if (!isPage && !(COVER_KEYS as readonly string[]).includes(key)) return { ok: false };
+  const next = setFrame(albumFrames(album.frames), key, frame == null ? null : cleanFrame(frame));
+  await db.album.update({ where: { id: albumId }, data: { frames: JSON.stringify(next) } });
+  refreshPublic(album.slug);
+  revalidatePath(`/admin/albums/${albumId}`);
+  return { ok: true, frames: next };
 }
 
 // ---------------- Trang Về tôi ----------------
@@ -376,6 +419,7 @@ export async function saveAboutAction(fd: FormData) {
     role: one("role", 120),
     intro: str("intro", 600),
     photo: imageUrl(fd.get("photo")),
+    frames: readFrames(fd, ["portrait"]),
     stats: ABOUT_DEFAULTS.stats.map((_, i) => ({ value: one(`stats.${i}.value`, 20), label: one(`stats.${i}.label`, 60) })),
     storyTitle: one("storyTitle", 150),
     storyBody: str("storyBody", 4000).replace(/\n{3,}/g, "\n\n"),

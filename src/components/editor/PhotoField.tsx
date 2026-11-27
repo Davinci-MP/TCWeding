@@ -75,6 +75,8 @@ export function PhotoField({
   position,
   onPositionChange,
   spec,
+  onFrame,
+  framed,
 }: {
   label: string;
   value: string;
@@ -82,6 +84,10 @@ export function PhotoField({
   position: string;
   onPositionChange: (v: string) => void;
   spec: PhotoSpec;
+  /** Mở bộ chỉnh ảnh (kéo, thu phóng, lấp đầy / hiện toàn bộ, căn riêng điện thoại). */
+  onFrame?: () => void;
+  /** Đã căn thủ công: cách căn này thay cho điểm lấy nét. */
+  framed?: boolean;
 }) {
   const [size, setSize] = useState<Size | null>(null);
   const [failed, setFailed] = useState(false);
@@ -112,6 +118,11 @@ export function PhotoField({
           <UploadButton accept="image/*" onUploaded={([u]) => (onChange(u), onPositionChange("50% 50%"))}>
             {value ? "Đổi ảnh" : "Tải ảnh lên"}
           </UploadButton>
+          {value && onFrame && (
+            <button type="button" className="btn btn-outline" onClick={onFrame}>
+              Chỉnh ảnh{framed ? " ✓" : ""}
+            </button>
+          )}
           {value && (
             <button type="button" className="btn btn-outline" onClick={() => onChange("")}>
               Xoá
@@ -133,11 +144,15 @@ export function PhotoField({
             ))}
           </div>
 
+          {framed ? (
+            <p className="text-sm text-zinc-600">Ảnh đã được căn thủ công (thu phóng, cách hiển thị, căn riêng điện thoại). Bấm <b>Chỉnh ảnh</b> để sửa, hoặc <b>Đặt lại</b> trong bộ chỉnh để quay về điểm lấy nét.</p>
+          ) : (
           <div>
             <p className="text-sm font-medium text-zinc-700">Chọn điểm lấy nét</p>
             <p className="text-xs text-zinc-500">Kéo chấm tròn tới khuôn mặt hai bạn. Bạn cũng có thể kéo thẳng trên khung xem trước, hoặc dùng phím mũi tên.</p>
             <FocalPicker src={value} x={x} y={y} onChange={set} size={size} />
           </div>
+          )}
 
           <div>
             <p className="mb-2 text-sm font-medium text-zinc-700">Khách sẽ thấy như thế này</p>

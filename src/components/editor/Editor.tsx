@@ -25,6 +25,8 @@ import { MusicField } from "./MusicField";
 import { FontPicker } from "@/components/admin/FontPicker";
 import { fontName } from "@/lib/fonts";
 import { PHOTO_SPECS, PhotoField } from "./PhotoField";
+import { InvitationFrameEditor } from "./InvitationFrameEditor";
+import { setFrame, viewPos, type ImgFrame } from "@/lib/imageFrame";
 import { FieldTypoBar, FieldTypoContext, useMeasuredField } from "./FieldTypo";
 import { BankSelect } from "./BankSelect";
 import { findBank } from "@/lib/vnBanks";
@@ -88,6 +90,9 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
   const [savedSlug, setSavedSlug] = useState(initial.slug);
   // Ô đang chọn để chỉnh font/cỡ chữ riêng (ID ổn định, xem src/lib/fieldTypo.ts)
   const [tfSel, setTfSel] = useState("");
+  // Chỉnh ảnh thủ công: vị trí đang mở + bản nháp để khung xem trước cập nhật ngay khi kéo
+  const [frameEdit, setFrameEdit] = useState<{ key: string; src: string; title: string } | null>(null);
+  const [frameDraft, setFrameDraft] = useState<ImgFrame | null | undefined>(undefined);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const patch = useCallback((fn: (d: InvitationData) => InvitationData) => {
@@ -151,6 +156,22 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
   }, [save, dirty]);
 
   const tplDef = getTemplateDef(templateId);
+
+  /** Mở bộ chỉnh ảnh cho một vị trí; cuộn bản xem trước tới chỗ ảnh đó. */
+  const openFrame = (key: string, src: string, title: string) => {
+    setFrameDraft(undefined);
+    setFrameEdit({ key, src, title });
+    requestAnimationFrame(() => previewRef.current?.querySelector<HTMLElement>(`[data-fk="${CSS.escape(key)}"]`)?.scrollIntoView({ block: "center" }));
+  };
+  const framed = (key: string) => Boolean(data.frames?.[key]);
+  const applyFrame = (key: string, f: ImgFrame | null) =>
+    patch((d) => {
+      const next = { ...d, frames: setFrame(d.frames, key, f) };
+      // ảnh nền cũ đọc photoPos: giữ điểm căn đồng bộ để chỗ nào chưa đọc frames vẫn đúng
+      if (key === "cover" || key === "feature" || key === "thanks") next.photoPos = { ...d.photoPos, [key]: f ? viewPos(f) : "50% 50%" };
+      return next;
+    });
+  const previewData = frameEdit && frameDraft !== undefined ? { ...data, frames: setFrame(data.frames, frameEdit.key, frameDraft) } : data;
 
   const fieldStyles = data.fieldStyles;
   const setFieldTypo = (id: string, p: FieldStyle | null) => patch((d) => ({ ...d, fieldStyles: setFieldStyle(d.fieldStyles ?? {}, id, p) }));
@@ -239,7 +260,7 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                   </div>
                   <TextInput tf={`${who}.address`} label="Địa chỉ gia đình" value={data[who].address} onChange={(v) => setPerson(who, "address", v)} />
                   <TextArea tf={`${who}.bio`} label="Giới thiệu ngắn" value={data[who].bio} onChange={(v) => setPerson(who, "bio", v)} rows={2} />
-                  <ImageField label="Ảnh" value={data[who].photo} onChange={(v) => setPerson(who, "photo", v)} />
+                  <ImageField label="Ảnh" value={data[who].photo} onChange={(v) => setPerson(who, "photo", v)} onFrame={() => openFrame(`${who}.photo`, data[who].photo, who === "groom" ? "Chỉnh ảnh chú rể" : "Chỉnh ảnh cô dâu")} framed={framed(`${who}.photo`)} />
                 </fieldset>
               ))}
 
@@ -261,6 +282,8 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                   position={data.photoPos.cover}
                   onPositionChange={(v) => set("photoPos", { ...data.photoPos, cover: v })}
                   spec={PHOTO_SPECS.cover}
+                  onFrame={() => openFrame("cover", data.coverPhoto, "Chỉnh ảnh bìa")}
+                  framed={framed("cover")}
                 />
                 <TextArea tf="invitationText" label="Lời mời" value={data.invitationText} onChange={(v) => set("invitationText", v)} rows={4} />
                 <TextArea tf="quote.text" label="Câu trích dẫn" value={data.quote.text} onChange={(v) => set("quote", { ...data.quote, text: v })} rows={2} />
@@ -272,6 +295,8 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                   position={data.photoPos.feature}
                   onPositionChange={(v) => set("photoPos", { ...data.photoPos, feature: v })}
                   spec={PHOTO_SPECS.feature}
+                  onFrame={() => openFrame("feature", data.featurePhoto, "Chỉnh ảnh tràn màn hình")}
+                  framed={framed("feature")}
                 />
                 <TextArea tf="closingText" label="Lời cảm ơn cuối thiệp" value={data.closingText} onChange={(v) => set("closingText", v)} />
                 <PhotoField
@@ -281,6 +306,8 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                   position={data.photoPos.thanks}
                   onPositionChange={(v) => set("photoPos", { ...data.photoPos, thanks: v })}
                   spec={PHOTO_SPECS.thanks}
+                  onFrame={() => openFrame("thanks", data.thankYouPhoto, "Chỉnh ảnh nền lời cảm ơn")}
+                  framed={framed("thanks")}
                 />
               </>
             )}
@@ -329,7 +356,7 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                       <TextInput tf={`story.${st.id}.title`} label="Tiêu đề" value={st.title} onChange={(v) => updateList("story", i, { title: v })} />
                     </div>
                     <TextArea tf={`story.${st.id}.content`} label="Nội dung" value={st.content} onChange={(v) => updateList("story", i, { content: v })} />
-                    <ImageField label="Ảnh" value={st.photo} onChange={(v) => updateList("story", i, { photo: v })} />
+                    <ImageField label="Ảnh" value={st.photo} onChange={(v) => updateList("story", i, { photo: v })} onFrame={() => openFrame(`story.${st.id}`, st.photo, `Chỉnh ảnh · ${st.title || "chuyện tình"}`)} framed={framed(`story.${st.id}`)} />
                   </ListItem>
                 ))}
                 <button
@@ -359,13 +386,28 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {data.gallery.map((src, i) => (
-                    <div key={src + i} className="group relative aspect-square overflow-hidden rounded-lg bg-zinc-100">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={src} alt="" className="h-full w-full object-cover" />
-                      <div className="absolute inset-x-0 bottom-0 flex justify-between bg-black/50 p-1 text-xs text-white opacity-0 transition group-hover:opacity-100">
-                        <button onClick={() => moveIn("gallery", i, -1)}>←</button>
-                        <button onClick={() => removeFrom("gallery", i)}>Xoá</button>
-                        <button onClick={() => moveIn("gallery", i, 1)}>→</button>
+                    <div key={src + i} className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
+                      <div className="relative aspect-square bg-zinc-100">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt="" className="h-full w-full object-cover" />
+                        {framed(`gallery:${src}`) && <span className="absolute right-1 top-1 rounded bg-white/90 px-1.5 text-[10px] font-semibold text-emerald-700">Đã căn</span>}
+                      </div>
+                      <div className="grid grid-cols-4 text-xs">
+                        <button type="button" className="min-h-9 hover:bg-zinc-100 disabled:opacity-30" disabled={i === 0} onClick={() => moveIn("gallery", i, -1)} aria-label="Đưa lên trước">←</button>
+                        <button type="button" className="col-span-2 min-h-9 font-medium hover:bg-zinc-100" onClick={() => openFrame(`gallery:${src}`, src, `Chỉnh ảnh album ${i + 1}`)}>Chỉnh ảnh</button>
+                        <button type="button" className="min-h-9 hover:bg-zinc-100 disabled:opacity-30" disabled={i === data.gallery.length - 1} onClick={() => moveIn("gallery", i, 1)} aria-label="Đưa ra sau">→</button>
+                        <button
+                          type="button"
+                          className="col-span-4 min-h-8 border-t border-zinc-100 text-red-600 hover:bg-red-50"
+                          onClick={() =>
+                            patch((d) => {
+                              const gallery = d.gallery.filter((_, j) => j !== i);
+                              return { ...d, gallery, frames: gallery.includes(src) ? d.frames : setFrame(d.frames, `gallery:${src}`, null) };
+                            })
+                          }
+                        >
+                          Xoá
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -585,12 +627,32 @@ export function Editor({ id, initial, templates, canUsePremium, musicLibrary }: 
               className="tf-pick relative min-h-0 flex-1 overflow-y-auto rounded-[2rem] border-8 border-zinc-900 bg-white shadow-2xl [transform:translateZ(0)]"
             >
               {tfSel && <style>{`.tf-pick [data-tf="${tfSel}"]{outline:2px dashed #e11d48;outline-offset:3px;border-radius:2px}`}</style>}
-              <InvitationView templateId={templateId} data={data} slug={slug} mode="preview" guestName="Khách mời" />
+              <InvitationView templateId={templateId} data={previewData} slug={slug} mode="preview" guestName="Khách mời" />
             </div>
           </div>
         </div>
       </div>
     </div>
+      {frameEdit && (
+        <InvitationFrameEditor
+          templateId={templateId}
+          data={data}
+          frameKey={frameEdit.key}
+          src={frameEdit.src}
+          title={frameEdit.title}
+          previewRef={previewRef}
+          onDraft={setFrameDraft}
+          onClose={() => {
+            setFrameEdit(null);
+            setFrameDraft(undefined);
+          }}
+          onApply={(f) => {
+            applyFrame(frameEdit.key, f);
+            setFrameEdit(null);
+            setFrameDraft(undefined);
+          }}
+        />
+      )}
     </FieldTypoContext.Provider>
   );
 }

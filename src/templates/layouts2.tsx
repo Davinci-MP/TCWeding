@@ -50,7 +50,7 @@ export function LuxeCouple({ tpl, data }: P) {
             <div className="relative overflow-hidden rounded-t-full border border-[var(--primary)]/50 p-1.5 @3xl:p-2.5">
               <div className="overflow-hidden rounded-t-full">
                 <Parallax speed={0.05}>
-                  <Img src={p.photo} alt={`${role} ${p.name}`} className="aspect-[3/5] w-full" />
+                  <Img fk={p === data.groom ? "groom.photo" : "bride.photo"} src={p.photo} alt={`${role} ${p.name}`} className="aspect-[3/5] w-full" />
                 </Parallax>
               </div>
             </div>
@@ -130,7 +130,7 @@ export function LuxeStory({ tpl, data }: P) {
         {data.story.map((st, i) => (
           <Reveal key={st.id} delay={i * 100} className="w-[78%] shrink-0 snap-center @2xl:w-[42%] @3xl:w-[32%]">
             <div className="overflow-hidden">
-              <Img src={st.photo} alt={st.title} className="aspect-[3/4] w-full transition duration-[1.4s] hover:scale-105" />
+              <Img fk={`story.${st.id}`} src={st.photo} alt={st.title} className="aspect-[3/4] w-full transition duration-[1.4s] hover:scale-105" />
             </div>
             <div className="mt-5 border-t border-[var(--primary)]/40 pt-5">
               <p className="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)]"><F f={`story.${st.id}.date`}>{st.date}</F></p>
@@ -155,7 +155,7 @@ export function ModernCouple({ tpl, data }: P) {
       <SectionTitle tpl={tpl} eyebrow="Bride & Groom" title="Hai đứa mình" />
       <div className="grid grid-cols-2 gap-3 @3xl:grid-cols-4 @3xl:grid-rows-[auto_auto] @3xl:gap-4">
         <Reveal className="col-span-2 row-span-2 overflow-hidden rounded-[1.75rem] @3xl:col-span-2">
-          <Img src={g.photo} alt={`Chú rể ${g.name}`} className="aspect-[4/5] h-full w-full" />
+          <Img fk="groom.photo" src={g.photo} alt={`Chú rể ${g.name}`} className="aspect-[4/5] h-full w-full" />
         </Reveal>
         <Reveal delay={100} className={`${tile} col-span-2 flex flex-col justify-between @3xl:col-span-2`}>
           <p className="text-xs font-semibold text-[var(--muted)]">Chú rể</p>
@@ -178,7 +178,7 @@ export function ModernCouple({ tpl, data }: P) {
           </div>
         </Reveal>
         <Reveal delay={300} className="col-span-2 overflow-hidden rounded-[1.75rem]">
-          <Img src={b.photo} alt={`Cô dâu ${b.name}`} className="aspect-[16/10] h-full w-full" />
+          <Img fk="bride.photo" src={b.photo} alt={`Cô dâu ${b.name}`} className="aspect-[16/10] h-full w-full" />
         </Reveal>
       </div>
     </Section>
@@ -235,7 +235,7 @@ export function ModernStory({ tpl, data }: P) {
             className="sticky grid overflow-hidden rounded-[2rem] bg-[var(--bg)] shadow-[0_-20px_40px_-30px_rgba(0,0,0,.35)] @2xl:grid-cols-2"
             style={{ top: `${1.5 + i * 1.25}rem` }}
           >
-            <Img src={st.photo} alt={st.title} className="aspect-[16/10] w-full @2xl:aspect-auto @2xl:h-full" />
+            <Img fk={`story.${st.id}`} src={st.photo} alt={st.title} className="aspect-[16/10] w-full @2xl:aspect-auto @2xl:h-full" />
             <div className="flex flex-col justify-center p-7 @3xl:p-12">
               <span className="w-fit rounded-full bg-[var(--accent)] px-3 py-1 text-xs font-semibold"><F f={`story.${st.id}.date`}>{st.date}</F></span>
               <h3 className="tpl-heading mt-4 text-3xl font-bold leading-tight tracking-tight @3xl:text-4xl"><F f={`story.${st.id}.title`}>{st.title}</F></h3>
@@ -269,7 +269,7 @@ export function JournalCouple({ tpl, data }: P) {
           <Reveal key={role} delay={i * 150} className={i ? "@2xl:mt-20" : ""}>
             <div className={`relative mx-auto w-[82%] bg-white p-3 pb-4 shadow-[0_12px_30px_-14px_rgba(0,0,0,.35)] ${i ? "rotate-2" : "-rotate-2"}`}>
               <Tape className="-top-3 left-1/2 -translate-x-1/2 rotate-[-4deg]" />
-              <Img src={p.photo} alt={`${role} ${p.name}`} className="aspect-[4/5] w-full" />
+              <Img fk={p === data.groom ? "groom.photo" : "bride.photo"} src={p.photo} alt={`${role} ${p.name}`} className="aspect-[4/5] w-full" />
               <p className="tpl-script mt-2 text-center text-2xl text-[var(--muted)]">{role.toLowerCase()} nè</p>
             </div>
             <div className={`relative mx-auto -mt-6 w-[76%] bg-[var(--surface)] px-5 py-4 shadow-md ${i ? "-rotate-1" : "rotate-1"}`}>
@@ -346,7 +346,7 @@ export function JournalStory({ tpl, data }: P) {
             <div className={`relative col-span-2 mx-auto w-[70%] bg-white p-2 shadow-md @2xl:col-span-1 @2xl:w-full ${i % 2 ? "rotate-3" : "-rotate-3"}`}>
               <Tape className="-top-2 -left-4 rotate-[-30deg] !w-16" />
               <Tape className="-bottom-2 -right-4 rotate-[-30deg] !w-16" />
-              <Img src={st.photo} alt={st.title} className="aspect-square w-full" />
+              <Img fk={`story.${st.id}`} src={st.photo} alt={st.title} className="aspect-square w-full" />
             </div>
           </Reveal>
         ))}
@@ -366,7 +366,7 @@ export function ZenCouple({ tpl, data }: P) {
           <Reveal key={role} variant="blur" className={`@3xl:w-[62%] ${i ? "@3xl:-mt-24 @3xl:ml-auto" : ""}`}>
             <div className={`flex items-end gap-5 @3xl:gap-8 ${i ? "flex-row-reverse" : ""}`}>
               <div className="w-[70%] shrink-0">
-                <Img src={p.photo} alt={`${role} ${p.name}`} className="aspect-[3/4] w-full" />
+                <Img fk={p === data.groom ? "groom.photo" : "bride.photo"} src={p.photo} alt={`${role} ${p.name}`} className="aspect-[3/4] w-full" />
               </div>
               <h3 className="tpl-heading pb-1 text-3xl font-light leading-none @3xl:text-5xl" style={{ writingMode: "vertical-rl" }}>
                 <F f={p === data.groom ? "groom.fullName" : "bride.fullName"}>{p.fullName || p.name}</F>
@@ -442,7 +442,7 @@ export function ZenStory({ tpl, data }: P) {
               <p className="shrink-0 text-[10px] uppercase tracking-[0.5em] text-[var(--primary)]" style={{ writingMode: "vertical-rl" }}>
                 <F f={`story.${st.id}.date`}>{st.date}</F>
               </p>
-              <Img src={st.photo} alt={st.title} className="aspect-[4/3] w-full" />
+              <Img fk={`story.${st.id}`} src={st.photo} alt={st.title} className="aspect-[4/3] w-full" />
             </div>
             <div className={`@3xl:col-span-4 ${i % 2 ? "@3xl:order-1 @3xl:col-start-1" : ""}`}>
               <h3 className="tpl-heading text-3xl font-light"><F f={`story.${st.id}.title`}>{st.title}</F></h3>

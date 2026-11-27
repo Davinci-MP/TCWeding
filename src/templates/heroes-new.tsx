@@ -10,11 +10,11 @@ type Props = { tpl: TemplateDef; data: InvitationData; guestName?: string };
 const d = (ms: number): CSSProperties => ({ animationDelay: `${ms}ms` });
 export const names = (data: InvitationData) => [data.groom.name || "Chú rể", data.bride.name || "Cô dâu"] as const;
 
-export function KenBurns({ src, className = "", position }: { src: string; className?: string; position?: string }) {
+export function KenBurns({ src, className = "", position, fk }: { src: string; className?: string; position?: string; fk?: string }) {
   return (
     <div className={`overflow-hidden ${className}`}>
       <div className="tpl-kenburns h-full w-full">
-        <Img src={src} alt="Ảnh cưới của cô dâu và chú rể" eager className="h-full w-full" position={position} />
+        <Img src={src} alt="Ảnh cưới của cô dâu và chú rể" eager className="h-full w-full" position={position} fk={fk} />
       </div>
     </div>
   );
@@ -47,7 +47,7 @@ export function CinemaHero({ data, guestName }: Props) {
     <header className="relative flex min-h-[var(--hero-h,100svh)] flex-col bg-black text-[var(--hero-text)]">
       <div className="h-[9svh] min-h-10 bg-black" aria-hidden />
       <div className="relative flex flex-1 items-center justify-center overflow-hidden">
-        <KenBurns src={data.coverPhoto} className="absolute inset-0 [filter:sepia(.25)_saturate(.7)_contrast(1.05)]" position={data.photoPos.cover} />
+        <KenBurns src={data.coverPhoto} className="absolute inset-0 [filter:sepia(.25)_saturate(.7)_contrast(1.05)]" fk="cover" position={data.photoPos.cover} />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,.75))]" aria-hidden />
         <div
           className="absolute inset-0 opacity-[.18] mix-blend-overlay"
@@ -104,7 +104,7 @@ export function MagazineHero({ data, guestName }: Props) {
   const lines = data.story.slice(0, 3).map((s) => s.title);
   return (
     <header className="relative min-h-[var(--hero-h,100svh)] overflow-hidden bg-[var(--hero-bg)] text-white">
-      <KenBurns src={data.coverPhoto} className="absolute inset-0" position={data.photoPos.cover} />
+      <KenBurns src={data.coverPhoto} className="absolute inset-0" fk="cover" position={data.photoPos.cover} />
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/75" aria-hidden />
       <div className="relative flex min-h-[var(--hero-h,100svh)] flex-col p-5 @3xl:p-10">
         <div className="tpl-rise flex justify-between text-[10px] font-semibold uppercase tracking-[0.3em]">
@@ -204,7 +204,7 @@ export function BlossomHero({ data, guestName }: Props) {
       <div className="relative mx-auto mt-8 h-64 w-64 @3xl:h-80 @3xl:w-80">
         <div className="absolute -inset-3 rounded-full border-2 border-[var(--primary)]/70" aria-hidden />
         <div className="absolute -inset-5 rounded-full border border-[var(--primary)]/30" aria-hidden />
-        <KenBurns src={data.coverPhoto} className="h-full w-full rounded-full" position={data.photoPos.cover} />
+        <KenBurns src={data.coverPhoto} className="h-full w-full rounded-full" fk="cover" position={data.photoPos.cover} />
       </div>
       <h1 className="tpl-script tpl-rise relative mt-10 text-6xl leading-tight text-[var(--primary)]" style={d(400)}>
         <F f="groom.name">{g}</F> <span className="text-4xl">&</span> <F f="bride.name">{b}</F>
@@ -247,7 +247,7 @@ export function WatercolorHero({ data, guestName }: Props) {
           aria-hidden
         />
         <div className="relative overflow-hidden shadow-xl" style={{ borderRadius: "52% 48% 46% 54% / 44% 50% 50% 56%" }}>
-          <KenBurns src={data.coverPhoto} className="aspect-[4/5] w-full" position={data.photoPos.cover} />
+          <KenBurns src={data.coverPhoto} className="aspect-[4/5] w-full" fk="cover" position={data.photoPos.cover} />
         </div>
       </div>
       <h1 className="tpl-script tpl-rise relative mt-10 text-7xl leading-[1.05] text-[var(--primary)] @3xl:text-8xl" style={d(400)}>

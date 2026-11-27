@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { FramedImg } from "@/components/FramedImg";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AlbumCard } from "@/components/studio/AlbumCard";
@@ -35,7 +36,7 @@ export default async function AlbumPage({ params }: Props) {
       <section className="relative isolate flex min-h-[72svh] items-end overflow-hidden bg-[#1d1a17] text-white">
         {album.cover && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={album.cover.url} alt="" fetchPriority="high" className="absolute inset-0 -z-10 h-full w-full object-cover" />
+          <FramedImg src={album.cover.url} frame={album.frames.hero} fetchPriority="high" className="absolute inset-0 -z-10 h-full w-full" />
         )}
         <div className="absolute inset-0 -z-10 bg-gradient-to-t from-[#1d1a17]/90 via-[#1d1a17]/40 to-[#1d1a17]/30" aria-hidden />
         <div className="mx-auto w-full max-w-6xl px-4 pb-12 pt-28 sm:pb-16">

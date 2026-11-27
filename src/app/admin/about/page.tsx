@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { saveAboutAction } from "@/app/actions/studio";
 import { ImageInput } from "@/components/admin/ImageInput";
+import { SITE_TARGETS } from "@/lib/frameTargets";
 import { getAbout } from "@/lib/about";
 
 export const metadata = { title: "Về tôi" };
@@ -56,7 +57,7 @@ export default async function AdminAbout({ searchParams }: { searchParams: Promi
           </div>
           <Area name="headline" label="Câu tiêu đề lớn" value={a.headline} max={200} rows={2} hint="Nên dưới 80 ký tự; câu dài tự thu nhỏ. Font và cỡ chữ chỉnh ở Nội dung trang chủ › Kiểu chữ." />
           <Area name="intro" label="Giới thiệu ngắn" value={a.intro} max={600} rows={3} />
-          <ImageInput name="photo" label="Ảnh chân dung" aspect="aspect-[4/5]" defaultValue={a.photo} hint="Ảnh dọc 4:5. Để trống: dùng một ảnh trong bộ sưu tập." />
+          <ImageInput name="photo" label="Ảnh chân dung" aspect="aspect-[4/5]" defaultValue={a.photo} frameName="frames.portrait" frame={a.frames.portrait ?? null} targets={SITE_TARGETS.portrait} hint="Ảnh dọc 4:5. Để trống: dùng một ảnh trong bộ sưu tập." />
           <div>
             <p className="text-sm font-medium">Con số nổi bật</p>
             <p className="text-xs text-zinc-500">Chỉ điền số thật. Ô nào thiếu số thì không hiện.</p>

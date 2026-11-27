@@ -1,13 +1,46 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { addAlbumPhotosAction, deleteAlbumPhotoAction, reorderAlbumPhotosAction, setAlbumCoverAction } from "@/app/actions/studio";
+import { addAlbumPhotosAction, deleteAlbumPhotoAction, reorderAlbumPhotosAction, setAlbumCoverAction, setAlbumFrameAction } from "@/app/actions/studio";
+import { FramedImg } from "@/components/FramedImg";
+import { FrameEditor, type FrameTarget } from "@/components/frame/FrameEditor";
+import { bookTarget, SITE_TARGETS } from "@/lib/frameTargets";
+import { setFrame, type FrameMap, type ImgFrame } from "@/lib/imageFrame";
 import { uploadPhoto } from "@/lib/resizeImage";
 
 type Photo = { id: string; url: string; width: number; height: number };
 
-/** Quản lý ảnh của album: tải nhiều ảnh cùng lúc, đặt ảnh bìa, đổi thứ tự, xoá. */
-export function AlbumPhotos({ albumId, photos, coverUrl }: { albumId: string; photos: Photo[]; coverUrl: string }) {
+type Edit = { key: string; src: string; title: string; targets: { desktop: FrameTarget; mobile: FrameTarget } };
+
+/**
+ * Quản lý ảnh của album: tải nhiều ảnh cùng lúc, đặt ảnh bìa, đổi thứ tự, xoá, chỉnh ảnh.
+ * Chỉnh ảnh lưu theo vị trí (Album.frames): bìa ở từng chỗ hiển thị, từng trang album mẫu theo id ảnh (đổi thứ tự không mất).
+ */
+export function AlbumPhotos({
+  albumId,
+  photos,
+  coverUrl,
+  kind = "COLLECTION",
+  ratio = 1,
+  frames: frames0 = {},
+}: {
+  albumId: string;
+  photos: Photo[];
+  coverUrl: string;
+  kind?: "COLLECTION" | "SAMPLE";
+  /** Tỉ lệ khổ album mẫu (rộng / cao). */
+  ratio?: number;
+  frames?: FrameMap;
+}) {
+  const [frames, setFrames] = useState<FrameMap>(frames0);
+  const [edit, setEdit] = useState<Edit | null>(null);
+  const sample = kind === "SAMPLE";
+  const applyFrame = (key: string, f: ImgFrame | null) => {
+    setFrames((m) => setFrame(m, key, f)); // hiện ngay, lưu ở server
+    start(async () => {
+      await setAlbumFrameAction(albumId, key, f);
+    });
+  };
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [pending, start] = useTransition();
@@ -112,6 +145,34 @@ export function AlbumPhotos({ albumId, photos, coverUrl }: { albumId: string; ph
         </div>
       )}
 
+      {cover && (
+        <div className="mt-5 flex flex-wrap items-center gap-3 rounded-xl border border-zinc-200 p-3 text-sm">
+          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={cover} alt="" className="h-full w-full object-cover" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-medium">Chỉnh ảnh bìa</p>
+            <p className="text-xs text-zinc-500">Mỗi chỗ hiển thị bìa có tỉ lệ khác nhau nên căn riêng từng chỗ. Đổi ảnh bìa thì cách căn bìa cũ được bỏ.</p>
+          </div>
+          {(sample
+            ? ([
+                ["tile", "Ô album mẫu ở trang chủ", SITE_TARGETS.sampleTile],
+                ["book", "Bìa sách (trang Ghép album)", bookTarget(ratio)],
+              ] as const)
+            : ([
+                ["card", "Thẻ album", SITE_TARGETS.albumCard],
+                ["hero", "Đầu trang album", SITE_TARGETS.albumHero],
+              ] as const)
+          ).map(([key, label, targets]) => (
+            <button key={key} type="button" className="btn btn-outline" onClick={() => setEdit({ key, src: cover, title: `Chỉnh ảnh bìa · ${label}`, targets })}>
+              {label}
+              {frames[key] ? " ✓" : ""}
+            </button>
+          ))}
+        </div>
+      )}
+
       {photos.length === 0 ? (
         <p className="mt-4 text-sm text-zinc-500">Album chưa có ảnh. Album không có ảnh sẽ không hiện ảnh bìa trên trang chủ.</p>
       ) : (
@@ -121,8 +182,12 @@ export function AlbumPhotos({ albumId, photos, coverUrl }: { albumId: string; ph
             return (
               <li key={p.id} className={`overflow-hidden rounded-lg border bg-white ${isCover ? "border-brand ring-2 ring-brand/30" : "border-zinc-200"}`}>
                 <div className="relative aspect-square bg-zinc-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  {sample ? (
+                    <FramedImg src={p.url} frame={frames[`page:${p.id}`]} loading="lazy" className="h-full w-full" />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={p.url} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  )}
                   <span className="absolute left-1.5 top-1.5 rounded bg-black/60 px-1.5 text-xs tabular-nums text-white">{i + 1}</span>
                   {isCover && <span className="absolute right-1.5 top-1.5 rounded bg-brand px-1.5 py-0.5 text-xs font-medium text-white">Ảnh bìa</span>}
                 </div>
@@ -134,8 +199,25 @@ export function AlbumPhotos({ albumId, photos, coverUrl }: { albumId: string; ph
                     →
                   </button>
                   {!isCover && (
-                    <button type="button" disabled={pending} onClick={() => start(() => setAlbumCoverAction(albumId, p.url))} className="whitespace-nowrap rounded px-2 py-1.5 hover:bg-zinc-100">
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => {
+                        setFrames((m) => ({ ...Object.fromEntries(Object.entries(m).filter(([k]) => k.startsWith("page:"))) }));
+                        start(() => setAlbumCoverAction(albumId, p.url));
+                      }}
+                      className="whitespace-nowrap rounded px-2 py-1.5 hover:bg-zinc-100"
+                    >
                       Làm bìa
+                    </button>
+                  )}
+                  {sample && (
+                    <button
+                      type="button"
+                      onClick={() => setEdit({ key: `page:${p.id}`, src: p.url, title: `Chỉnh trang ${i + 1}`, targets: bookTarget(ratio) })}
+                      className="whitespace-nowrap rounded px-2 py-1.5 hover:bg-zinc-100"
+                    >
+                      Chỉnh{frames[`page:${p.id}`] ? " ✓" : ""}
                     </button>
                   )}
                   <button
@@ -151,6 +233,22 @@ export function AlbumPhotos({ albumId, photos, coverUrl }: { albumId: string; ph
             );
           })}
         </ul>
+      )}
+      {!sample && photos.length > 0 && <p className="mt-3 text-xs text-zinc-500">Ảnh trong bộ sưu tập hiện đủ khung hình gốc (không cắt), nên chỉ cần chỉnh ảnh bìa.</p>}
+      {edit && (
+        <FrameEditor
+          src={edit.src}
+          title={edit.title}
+          value={frames[edit.key] ?? null}
+          desktop={edit.targets.desktop}
+          mobile={edit.targets.mobile}
+          note="Áp dụng là lưu ngay lên website."
+          onClose={() => setEdit(null)}
+          onApply={(f) => {
+            applyFrame(edit.key, f);
+            setEdit(null);
+          }}
+        />
       )}
     </div>
   );

@@ -14,11 +14,11 @@ type Props = { tpl: TemplateDef; data: InvitationData; guestName?: string };
 const d = (ms: number): CSSProperties => ({ animationDelay: `${ms}ms` });
 
 /** Ảnh nền phóng chậm (Ken Burns). */
-function KenBurns({ src, className = "", position }: { src: string; className?: string; position?: string }) {
+function KenBurns({ src, className = "", position, fk }: { src: string; className?: string; position?: string; fk?: string }) {
   return (
     <div className={`overflow-hidden ${className}`}>
       <div className="tpl-kenburns h-full w-full">
-        <Img src={src} alt="Ảnh cưới của cô dâu và chú rể" eager className="h-full w-full" position={position} />
+        <Img src={src} alt="Ảnh cưới của cô dâu và chú rể" eager className="h-full w-full" position={position} fk={fk} />
       </div>
     </div>
   );
@@ -94,7 +94,7 @@ function ArchWindowHero({ tpl, data, guestName }: Props) {
       <p className="tpl-rise text-[11px] uppercase tracking-[0.5em] text-[var(--primary)]"><F f="headline">{data.headline}</F></p>
       <div className="relative mx-auto mt-8 w-[78%] max-w-[420px]">
         <div className="absolute -inset-3 rounded-t-full border border-[var(--primary)]/50" aria-hidden />
-        <KenBurns src={data.coverPhoto} className="aspect-[3/4] rounded-t-full shadow-[0_40px_80px_-40px_rgba(60,40,20,.5)]" position={data.photoPos.cover} />
+        <KenBurns src={data.coverPhoto} className="aspect-[3/4] rounded-t-full shadow-[0_40px_80px_-40px_rgba(60,40,20,.5)]" fk="cover" position={data.photoPos.cover} />
       </div>
       {/* tên chồng lên mép ảnh: quầng màu nền giữ chữ đọc rõ khi tên dài đè lên phần ảnh tối */}
       <h1 className="relative -mt-14 [text-shadow:0_0_2px_var(--hero-bg),0_0_8px_var(--hero-bg),0_0_18px_var(--hero-bg),0_0_28px_var(--hero-bg)] @3xl:-mt-20">
@@ -128,7 +128,7 @@ function SongHyHero({ data, guestName }: Props) {
   const [g, b] = names(data);
   return (
     <header className="relative flex min-h-[var(--hero-h,100svh)] flex-col items-center justify-end overflow-hidden bg-[var(--hero-bg)] px-6 pb-14 pt-24 text-center text-[var(--hero-text)]">
-      <KenBurns src={data.coverPhoto} className="absolute inset-0" position={data.photoPos.cover} />
+      <KenBurns src={data.coverPhoto} className="absolute inset-0" fk="cover" position={data.photoPos.cover} />
       <div className="absolute inset-0 bg-gradient-to-b from-[#5c0710]/30 via-[#7a0b16]/55 to-[var(--hero-bg)]" aria-hidden />
       {/* góc hoa văn */}
       {["left-4 top-4", "right-4 top-4 rotate-90", "right-4 bottom-4 rotate-180", "left-4 bottom-4 -rotate-90"].map((c) => (
@@ -170,7 +170,7 @@ function EditorialHero({ data, guestName }: Props) {
   const [g, b] = names(data);
   return (
     <header className="relative min-h-[var(--hero-h,100svh)] overflow-hidden bg-[var(--hero-bg)] text-[var(--hero-text)]">
-      <KenBurns src={data.coverPhoto} className="absolute inset-0 grayscale" position={data.photoPos.cover} />
+      <KenBurns src={data.coverPhoto} className="absolute inset-0 grayscale" fk="cover" position={data.photoPos.cover} />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/10" aria-hidden />
       <div className="relative flex min-h-[var(--hero-h,100svh)] flex-col justify-between p-6 @3xl:p-12">
         <div className="tpl-rise flex items-start justify-between gap-4 border-b border-white/30 pb-4 text-[11px] uppercase tracking-[0.4em]">
@@ -231,7 +231,7 @@ function GardenHero({ data, guestName }: Props) {
       <p className="tpl-heading tpl-rise text-xl italic text-[var(--muted)]"><F f="headline">{data.headline}</F></p>
       <div className="relative mx-auto mt-8 h-[26rem] w-[17rem] @3xl:h-[30rem] @3xl:w-[20rem]">
         <div className="absolute -inset-3 rounded-[50%] border border-[var(--primary)]/40" aria-hidden />
-        <KenBurns src={data.coverPhoto} className="h-full w-full rounded-[50%] shadow-2xl" position={data.photoPos.cover} />
+        <KenBurns src={data.coverPhoto} className="h-full w-full rounded-[50%] shadow-2xl" fk="cover" position={data.photoPos.cover} />
       </div>
       <h1 className="tpl-script tpl-rise mt-8 text-6xl leading-tight text-[var(--primary)] @3xl:text-7xl" style={d(400)}>
         <F f="groom.name">{g}</F> <span className="text-4xl">&</span> <F f="bride.name">{b}</F>
@@ -253,7 +253,7 @@ function StarryHero({ data, guestName }: Props) {
   const [g, b] = names(data);
   return (
     <header className="relative flex min-h-[var(--hero-h,100svh)] flex-col items-center justify-center overflow-hidden bg-[var(--hero-bg)] px-6 py-20 text-center text-[var(--hero-text)]">
-      <KenBurns src={data.coverPhoto} className="absolute inset-0 opacity-60" position={data.photoPos.cover} />
+      <KenBurns src={data.coverPhoto} className="absolute inset-0 opacity-60" fk="cover" position={data.photoPos.cover} />
       <div className="tpl-stars absolute inset-0 bg-gradient-to-b from-[var(--hero-bg)]/70 via-[var(--hero-bg)]/40 to-[var(--hero-bg)]" aria-hidden />
       <div className="absolute right-10 top-12 h-14 w-14 rounded-full shadow-[inset_-12px_4px_0_0_var(--primary)]" aria-hidden />
       <div className="relative">
@@ -284,7 +284,7 @@ function SplitHero({ tpl, data, guestName }: Props) {
   const [g, b] = names(data);
   return (
     <header className="grid bg-[var(--hero-bg)] text-[var(--hero-text)] @3xl:min-h-[var(--hero-h,100svh)] @3xl:grid-cols-2">
-      <KenBurns src={data.coverPhoto} className="h-[68svh] rounded-b-[3rem] @3xl:h-auto @3xl:rounded-none" position={data.photoPos.cover} />
+      <KenBurns src={data.coverPhoto} className="h-[68svh] rounded-b-[3rem] @3xl:h-auto @3xl:rounded-none" fk="cover" position={data.photoPos.cover} />
       <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
         <p className="tpl-rise text-[11px] uppercase tracking-[0.45em] text-[var(--muted)]"><F f="headline">{data.headline}</F></p>
         <h1 className="mt-6">
@@ -326,7 +326,7 @@ function PostcardHero({ data, guestName }: Props) {
       >
         <div className="relative bg-[var(--surface)] p-6 @3xl:p-10">
           <div className="absolute right-5 top-5 rotate-3 border-2 border-dashed border-[var(--muted)]/60 bg-[var(--surface)] p-1">
-            <Img src={data.coverPhoto} alt="" className="h-20 w-16 sepia-[.4]" position={data.photoPos.cover} />
+            <Img src={data.coverPhoto} alt="" className="h-20 w-16 sepia-[.4]" fk="cover" position={data.photoPos.cover} />
           </div>
           {date && (
             <div data-tf="weddingDate" className="absolute right-16 top-20 flex h-20 w-20 -rotate-12 flex-col items-center justify-center rounded-full border-2 border-[var(--primary)]/70 text-[var(--primary)]">
@@ -339,7 +339,7 @@ function PostcardHero({ data, guestName }: Props) {
           )}
           <p className="tpl-heading pr-28 text-xs uppercase tracking-[0.35em] text-[var(--muted)]">Post card · <F f="headline">{data.headline}</F></p>
           <div className="mt-10 grid gap-8 @3xl:grid-cols-[1.1fr_1px_1fr]">
-            <KenBurns src={data.coverPhoto} className="aspect-[4/5] sepia-[.2]" position={data.photoPos.cover} />
+            <KenBurns src={data.coverPhoto} className="aspect-[4/5] sepia-[.2]" fk="cover" position={data.photoPos.cover} />
             <div className="hidden bg-[var(--muted)]/30 @3xl:block" />
             <div className="flex flex-col justify-center">
               <h1 className="tpl-script tpl-rise text-6xl leading-tight text-[var(--primary)]" style={d(400)}>
@@ -381,7 +381,7 @@ function LotusHero({ data, guestName }: Props) {
       <p className="tpl-heading tpl-rise mt-2 text-xl italic opacity-90"><F f="headline">{data.headline}</F></p>
       <div className="relative mx-auto mt-8 w-[74%] max-w-[380px]">
         <div className="absolute -inset-2.5 rounded-t-full border border-[var(--accent)]/70" aria-hidden />
-        <KenBurns src={data.coverPhoto} className="aspect-[3/4] rounded-t-full" position={data.photoPos.cover} />
+        <KenBurns src={data.coverPhoto} className="aspect-[3/4] rounded-t-full" fk="cover" position={data.photoPos.cover} />
       </div>
       <h1 className="tpl-script tpl-rise mt-8 text-6xl leading-tight text-[var(--accent)]" style={d(400)}>
         <F f="groom.name">{g}</F> <span className="text-4xl">&</span> <F f="bride.name">{b}</F>
@@ -407,7 +407,7 @@ function WaveHero({ data, guestName }: Props) {
   const [g, b] = names(data);
   return (
     <header className="relative min-h-[var(--hero-h,100svh)] overflow-hidden text-center text-white">
-      <KenBurns src={data.coverPhoto} className="absolute inset-0" position={data.photoPos.cover} />
+      <KenBurns src={data.coverPhoto} className="absolute inset-0" fk="cover" position={data.photoPos.cover} />
       {/* phủ cả giữa ảnh: tên chữ trắng không chìm vào nền trời sáng */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#0d3a4d]/55 via-[#0d3a4d]/30 to-[#0d3a4d]/60" aria-hidden />
       <div className="relative flex min-h-[var(--hero-h,100svh)] flex-col items-center justify-center px-6 pb-32">
@@ -459,7 +459,7 @@ function DecoHero({ data, guestName }: Props) {
         <p className="tpl-rise text-[11px] uppercase tracking-[0.55em] text-[var(--primary)]"><F f="headline">{data.headline}</F></p>
         <div className="tpl-rise mx-auto my-9 h-80 w-56 bg-[var(--primary)] p-[3px]" style={{ ...d(150), clipPath: OCTA }}>
           <div className="h-full w-full" style={{ clipPath: OCTA }}>
-            <KenBurns src={data.coverPhoto} className="h-full w-full" position={data.photoPos.cover} />
+            <KenBurns src={data.coverPhoto} className="h-full w-full" fk="cover" position={data.photoPos.cover} />
           </div>
         </div>
         <h1 className="tpl-heading">

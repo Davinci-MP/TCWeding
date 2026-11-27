@@ -468,3 +468,41 @@ html[data-fullview] [data-site-chrome] {
     background-position: 50% 0;
   }
 }
+
+/* ---- Khung ảnh căn thủ công (src/lib/imageFrame.ts) ----
+   Đặt trong @layer components để lớp tiện ích của khung (absolute, inset-0, aspect-*, rounded-*…) vẫn thắng. */
+@layer components {
+  .tcw-frame {
+    position: relative;
+    display: block;
+    overflow: hidden;
+  }
+  .tcw-frame > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: var(--ffit, cover);
+    object-position: var(--fx, 50%) var(--fy, 50%);
+    transform: scale(var(--fz, 1));
+    transform-origin: var(--fx, 50%) var(--fy, 50%);
+  }
+  /* căn riêng trên điện thoại: thiệp theo bề ngang khung thiệp (.tpl-root là container), website theo màn hình */
+  @container (max-width: 639px) {
+    .tcw-frame[data-m="c"] > img {
+      object-fit: var(--mfit, cover);
+      object-position: var(--mx, 50%) var(--my, 50%);
+      transform: scale(var(--mz, 1));
+      transform-origin: var(--mx, 50%) var(--my, 50%);
+    }
+  }
+  @media (max-width: 767px) {
+    .tcw-frame[data-m="v"] > img {
+      object-fit: var(--mfit, cover);
+      object-position: var(--mx, 50%) var(--my, 50%);
+      transform: scale(var(--mz, 1));
+      transform-origin: var(--mx, 50%) var(--my, 50%);
+    }
+  }
+}

@@ -2,6 +2,7 @@
 
 import { cleanFieldStyles, type FieldStyles } from "./fieldTypo";
 import { findBank, VN_BANKS } from "./vnBanks";
+import { cleanFrames, type FrameMap } from "./imageFrame";
 
 export type Person = {
   name: string; // tên gọi ngắn hiển thị lớn, vd "Minh Anh"
@@ -98,6 +99,11 @@ export type InvitationData = {
   textScale: number;
   /** Kiểu chữ riêng từng ô (ID ô → font/cỡ chữ), ưu tiên hơn kiểu chữ chung ở trên. Xem src/lib/fieldTypo.ts. */
   fieldStyles: FieldStyles;
+  /**
+   * Cách căn ảnh thủ công theo vị trí (src/lib/imageFrame.ts): "cover", "feature", "thanks", "groom.photo", "bride.photo",
+   * "story.<id>", "gallery:<url>". Vị trí chưa có → hiển thị như cũ (photoPos cho ảnh nền).
+   */
+  frames: FrameMap;
 };
 
 export const NAME_SCALE_RANGE = { min: 0.6, max: 1.4 } as const;
@@ -191,6 +197,7 @@ export function defaultInvitationData(): InvitationData {
     nameScale: 1,
     textScale: 1,
     fieldStyles: {},
+    frames: {},
     closingText: "Cảm ơn bạn rất nhiều vì đã gửi những lời chúc mừng tốt đẹp nhất đến đám cưới của chúng tôi!",
   };
 }
@@ -225,6 +232,7 @@ export function parseInvitationData(json: string | null | undefined): Invitation
       nameScale: clampNum(raw.nameScale ?? 1, NAME_SCALE_RANGE.min, NAME_SCALE_RANGE.max),
       textScale: clampNum(raw.textScale ?? 1, TEXT_SCALE_RANGE.min, TEXT_SCALE_RANGE.max),
       fieldStyles: cleanFieldStyles(raw.fieldStyles),
+      frames: cleanFrames(raw.frames),
     };
   } catch {
     return base;
